@@ -1,0 +1,112 @@
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Eye } from "lucide-react";
+import { TailoredResumeView } from "@/components/TailoredResumeView";
+
+interface JobHistoryProps {
+  userId: string;
+}
+
+export const JobHistory = ({ userId }: JobHistoryProps) => {
+  const [history, setHistory] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedVersion, setSelectedVersion] = useState<any>(null);
+  const [originalData, setOriginalData] = useState<any>(null);
+
+  useEffect(() => {
+    fetchHistory();
+  }, [userId]);
+
+  const fetchHistory = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("tailored_resumes")
+      .select(`
+        *,
+        job_descriptions (description),
+        resumes (parsed_data)
+      `)
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
+
+    if (data) {
+      setHistory(data);
+    }
+    setLoading(false);
+  };
+
+  const handleView = (version: any) => {
+    setSelectedVersion(version);
+    setOriginalData(version.resumes?.parsed_data || null);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (selectedVersion) {
+    return (
+      <div className="space-y-6">
+        <Button variant="outline" onClick={() => setSelectedVersion(null)}>
+          ← Back to History
+        </Button>
+
+        <Card className="p-6">
+          <h3 className="text-xl font-semibold mb-2">Job Description</h3>
+          <p className="text-sm text-muted-foreground">
+            {selectedVersion.job_descriptions?.description || "No job description saved"}
+          </p>
+        </Card>
+
+        <TailoredResumeView
+          originalData={originalData}
+          tailoredData={selectedVersion.tailored_data}
+          changesSummary={[]}
+          skillMatches={[]}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-2xl font-bold">Past Applications</h2>
+      
+      {history.length === 0 ? (
+        <Card className="p-8 text-center">
+          <p className="text-muted-foreground">
+            No past applications yet. Start applying to jobs to see your history here.
+          </p>
+        </Card>
+      ) : (
+        history.map((item) => (
+          <Card key={item.id} className="p-6">
+            <div className="flex justify-between items-start">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <Badge variant="outline">
+                    {new Date(item.created_at).toLocaleDateString()}
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground line-clamp-2">
+                  {item.job_descriptions?.description || "No job description"}
+                </p>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => handleView(item)}>
+                <Eye className="w-4 h-4 mr-2" />
+                View
+              </Button>
+            </div>
+          </Card>
+        ))
+      )}
+    </div>
+  );
+};
