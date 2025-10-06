@@ -46,7 +46,7 @@ export const ResumePreview = ({ data }: ResumePreviewProps) => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4 bg-white text-black" style={{ pageBreakInside: 'avoid' }}>
+    <div className="max-w-4xl mx-auto px-4 pt-2 pb-4 bg-white text-black" style={{ pageBreakInside: 'avoid' }}>
       {/* Header Section */}
       <div className="text-center mb-3">
         <h1 className="text-2xl font-bold uppercase mb-1">{data.name}</h1>
