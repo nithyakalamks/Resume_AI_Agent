@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Sparkles, Download } from "lucide-react";
 import { TailoredResumeView } from "@/components/TailoredResumeView";
 import html2pdf from "html2pdf.js";
+import { createPrintableCoverLetter } from "@/utils/pdfHelpers";
 
 interface JobApplicationProps {
   userId: string;
@@ -112,18 +113,46 @@ export const JobApplication = ({ userId, currentResumeId }: JobApplicationProps)
   const handleDownloadCoverLetter = async () => {
     setDownloadingCover(true);
     try {
-      const coverElement = document.getElementById('cover-letter-content');
-      if (!coverElement) throw new Error('Cover letter content not found');
+      if (!coverLetter || !tailoredData?.name) {
+        throw new Error('Cover letter or name not available');
+      }
+
+      const filename = `${tailoredData.name.replace(/\s+/g, '_')}_Cover_Letter.pdf`;
+      const printableHTML = createPrintableCoverLetter(coverLetter, tailoredData.name);
 
       const opt = {
-        margin: 10,
-        filename: `${tailoredData.name.replace(/\s+/g, '_')}_Cover_Letter.pdf`,
-        image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+        margin: [20, 20, 20, 20] as [number, number, number, number],
+        filename,
+        image: { type: 'jpeg' as const, quality: 1 },
+        html2canvas: { 
+          scale: 2,
+          useCORS: true,
+          letterRendering: true,
+          logging: false
+        },
+        jsPDF: { 
+          unit: 'mm', 
+          format: 'a4', 
+          orientation: 'portrait' as const
+        }
       };
 
-      await html2pdf().set(opt).from(coverElement).save();
+      const temp = document.createElement('div');
+      temp.innerHTML = printableHTML;
+      temp.style.position = 'fixed';
+      temp.style.top = '0';
+      temp.style.left = '0';
+      temp.style.width = '210mm';
+      temp.style.zIndex = '-1000';
+      temp.style.opacity = '0';
+      document.body.appendChild(temp);
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      await html2pdf().set(opt).from(temp).save();
+      
+      document.body.removeChild(temp);
+
       toast({ title: "Cover letter downloaded successfully" });
     } catch (error: any) {
       console.error('Download error:', error);

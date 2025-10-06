@@ -32,7 +32,7 @@ export const JobHistory = ({ userId }: JobHistoryProps) => {
         filename,
         image: { type: 'jpeg' as const, quality: 1 },
         html2canvas: { 
-          scale: 3,
+          scale: 2,
           useCORS: true,
           letterRendering: true,
           logging: false
@@ -40,19 +40,24 @@ export const JobHistory = ({ userId }: JobHistoryProps) => {
         jsPDF: { 
           unit: 'mm', 
           format: 'a4', 
-          orientation: 'portrait' as const,
-          compress: true
-        },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+          orientation: 'portrait' as const
+        }
       };
 
       const temp = document.createElement('div');
       temp.innerHTML = printableHTML;
-      temp.style.position = 'absolute';
-      temp.style.left = '-9999px';
+      temp.style.position = 'fixed';
+      temp.style.top = '0';
+      temp.style.left = '0';
+      temp.style.width = '210mm';
+      temp.style.zIndex = '-1000';
+      temp.style.opacity = '0';
       document.body.appendChild(temp);
 
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       await html2pdf().set(opt).from(temp).save();
+      
       document.body.removeChild(temp);
 
       toast({ title: "Cover letter downloaded successfully" });
