@@ -201,6 +201,14 @@ const ResumeContent = ({
     return "bg-muted text-muted-foreground border-border";
   };
 
+  const getLinkLabel = (url: string): string => {
+    const lowerUrl = url.toLowerCase();
+    if (lowerUrl.includes('github.com')) return 'GitHub';
+    if (lowerUrl.includes('gitlab.com')) return 'GitLab';
+    if (lowerUrl.includes('bitbucket.org')) return 'Bitbucket';
+    return 'Portfolio';
+  };
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -218,6 +226,24 @@ const ResumeContent = ({
             <a href={data.linkedin} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
               LinkedIn
             </a>
+          )}
+          {(data as any).other_links && (
+            <>
+              {(data as any).other_links.split(',').map((link: string, idx: number) => {
+                const trimmedLink = link.trim();
+                return (
+                  <a 
+                    key={idx}
+                    href={trimmedLink} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-primary hover:underline"
+                  >
+                    {getLinkLabel(trimmedLink)}
+                  </a>
+                );
+              })}
+            </>
           )}
         </div>
       </div>

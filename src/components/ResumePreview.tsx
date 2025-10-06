@@ -45,6 +45,14 @@ export const ResumePreview = ({ data }: ResumePreviewProps) => {
     return month ? `${months[parseInt(month) - 1]} ${year}` : year;
   };
 
+  const getLinkLabel = (url: string): string => {
+    const lowerUrl = url.toLowerCase();
+    if (lowerUrl.includes('github.com')) return 'GitHub';
+    if (lowerUrl.includes('gitlab.com')) return 'GitLab';
+    if (lowerUrl.includes('bitbucket.org')) return 'Bitbucket';
+    return 'Portfolio';
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-4 pt-2 pb-4 bg-white text-black" style={{ pageBreakInside: 'avoid' }}>
       {/* Header Section */}
@@ -64,12 +72,17 @@ export const ResumePreview = ({ data }: ResumePreviewProps) => {
               <a href={data.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">LinkedIn</a>
             </>
           )}
-          {data.other_links && (
-            <>
-              {(data.phone || data.email || data.linkedin) && <span>⋄</span>}
-              <a href={data.other_links} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Portfolio</a>
-            </>
-          )}
+          {data.other_links && data.other_links.split(',').map((link: string, idx: number) => {
+            const trimmedLink = link.trim();
+            return (
+              <span key={idx}>
+                {(data.phone || data.email || data.linkedin || idx > 0) && <span>⋄</span>}
+                <a href={trimmedLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  {getLinkLabel(trimmedLink)}
+                </a>
+              </span>
+            );
+          })}
         </div>
       </div>
 
