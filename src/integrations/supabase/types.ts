@@ -78,6 +78,7 @@ export type Database = {
       }
       tailored_resumes: {
         Row: {
+          changes_summary: Json | null
           cover_letter: string | null
           created_at: string | null
           html_preview: string | null
@@ -85,10 +86,12 @@ export type Database = {
           job_description_id: string | null
           pdf_path: string | null
           resume_id: string | null
+          skill_matches: Json | null
           tailored_data: Json
           user_id: string | null
         }
         Insert: {
+          changes_summary?: Json | null
           cover_letter?: string | null
           created_at?: string | null
           html_preview?: string | null
@@ -96,10 +99,12 @@ export type Database = {
           job_description_id?: string | null
           pdf_path?: string | null
           resume_id?: string | null
+          skill_matches?: Json | null
           tailored_data: Json
           user_id?: string | null
         }
         Update: {
+          changes_summary?: Json | null
           cover_letter?: string | null
           created_at?: string | null
           html_preview?: string | null
@@ -107,6 +112,7 @@ export type Database = {
           job_description_id?: string | null
           pdf_path?: string | null
           resume_id?: string | null
+          skill_matches?: Json | null
           tailored_data?: Json
           user_id?: string | null
         }

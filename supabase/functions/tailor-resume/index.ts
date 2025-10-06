@@ -265,6 +265,8 @@ ${jobDescription}`;
         job_description_id: jobDescRecord.id,
         tailored_data: tailoredResult.tailored_data,
         cover_letter: coverLetter,
+        changes_summary: tailoredResult.changes_summary,
+        skill_matches: tailoredResult.skill_matches,
       })
       .select()
       .single();
