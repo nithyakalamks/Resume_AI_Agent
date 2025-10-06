@@ -282,7 +282,7 @@ const ResumeContent = ({
         <div>
           <h2 className="text-2xl font-bold mb-4 text-primary">Education</h2>
           <div className="space-y-4">
-            {data.education.map((edu: any, idx) => (
+            {data.education.filter((edu: any) => edu && edu.degree).map((edu: any, idx) => (
               <div key={idx}>
                 <h3 className="text-lg font-semibold">{edu.degree}</h3>
                 <p className="text-muted-foreground">{edu.institution}</p>
@@ -300,7 +300,7 @@ const ResumeContent = ({
         <div>
           <h2 className="text-2xl font-bold mb-4 text-primary">Certifications</h2>
           <ul className="space-y-2">
-            {data.certifications.map((cert: any, idx) => (
+            {data.certifications.filter((cert: any) => cert && cert.name).map((cert: any, idx) => (
               <li key={idx} className="flex items-start gap-2">
                 <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                 <div>
