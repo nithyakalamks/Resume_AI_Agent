@@ -195,12 +195,6 @@ const ResumeContent = ({
   formatDate: (date?: string) => string;
   showRelevance: boolean;
 }) => {
-  const getRelevanceBadgeColor = (relevance: number) => {
-    if (relevance >= 0.8) return "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20";
-    if (relevance >= 0.5) return "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20";
-    return "bg-muted text-muted-foreground border-border";
-  };
-
   const getLinkLabel = (url: string): string => {
     const lowerUrl = url.toLowerCase();
     if (lowerUrl.includes('github.com')) return 'GitHub';
@@ -210,207 +204,209 @@ const ResumeContent = ({
   };
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="border-b border-border pb-6">
-        <h1 className="text-4xl font-bold mb-2">{data.name}</h1>
-        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-          {data.email && (
-            <a href={`mailto:${data.email}`} className="text-primary hover:underline">
-              {data.email}
-            </a>
-          )}
+    <div className="max-w-4xl mx-auto px-4 pt-2 pb-4 bg-white text-black" style={{ pageBreakInside: 'avoid' }}>
+      {/* Header Section */}
+      <div className="text-center mb-3">
+        <h1 className="text-2xl font-bold uppercase mb-1">{data.name}</h1>
+        <div className="text-sm flex items-center justify-center gap-2 flex-wrap">
           {data.phone && <span>{data.phone}</span>}
-          {data.location && <span>{data.location}</span>}
+          {data.email && (
+            <>
+              {data.phone && <span>⋄</span>}
+              <a href={`mailto:${data.email}`} className="text-blue-600 hover:underline">{data.email}</a>
+            </>
+          )}
           {data.linkedin && (
-            <a href={data.linkedin} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-              LinkedIn
-            </a>
+            <>
+              {(data.phone || data.email) && <span>⋄</span>}
+              <a href={data.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">LinkedIn</a>
+            </>
           )}
           {(data as any).other_links && (data as any).other_links.split(',').map((link: string, idx: number) => {
             const trimmedLink = link.trim();
             return (
-              <a 
-                key={idx}
-                href={trimmedLink} 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="text-primary hover:underline"
-              >
-                {getLinkLabel(trimmedLink)}
-              </a>
+              <>
+                {(data.phone || data.email || data.linkedin || idx > 0) && <span key={`sep-${idx}`}>⋄</span>}
+                <a 
+                  key={idx}
+                  href={trimmedLink} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-blue-600 hover:underline"
+                >
+                  {getLinkLabel(trimmedLink)}
+                </a>
+              </>
             );
           })}
         </div>
       </div>
 
-      {/* Summary */}
+      {/* Summary Section */}
       {data.summary && (
-        <div>
-          <h2 className="text-2xl font-bold mb-3 text-primary">Professional Summary</h2>
-          <p className="text-foreground/90 leading-relaxed">{data.summary}</p>
-        </div>
-      )}
-
-      {/* Skills */}
-      {data.skills && Array.isArray(data.skills) && data.skills.length > 0 && (
-        <div>
-          <h2 className="text-2xl font-bold mb-3 text-primary">Skills</h2>
-          {(() => {
-            // Group skills by category
-            const categorized = data.skills.reduce((acc: any, skillItem: any) => {
-              const category = skillItem.category || 'Other';
-              if (!acc[category]) acc[category] = [];
-              acc[category].push(skillItem);
-              return acc;
-            }, {});
-
-            // Define order of categories
-            const categoryOrder = [
-              "Programming Languages",
-              "Frameworks & Libraries", 
-              "Technologies & Tools",
-              "Databases",
-              "Cloud & DevOps",
-              "Soft Skills",
-              "Other"
-            ];
-
-            return categoryOrder
-              .filter(cat => categorized[cat] && categorized[cat].length > 0)
-              .map((category, catIdx) => (
-                <div key={catIdx} className="mb-4">
-                  <h3 className="text-sm font-semibold text-muted-foreground mb-2">{category}</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {categorized[category].map((skillItem: any, idx: number) => (
-                      <Badge 
-                        key={idx}
-                        variant="outline" 
-                        className={showRelevance && skillItem.relevance !== undefined 
-                          ? getRelevanceBadgeColor(skillItem.relevance)
-                          : ""}
-                      >
-                        {skillItem.skill}
-                        {showRelevance && skillItem.relevance !== undefined && (
-                          <span className="ml-2 text-xs opacity-70">
-                            {(skillItem.relevance * 100).toFixed(0)}%
-                          </span>
-                        )}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              ));
-          })()}
-        </div>
-      )}
-
-      {/* Experience */}
-      {data.experience && Array.isArray(data.experience) && data.experience.length > 0 && (
-        <div>
-          <h2 className="text-2xl font-bold mb-4 text-primary">Experience</h2>
-          <div className="space-y-6">
-            {data.experience.map((exp, idx) => (
-              <div key={idx} className="relative pl-6 border-l-2 border-primary/20">
-                {showRelevance && exp.relevance !== undefined && exp.relevance >= 0.7 && (
-                  <div className="absolute -left-2 top-0">
-                    <ArrowUp className="w-4 h-4 text-primary" />
-                  </div>
-                )}
-                <div className="mb-2">
-                  <h3 className="text-xl font-semibold flex items-center gap-2">
-                    {exp.title}
-                    {showRelevance && exp.relevance !== undefined && (
-                      <Badge className={getRelevanceBadgeColor(exp.relevance)}>
-                        {(exp.relevance * 100).toFixed(0)}% match
-                      </Badge>
-                    )}
-                  </h3>
-                  <div className="text-muted-foreground">
-                    <span className="font-medium">{exp.company}</span>
-                    {exp.location && <span> • {exp.location}</span>}
-                  </div>
-                  {exp.start_date && (
-                    <p className="text-sm text-muted-foreground">
-                      {formatDate(exp.start_date)} - {formatDate(exp.end_date)}
-                    </p>
-                  )}
-                </div>
-                <ul className="list-disc list-inside space-y-1 text-foreground/90">
-                  {Array.isArray(exp.description) && exp.description.map((item, i) => (
-                    <li key={i} className="leading-relaxed">{item}</li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+        <>
+          <hr className="border-t border-black my-2" />
+          <div className="mb-3">
+            <h2 className="text-base font-bold uppercase mb-1">
+              Professional Summary
+            </h2>
+            <p className="text-sm leading-relaxed">{data.summary}</p>
           </div>
-        </div>
+        </>
       )}
 
-      {/* Projects */}
-      {data.projects && Array.isArray(data.projects) && data.projects.length > 0 && (
-        <div>
-          <h2 className="text-2xl font-bold mb-4 text-primary">Projects</h2>
-          <div className="space-y-4">
-            {data.projects.map((project, idx) => (
-              <div key={idx} className="p-4 rounded-lg bg-muted/50">
-                <h3 className="text-lg font-semibold flex items-center gap-2 mb-2">
-                  {project.name}
-                  {showRelevance && project.relevance !== undefined && (
-                    <Badge className={getRelevanceBadgeColor(project.relevance)}>
-                      {(project.relevance * 100).toFixed(0)}% relevant
-                    </Badge>
-                  )}
-                </h3>
-                <p className="text-foreground/90 mb-2">{project.description}</p>
-                {project.technologies && Array.isArray(project.technologies) && project.technologies.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {project.technologies.map((tech, i) => (
-                      <Badge key={i} variant="secondary">{tech}</Badge>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Education */}
+      {/* Education Section */}
       {data.education && Array.isArray(data.education) && data.education.length > 0 && (
-        <div>
-          <h2 className="text-2xl font-bold mb-4 text-primary">Education</h2>
-          <div className="space-y-4">
-            {data.education.filter((edu: any) => edu && edu.degree).map((edu: any, idx) => (
-              <div key={idx}>
-                <h3 className="text-lg font-semibold">{edu.degree}</h3>
-                <p className="text-muted-foreground">{edu.institution}</p>
-                {edu.graduation_date && (
-                  <p className="text-sm text-muted-foreground">{formatDate(edu.graduation_date)}</p>
-                )}
-              </div>
-            ))}
+        <>
+          <hr className="border-t border-black my-2" />
+          <div className="mb-3">
+            <h2 className="text-base font-bold uppercase mb-1">
+              Education
+            </h2>
+            <div className="space-y-2">
+              {data.education.filter((edu: any) => edu && edu.degree).map((edu: any, idx) => (
+                <div key={idx} className="flex justify-between items-start">
+                  <div className="text-sm">
+                    <span className="font-semibold">{edu.degree}</span>
+                    {edu.field && <span>, {edu.field}</span>}
+                    <span> - {edu.institution}</span>
+                  </div>
+                  {edu.graduation_date && (
+                    <span className="text-sm whitespace-nowrap">{formatDate(edu.graduation_date)}</span>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        </>
       )}
 
-      {/* Certifications */}
-      {data.certifications && Array.isArray(data.certifications) && data.certifications.length > 0 && (
-        <div>
-          <h2 className="text-2xl font-bold mb-4 text-primary">Certifications</h2>
-          <ul className="space-y-2">
-            {data.certifications.filter((cert: any) => cert && cert.name).map((cert: any, idx) => (
-              <li key={idx} className="flex items-start gap-2">
-                <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-medium">{cert.name}</p>
-                  {cert.issuer && <p className="text-sm text-muted-foreground">{cert.issuer}</p>}
-                  {cert.date && <p className="text-sm text-muted-foreground">{formatDate(cert.date)}</p>}
+      {/* Experience Section */}
+      {data.experience && Array.isArray(data.experience) && data.experience.length > 0 && (
+        <>
+          <hr className="border-t border-black my-2" />
+          <div className="mb-3">
+            <h2 className="text-base font-bold uppercase mb-1">
+              Experience
+            </h2>
+            <div className="space-y-3">
+              {data.experience.map((exp, idx) => (
+                <div key={idx} style={{ pageBreakInside: 'avoid' }}>
+                  <div className="flex justify-between items-start mb-1">
+                    <h3 className="text-sm font-bold">{exp.company} - {exp.title}</h3>
+                    <span className="text-sm whitespace-nowrap">
+                      {formatDate(exp.start_date)} - {formatDate(exp.end_date) || "Present"}
+                    </span>
+                  </div>
+                  {Array.isArray(exp.description) && exp.description.length > 0 && (
+                    <ul className="space-y-0.5 text-sm">
+                      {exp.description.map((bullet, bulletIdx) => (
+                        <li key={bulletIdx} className="leading-relaxed flex">
+                          <span className="mr-1.5">-</span>
+                          <span className="flex-1">{bullet}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
-              </li>
-            ))}
-          </ul>
-        </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Projects Section */}
+      {data.projects && Array.isArray(data.projects) && data.projects.length > 0 && (
+        <>
+          <hr className="border-t border-black my-2" />
+          <div className="mb-3">
+            <h2 className="text-base font-bold uppercase mb-1">
+              Projects
+            </h2>
+            <div className="space-y-3">
+              {data.projects.map((project, idx) => (
+                <div key={idx} style={{ pageBreakInside: 'avoid' }}>
+                  <div className="flex justify-between items-start mb-1">
+                    <h3 className="text-sm font-bold">{project.name}</h3>
+                    {project.technologies && Array.isArray(project.technologies) && project.technologies.length > 0 && (
+                      <span className="text-sm italic">{project.technologies.join(", ")}</span>
+                    )}
+                  </div>
+                  <p className="text-sm leading-relaxed">{project.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Skills Section */}
+      {data.skills && Array.isArray(data.skills) && data.skills.length > 0 && (
+        <>
+          <hr className="border-t border-black my-2" />
+          <div className="mb-3">
+            <h2 className="text-base font-bold uppercase mb-1">
+              Skills
+            </h2>
+            {(() => {
+              // Group skills by category
+              const categorized = data.skills.reduce((acc: any, skill: any) => {
+                const category = skill.category || 'Other';
+                if (!acc[category]) acc[category] = [];
+                acc[category].push(skill);
+                return acc;
+              }, {});
+
+              // Define order of categories
+              const categoryOrder = [
+                "Programming Languages",
+                "Frameworks & Libraries", 
+                "Technologies & Tools",
+                "Databases",
+                "Cloud & DevOps",
+                "Soft Skills",
+                "Other"
+              ];
+
+              return categoryOrder
+                .filter(cat => categorized[cat] && categorized[cat].length > 0)
+                .map((category, idx) => (
+                  <div key={idx} className="mb-2">
+                    <span className="text-sm font-semibold">{category}: </span>
+                    <span className="text-sm">
+                      {categorized[category]
+                        .sort((a: any, b: any) => b.confidence - a.confidence)
+                        .map((s: any) => s.skill)
+                        .join(", ")}
+                    </span>
+                  </div>
+                ));
+            })()}
+          </div>
+        </>
+      )}
+
+      {/* Certifications Section */}
+      {data.certifications && Array.isArray(data.certifications) && data.certifications.length > 0 && (
+        <>
+          <hr className="border-t border-black my-2" />
+          <div className="mb-3">
+            <h2 className="text-base font-bold uppercase mb-1">
+              Certifications and Achievements
+            </h2>
+            <ul className="space-y-0.5 text-sm">
+              {data.certifications.filter((cert: any) => cert && cert.name).map((cert: any, idx) => (
+                <li key={idx} className="leading-relaxed flex">
+                  <span className="mr-1.5">-</span>
+                  <span className="flex-1">
+                    <span className="font-semibold">{cert.name}</span> - {cert.issuer}
+                    {cert.date && <span className="text-sm"> ({formatDate(cert.date)})</span>}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </>
       )}
     </div>
   );
