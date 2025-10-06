@@ -29,6 +29,8 @@ export const ResumeManager = ({ userId, onResumeChange }: ResumeManagerProps) =>
       const userName = resumeData.name || 'User';
       const filename = `${userName.replace(/\s+/g, '_')}_Resume.pdf`;
 
+      console.log('Invoking PDF generation for:', filename);
+      
       const { data: pdfBlob, error } = await supabase.functions.invoke('generate-resume-pdf', {
         body: { 
           type: 'resume',
