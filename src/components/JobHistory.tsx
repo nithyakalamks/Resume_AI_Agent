@@ -20,6 +20,42 @@ export const JobHistory = ({ userId }: JobHistoryProps) => {
   const [downloadingCover, setDownloadingCover] = useState(false);
   const { toast } = useToast();
 
+  const extractJobDetails = (description: string) => {
+    if (!description) return { title: 'Unknown Position', company: 'Unknown Company' };
+    
+    // Try to extract company and role from common patterns
+    const lines = description.split('\n').filter(line => line.trim());
+    const firstLine = lines[0] || '';
+    
+    // Common patterns: "Company Name - Job Title", "Job Title at Company Name", etc.
+    let title = 'Unknown Position';
+    let company = 'Unknown Company';
+    
+    // Pattern 1: "Role at Company" or "Role @ Company"
+    const atPattern = firstLine.match(/^(.+?)\s+(?:at|@)\s+(.+?)$/i);
+    if (atPattern) {
+      title = atPattern[1].trim();
+      company = atPattern[2].trim();
+    }
+    // Pattern 2: "Company - Role" or "Company: Role"
+    else if (firstLine.match(/[-:]/)) {
+      const parts = firstLine.split(/[-:]/);
+      if (parts.length >= 2) {
+        company = parts[0].trim();
+        title = parts[1].trim();
+      }
+    }
+    // Pattern 3: Just use first line as title and try second line as company
+    else {
+      title = firstLine.substring(0, 60);
+      if (lines[1]) {
+        company = lines[1].substring(0, 40);
+      }
+    }
+    
+    return { title, company };
+  };
+
   const handleDownloadCoverLetter = async () => {
     if (!selectedVersion?.cover_letter) return;
     
@@ -136,26 +172,28 @@ export const JobHistory = ({ userId }: JobHistoryProps) => {
           </p>
         </Card>
       ) : (
-        history.map((item) => (
-          <Card key={item.id} className="p-6">
-            <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <Badge variant="outline">
-                    {new Date(item.created_at).toLocaleDateString()}
-                  </Badge>
+        history.map((item) => {
+          const jobDetails = extractJobDetails(item.job_descriptions?.description || '');
+          return (
+            <Card key={item.id} className="p-6">
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold mb-1">{jobDetails.title}</h3>
+                  <p className="text-sm text-muted-foreground mb-2">{jobDetails.company}</p>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline">
+                      {new Date(item.created_at).toLocaleDateString()}
+                    </Badge>
+                  </div>
                 </div>
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {item.job_descriptions?.description || "No job description"}
-                </p>
+                <Button variant="outline" size="sm" onClick={() => handleView(item)}>
+                  <Eye className="w-4 h-4 mr-2" />
+                  View
+                </Button>
               </div>
-              <Button variant="outline" size="sm" onClick={() => handleView(item)}>
-                <Eye className="w-4 h-4 mr-2" />
-                View
-              </Button>
-            </div>
-          </Card>
-        ))
+            </Card>
+          );
+        })
       )}
     </div>
   );
