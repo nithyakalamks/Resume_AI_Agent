@@ -1,5 +1,4 @@
-import { Mail, Phone, Linkedin, Link2, Calendar } from "lucide-react";
-import { Card } from "@/components/ui/card";
+// No imports needed for simple template
 
 interface ResumeData {
   name: string;
@@ -47,99 +46,62 @@ export const ResumePreview = ({ data }: ResumePreviewProps) => {
   };
 
   return (
-    <Card className="max-w-4xl mx-auto p-8 bg-background shadow-lg">
+    <div className="max-w-4xl mx-auto p-8 bg-white text-black">
       {/* Header Section */}
-      <div className="border-b border-border pb-6 mb-6">
-        <h1 className="text-4xl font-bold text-foreground mb-3">{data.name}</h1>
-        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-          {data.email && (
-            <div className="flex items-center gap-2">
-              <Mail className="w-4 h-4" />
-              <a href={`mailto:${data.email}`} className="hover:text-primary transition-colors">
-                {data.email}
-              </a>
-            </div>
-          )}
-          {data.phone && (
-            <div className="flex items-center gap-2">
-              <Phone className="w-4 h-4" />
-              <span>{data.phone}</span>
-            </div>
-          )}
-          {data.linkedin && (
-            <div className="flex items-center gap-2">
-              <Linkedin className="w-4 h-4" />
-              <a href={data.linkedin} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
-                LinkedIn
-              </a>
-            </div>
-          )}
-          {data.other_links && (
-            <div className="flex items-center gap-2">
-              <Link2 className="w-4 h-4" />
-              <a href={data.other_links} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
-                Portfolio
-              </a>
-            </div>
-          )}
+      <div className="text-center mb-6">
+        <h1 className="text-2xl font-bold uppercase mb-2">{data.name}</h1>
+        <div className="text-sm">
+          {[
+            data.phone,
+            data.email,
+            data.linkedin && "LinkedIn",
+            data.other_links && "Portfolio"
+          ].filter(Boolean).join(" ⋄ ")}
         </div>
       </div>
 
       {/* Summary Section */}
       {data.summary && (
         <div className="mb-6">
-          <h2 className="text-xl font-semibold text-foreground mb-3 uppercase tracking-wide border-b border-border pb-2">
+          <h2 className="text-base font-bold uppercase mb-2">
             Professional Summary
           </h2>
-          <p className="text-muted-foreground leading-relaxed">{data.summary}</p>
+          <p className="text-sm leading-relaxed">{data.summary}</p>
         </div>
       )}
 
       {/* Skills Section */}
       {data.skills && data.skills.length > 0 && (
         <div className="mb-6">
-          <h2 className="text-xl font-semibold text-foreground mb-3 uppercase tracking-wide border-b border-border pb-2">
+          <h2 className="text-base font-bold uppercase mb-2">
             Skills
           </h2>
-          <div className="flex flex-wrap gap-2">
+          <p className="text-sm">
             {data.skills
               .sort((a, b) => b.confidence - a.confidence)
-              .map((skill, idx) => (
-                <span
-                  key={idx}
-                  className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium"
-                  title={`Confidence: ${Math.round(skill.confidence * 100)}%`}
-                >
-                  {skill.skill}
-                </span>
-              ))}
-          </div>
+              .map(skill => skill.skill)
+              .join(", ")}
+          </p>
         </div>
       )}
 
       {/* Experience Section */}
       {data.experience && data.experience.length > 0 && (
         <div className="mb-6">
-          <h2 className="text-xl font-semibold text-foreground mb-3 uppercase tracking-wide border-b border-border pb-2">
-            Professional Experience
+          <h2 className="text-base font-bold uppercase mb-2">
+            Experience
           </h2>
-          <div className="space-y-6">
+          <div className="space-y-4">
             {data.experience.map((exp, idx) => (
               <div key={idx}>
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h3 className="text-lg font-semibold text-foreground">{exp.title}</h3>
-                    <p className="text-primary font-medium">{exp.company}</p>
-                  </div>
-                  <div className="flex items-center gap-1 text-sm text-muted-foreground whitespace-nowrap">
-                    <Calendar className="w-4 h-4" />
-                    <span>
-                      {formatDate(exp.start)} - {formatDate(exp.end || "Present")}
-                    </span>
-                  </div>
+                <div className="flex justify-between items-start mb-1">
+                  <h3 className="text-sm font-bold">{exp.company} - {exp.title}</h3>
+                  <span className="text-sm whitespace-nowrap">
+                    {formatDate(exp.start)} - {formatDate(exp.end || "Present")}
+                  </span>
                 </div>
                 {exp.bullets && exp.bullets.length > 0 && (
-                  <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-2">
+                  <ul className="list-disc list-inside space-y-1 text-sm ml-2">
                     {exp.bullets.map((bullet, bulletIdx) => (
                       <li key={bulletIdx} className="leading-relaxed">
                         {bullet}
@@ -156,22 +118,20 @@ export const ResumePreview = ({ data }: ResumePreviewProps) => {
       {/* Education Section */}
       {data.education && data.education.length > 0 && (
         <div className="mb-6">
-          <h2 className="text-xl font-semibold text-foreground mb-3 uppercase tracking-wide border-b border-border pb-2">
+          <h2 className="text-base font-bold uppercase mb-2">
             Education
           </h2>
-          <div className="space-y-4">
+          <div className="space-y-2">
             {data.education.map((edu, idx) => (
-              <div key={idx}>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="text-lg font-semibold text-foreground">{edu.degree}</h3>
-                    {edu.field && <p className="text-muted-foreground">{edu.field}</p>}
-                    <p className="text-primary font-medium">{edu.institution}</p>
-                  </div>
-                  {edu.graduation_date && (
-                    <span className="text-sm text-muted-foreground">{formatDate(edu.graduation_date)}</span>
-                  )}
+              <div key={idx} className="flex justify-between items-start">
+                <div className="text-sm">
+                  <span className="font-semibold">{edu.degree}</span>
+                  {edu.field && <span>, {edu.field}</span>}
+                  <span> - {edu.institution}</span>
                 </div>
+                {edu.graduation_date && (
+                  <span className="text-sm whitespace-nowrap">{formatDate(edu.graduation_date)}</span>
+                )}
               </div>
             ))}
           </div>
@@ -181,23 +141,19 @@ export const ResumePreview = ({ data }: ResumePreviewProps) => {
       {/* Projects Section */}
       {data.projects && data.projects.length > 0 && (
         <div className="mb-6">
-          <h2 className="text-xl font-semibold text-foreground mb-3 uppercase tracking-wide border-b border-border pb-2">
+          <h2 className="text-base font-bold uppercase mb-2">
             Projects
           </h2>
-          <div className="space-y-4">
+          <div className="space-y-3">
             {data.projects.map((project, idx) => (
               <div key={idx}>
-                <h3 className="text-lg font-semibold text-foreground mb-1">{project.name}</h3>
-                <p className="text-muted-foreground mb-2">{project.description}</p>
-                {project.technologies && project.technologies.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {project.technologies.map((tech, techIdx) => (
-                      <span key={techIdx} className="px-2 py-1 bg-muted text-foreground text-xs rounded">
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                <div className="flex justify-between items-start mb-1">
+                  <h3 className="text-sm font-bold">{project.name}</h3>
+                  {project.technologies && project.technologies.length > 0 && (
+                    <span className="text-sm italic">{project.technologies.join(", ")}</span>
+                  )}
+                </div>
+                <p className="text-sm leading-relaxed">{project.description}</p>
               </div>
             ))}
           </div>
@@ -207,22 +163,19 @@ export const ResumePreview = ({ data }: ResumePreviewProps) => {
       {/* Certifications Section */}
       {data.certifications && data.certifications.length > 0 && (
         <div className="mb-6">
-          <h2 className="text-xl font-semibold text-foreground mb-3 uppercase tracking-wide border-b border-border pb-2">
-            Certifications
+          <h2 className="text-base font-bold uppercase mb-2">
+            Certifications and Achievements
           </h2>
-          <div className="space-y-3">
+          <ul className="list-disc list-inside space-y-1 text-sm ml-2">
             {data.certifications.map((cert, idx) => (
-              <div key={idx}>
-                <h3 className="text-lg font-semibold text-foreground">{cert.name}</h3>
-                <div className="flex justify-between items-center">
-                  <p className="text-primary">{cert.issuer}</p>
-                  {cert.date && <span className="text-sm text-muted-foreground">{formatDate(cert.date)}</span>}
-                </div>
-              </div>
+              <li key={idx} className="leading-relaxed">
+                <span className="font-semibold">{cert.name}</span> - {cert.issuer}
+                {cert.date && <span className="text-sm"> ({formatDate(cert.date)})</span>}
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
       )}
-    </Card>
+    </div>
   );
 };
