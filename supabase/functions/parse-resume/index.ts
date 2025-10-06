@@ -50,8 +50,9 @@ serve(async (req) => {
     const arrayBuffer = await fileData.arrayBuffer();
     console.log('PDF file size:', arrayBuffer.byteLength, 'bytes');
     
-    // Extract text from PDF using unpdf
+    // Extract text and links from PDF using unpdf
     let rawText = '';
+    const extractedLinks: string[] = [];
     try {
       const pdf = await getDocumentProxy(new Uint8Array(arrayBuffer));
       const numPages = pdf.numPages;
@@ -59,12 +60,34 @@ serve(async (req) => {
       
       for (let i = 1; i <= numPages; i++) {
         const page = await pdf.getPage(i);
+        
+        // Extract text content
         const textContent = await page.getTextContent();
         const pageText = textContent.items.map((item: any) => item.str).join(' ');
         rawText += pageText + '\n\n';
+        
+        // Extract annotations (hyperlinks)
+        try {
+          const annotations = await page.getAnnotations();
+          for (const annotation of annotations) {
+            if (annotation.subtype === 'Link' && annotation.url) {
+              extractedLinks.push(annotation.url);
+            }
+          }
+        } catch (annotError) {
+          console.log('Could not extract annotations from page', i);
+        }
       }
       
+      // Extract URLs from text using regex
+      const urlRegex = /https?:\/\/[^\s]+/g;
+      const textUrls = rawText.match(urlRegex) || [];
+      extractedLinks.push(...textUrls);
+      
+      // Deduplicate links
+      const uniqueLinks = [...new Set(extractedLinks)];
       console.log('Extracted text length:', rawText.length, 'characters');
+      console.log('Extracted links:', uniqueLinks.length, 'URLs');
     } catch (pdfError) {
       console.error('PDF parsing error:', pdfError);
       throw new Error('Failed to parse PDF file. Please ensure it is a valid PDF.');
@@ -90,6 +113,7 @@ serve(async (req) => {
             linkedin: { type: "string", description: "LinkedIn profile URL" },
             other_links: { type: "string", description: "Other professional links (GitHub, portfolio, etc.)" },
             summary: { type: "string", description: "Professional summary or objective (2-3 sentences)" },
+            extracted_links: { type: "array", items: { type: "string" }, description: "All URLs extracted from the resume" },
             skills: {
               type: "array",
               description: "List of skills categorized by type with confidence scores",
@@ -186,11 +210,11 @@ serve(async (req) => {
           messages: [
             {
               role: "system",
-              content: "You are an expert resume parser. Extract all information from the resume text and structure it according to the provided schema. For skills: 1) Assign confidence scores based on: explicit mentions (0.9-1.0), years of experience (0.7-0.9), or casual mentions (0.5-0.7). 2) Categorize each skill into one of: 'Programming Languages' (Python, Java, JavaScript, TypeScript, etc.), 'Frameworks & Libraries' (React, Node.js, Spring Boot, etc.), 'Technologies & Tools' (Git, Docker, Latex, etc.), 'Databases' (MySQL, MongoDB, PostgreSQL, etc.), 'Cloud & DevOps' (AWS, CI/CD, GitHub Actions, etc.), 'Soft Skills' (Agile Methodologies, Team Leadership, etc.), or 'Other'. Parse dates into YYYY-MM format. Track raw_text_span character indices for each experience section."
+              content: "You are an expert resume parser. Extract all information from the resume text and structure it according to the provided schema. For skills: 1) Assign confidence scores based on: explicit mentions (0.9-1.0), years of experience (0.7-0.9), or casual mentions (0.5-0.7). 2) Categorize each skill into one of: 'Programming Languages' (Python, Java, JavaScript, TypeScript, etc.), 'Frameworks & Libraries' (React, Node.js, Spring Boot, etc.), 'Technologies & Tools' (Git, Docker, Latex, etc.), 'Databases' (MySQL, MongoDB, PostgreSQL, etc.), 'Cloud & DevOps' (AWS, CI/CD, GitHub Actions, etc.), 'Soft Skills' (Agile Methodologies, Team Leadership, etc.), or 'Other'. Parse dates into YYYY-MM format. Track raw_text_span character indices for each experience section. IMPORTANT: Use the extracted_links list to populate linkedin and other_links fields. Match links to their appropriate fields based on domain (linkedin.com for linkedin, github.com/personal sites for other_links)."
             },
             {
               role: "user",
-              content: `Parse this resume:\n\n${rawText}`
+              content: `Parse this resume:\n\nExtracted Links: ${JSON.stringify([...new Set(extractedLinks)])}\n\nResume Text:\n${rawText}`
             }
           ],
           tools: [parseResumeTool],
