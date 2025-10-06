@@ -5,8 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowUp, ArrowRight, CheckCircle2, TrendingUp, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
-import html2pdf from "html2pdf.js";
-import { createPrintableResume } from "@/utils/pdfHelpers";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Skill {
   skill: string;
@@ -80,40 +79,25 @@ export const TailoredResumeView = ({
     setDownloading(true);
     try {
       const filename = `${tailoredData.name.replace(/\s+/g, '_')}_Resume.pdf`;
-      const printableHTML = createPrintableResume(tailoredData, formatDate);
 
-      const opt = {
-        margin: [15, 15, 15, 15] as [number, number, number, number],
-        filename,
-        image: { type: 'jpeg' as const, quality: 1 },
-        html2canvas: { 
-          scale: 2,
-          useCORS: true,
-          letterRendering: true,
-          logging: false
-        },
-        jsPDF: { 
-          unit: 'mm', 
-          format: 'a4', 
-          orientation: 'portrait' as const
+      const { data: pdfBlob, error } = await supabase.functions.invoke('generate-resume-pdf', {
+        body: { 
+          type: 'resume',
+          data: tailoredData,
+          name: filename
         }
-      };
+      });
 
-      const temp = document.createElement('div');
-      temp.innerHTML = printableHTML;
-      temp.style.position = 'fixed';
-      temp.style.top = '0';
-      temp.style.left = '0';
-      temp.style.width = '210mm';
-      temp.style.zIndex = '-1000';
-      temp.style.opacity = '0';
-      document.body.appendChild(temp);
+      if (error) throw error;
 
-      await new Promise(resolve => setTimeout(resolve, 100));
-
-      await html2pdf().set(opt).from(temp).save();
-      
-      document.body.removeChild(temp);
+      const url = window.URL.createObjectURL(new Blob([pdfBlob]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
 
       toast({ title: "Resume downloaded successfully" });
     } catch (error: any) {

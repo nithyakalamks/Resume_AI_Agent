@@ -5,3 +5,6 @@ verify_jwt = true
 
 [functions.tailor-resume]
 verify_jwt = true
+
+[functions.generate-resume-pdf]
+verify_jwt = true
