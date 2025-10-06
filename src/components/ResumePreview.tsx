@@ -50,13 +50,26 @@ export const ResumePreview = ({ data }: ResumePreviewProps) => {
       {/* Header Section */}
       <div className="text-center mb-3">
         <h1 className="text-2xl font-bold uppercase mb-1">{data.name}</h1>
-        <div className="text-sm">
-          {[
-            data.phone,
-            data.email,
-            data.linkedin && "LinkedIn",
-            data.other_links && "Portfolio"
-          ].filter(Boolean).join(" ⋄ ")}
+        <div className="text-sm flex items-center justify-center gap-2 flex-wrap">
+          {data.phone && <span>{data.phone}</span>}
+          {data.email && (
+            <>
+              {data.phone && <span>⋄</span>}
+              <a href={`mailto:${data.email}`} className="text-blue-600 hover:underline">{data.email}</a>
+            </>
+          )}
+          {data.linkedin && (
+            <>
+              {(data.phone || data.email) && <span>⋄</span>}
+              <a href={data.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">LinkedIn</a>
+            </>
+          )}
+          {data.other_links && (
+            <>
+              {(data.phone || data.email || data.linkedin) && <span>⋄</span>}
+              <a href={data.other_links} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Portfolio</a>
+            </>
+          )}
         </div>
       </div>
 

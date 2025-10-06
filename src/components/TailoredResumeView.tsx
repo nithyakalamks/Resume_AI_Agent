@@ -207,10 +207,18 @@ const ResumeContent = ({
       <div className="border-b border-border pb-6">
         <h1 className="text-4xl font-bold mb-2">{data.name}</h1>
         <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-          {data.email && <span>{data.email}</span>}
+          {data.email && (
+            <a href={`mailto:${data.email}`} className="text-primary hover:underline">
+              {data.email}
+            </a>
+          )}
           {data.phone && <span>{data.phone}</span>}
           {data.location && <span>{data.location}</span>}
-          {data.linkedin && <span>{data.linkedin}</span>}
+          {data.linkedin && (
+            <a href={data.linkedin} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+              LinkedIn
+            </a>
+          )}
         </div>
       </div>
 
