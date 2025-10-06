@@ -7,30 +7,34 @@ const corsHeaders = {
 };
 
 interface ResumeData {
-  header?: {
-    name?: string;
-    email?: string;
-    phone?: string;
-    location?: string;
-    linkedin?: string;
-    github?: string;
-  };
+  name?: string;
+  email?: string;
+  phone?: string;
+  location?: string;
+  linkedin?: string;
+  github?: string;
+  other_links?: string;
   summary?: string;
-  skills?: Array<{ name: string; relevance?: number }>;
+  skills?: Array<{ skill?: string; name?: string; confidence?: number; relevance?: number }>;
   experience?: Array<{
     title?: string;
     company?: string;
     location?: string;
-    startDate?: string;
-    endDate?: string;
-    description?: string;
+    start?: string;
+    end?: string;
+    start_date?: string;
+    end_date?: string;
+    bullets?: string[];
+    description?: string[] | string;
     achievements?: string[];
     relevance?: number;
   }>;
   education?: Array<{
     degree?: string;
+    field?: string;
     institution?: string;
     location?: string;
+    graduation_date?: string;
     graduationDate?: string;
     gpa?: string;
   }>;
@@ -39,6 +43,7 @@ interface ResumeData {
     description?: string;
     technologies?: string[];
     link?: string;
+    relevance?: number;
   }>;
   certifications?: Array<{
     name?: string;
@@ -96,20 +101,24 @@ function generateResumePDF(doc: any, data: ResumeData) {
   const margin = 20;
   const pageWidth = 170;
   
+  console.log('Generating PDF with data:', JSON.stringify(data, null, 2));
+  
   // Header
-  if (data.header) {
+  if (data.name) {
     doc.setFontSize(24);
     doc.setFont('helvetica', 'bold');
-    doc.text(data.header.name || '', margin, yPos);
+    doc.text(data.name || '', margin, yPos);
     yPos += 10;
     
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    const contactInfo = [data.header.email, data.header.phone, data.header.location].filter(Boolean).join(' | ');
-    doc.text(contactInfo, margin, yPos);
-    yPos += 5;
+    const contactInfo = [data.email, data.phone, data.location].filter(Boolean).join(' | ');
+    if (contactInfo) {
+      doc.text(contactInfo, margin, yPos);
+      yPos += 5;
+    }
     
-    const links = [data.header.linkedin, data.header.github].filter(Boolean).join(' | ');
+    const links = [data.linkedin, data.github, data.other_links].filter(Boolean).join(' | ');
     if (links) {
       doc.text(links, margin, yPos);
       yPos += 5;
@@ -147,7 +156,7 @@ function generateResumePDF(doc: any, data: ResumeData) {
     
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    const skillText = data.skills.map((s) => s.name).join(' • ');
+    const skillText = data.skills.map((s) => s.skill || s.name || '').filter(Boolean).join(' • ');
     const skillLines = doc.splitTextToSize(skillText, pageWidth);
     doc.text(skillLines, margin, yPos);
     yPos += skillLines.length * 5 + 5;
@@ -178,18 +187,25 @@ function generateResumePDF(doc: any, data: ResumeData) {
       
       doc.setFontSize(10);
       doc.setFont('helvetica', 'italic');
-      doc.text(`${exp.company || ''} | ${exp.location || ''}`, margin, yPos);
-      yPos += 5;
-      
-      if (exp.startDate) {
-        doc.setFont('helvetica', 'normal');
-        doc.text(`${exp.startDate} - ${exp.endDate || 'Present'}`, margin, yPos);
+      const companyText = [exp.company, exp.location].filter(Boolean).join(' | ');
+      if (companyText) {
+        doc.text(companyText, margin, yPos);
         yPos += 5;
       }
       
-      if (exp.achievements && exp.achievements.length > 0) {
+      const startDate = exp.start || exp.start_date;
+      const endDate = exp.end || exp.end_date;
+      if (startDate) {
         doc.setFont('helvetica', 'normal');
-        exp.achievements.forEach((desc: string) => {
+        doc.text(`${startDate} - ${endDate || 'Present'}`, margin, yPos);
+        yPos += 5;
+      }
+      
+      // Handle different description formats
+      const bullets = exp.bullets || (Array.isArray(exp.description) ? exp.description : []) || exp.achievements || [];
+      if (bullets.length > 0) {
+        doc.setFont('helvetica', 'normal');
+        bullets.forEach((desc: string) => {
           if (yPos > 270) {
             doc.addPage();
             yPos = 20;
@@ -198,6 +214,10 @@ function generateResumePDF(doc: any, data: ResumeData) {
           doc.text(descLines, margin + 5, yPos);
           yPos += descLines.length * 5;
         });
+      } else if (typeof exp.description === 'string' && exp.description) {
+        const descLines = doc.splitTextToSize(exp.description, pageWidth - 5);
+        doc.text(descLines, margin, yPos);
+        yPos += descLines.length * 5;
       }
       
       yPos += 5;
@@ -229,11 +249,21 @@ function generateResumePDF(doc: any, data: ResumeData) {
       
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
-      doc.text(`${edu.institution || ''} | ${edu.location || ''}`, margin, yPos);
-      yPos += 5;
       
-      if (edu.graduationDate) {
-        doc.text(edu.graduationDate, margin, yPos);
+      if (edu.field) {
+        doc.text(edu.field, margin, yPos);
+        yPos += 5;
+      }
+      
+      const eduLocation = [edu.institution, edu.location].filter(Boolean).join(' | ');
+      if (eduLocation) {
+        doc.text(eduLocation, margin, yPos);
+        yPos += 5;
+      }
+      
+      const gradDate = edu.graduation_date || edu.graduationDate;
+      if (gradDate) {
+        doc.text(gradDate, margin, yPos);
         yPos += 5;
       }
       
