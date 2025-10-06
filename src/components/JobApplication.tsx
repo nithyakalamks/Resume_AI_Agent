@@ -71,21 +71,29 @@ export const JobApplication = ({ userId, currentResumeId }: JobApplicationProps)
       setSkillMatches(functionData.skill_matches || []);
       setCoverLetter(functionData.cover_letter || "");
 
+      // Insert job description first to get its ID
+      const { data: jobDescData, error: jobDescError } = await supabase
+        .from("job_descriptions")
+        .insert({
+          user_id: userId,
+          resume_id: currentResumeId,
+          description: jobDescription,
+        })
+        .select()
+        .single();
+
+      if (jobDescError) throw jobDescError;
+
+      // Insert tailored resume with job_description_id
       const { error: insertError } = await supabase.from("tailored_resumes").insert({
         user_id: userId,
         resume_id: currentResumeId,
+        job_description_id: jobDescData.id,
         tailored_data: functionData.tailored_data,
+        cover_letter: functionData.cover_letter,
       });
 
       if (insertError) throw insertError;
-
-      const { error: jobDescError } = await supabase.from("job_descriptions").insert({
-        user_id: userId,
-        resume_id: currentResumeId,
-        description: jobDescription,
-      });
-
-      if (jobDescError) throw jobDescError;
 
       toast({
         title: "Resume tailored successfully",
@@ -109,7 +117,7 @@ export const JobApplication = ({ userId, currentResumeId }: JobApplicationProps)
 
       const opt = {
         margin: 10,
-        filename: `${tailoredData.name.replace(/\s+/g, '_')}_cover_letter.pdf`,
+        filename: `${tailoredData.name.replace(/\s+/g, '_')}_Cover_Letter.pdf`,
         image: { type: 'jpeg' as const, quality: 0.98 },
         html2canvas: { scale: 2 },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }

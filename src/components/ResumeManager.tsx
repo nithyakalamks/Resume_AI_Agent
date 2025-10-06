@@ -3,8 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Eye, Pencil } from "lucide-react";
+import { Upload, Eye, Pencil, Download } from "lucide-react";
 import { ResumePreview } from "@/components/ResumePreview";
+import html2pdf from "html2pdf.js";
 
 interface ResumeManagerProps {
   userId: string;
@@ -16,7 +17,39 @@ export const ResumeManager = ({ userId, onResumeChange }: ResumeManagerProps) =>
   const [uploading, setUploading] = useState(false);
   const [currentResume, setCurrentResume] = useState<any>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const { toast } = useToast();
+
+  const handleDownloadPDF = async () => {
+    if (!currentResume?.parsed_data) return;
+    
+    setDownloading(true);
+    try {
+      const resumeElement = document.getElementById('original-resume-content');
+      if (!resumeElement) throw new Error('Resume content not found');
+
+      const userName = currentResume.parsed_data.name || 'User';
+      const opt = {
+        margin: 10,
+        filename: `${userName.replace(/\s+/g, '_')}_Resume.pdf`,
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+      };
+
+      await html2pdf().set(opt).from(resumeElement).save();
+      toast({ title: "Resume downloaded successfully" });
+    } catch (error: any) {
+      console.error('Download error:', error);
+      toast({
+        title: "Download failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   useEffect(() => {
     fetchCurrentResume();
@@ -183,6 +216,14 @@ export const ResumeManager = ({ userId, onResumeChange }: ResumeManagerProps) =>
                   <Eye className="w-4 h-4 mr-2" />
                   {showPreview ? "Hide" : "Preview"}
                 </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleDownloadPDF}
+                  disabled={downloading || !currentResume?.parsed_data}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  {downloading ? "Generating..." : "Download PDF"}
+                </Button>
                 <label>
                   <Button variant="outline" asChild>
                     <span>
@@ -213,7 +254,9 @@ export const ResumeManager = ({ userId, onResumeChange }: ResumeManagerProps) =>
           )}
 
           {showPreview && currentResume.parsed_data && (
-            <ResumePreview data={currentResume.parsed_data} />
+            <div id="original-resume-content">
+              <ResumePreview data={currentResume.parsed_data} />
+            </div>
           )}
         </div>
       )}

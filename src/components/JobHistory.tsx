@@ -3,8 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Eye } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Eye, Download } from "lucide-react";
 import { TailoredResumeView } from "@/components/TailoredResumeView";
+import html2pdf from "html2pdf.js";
 
 interface JobHistoryProps {
   userId: string;
@@ -15,6 +17,39 @@ export const JobHistory = ({ userId }: JobHistoryProps) => {
   const [loading, setLoading] = useState(true);
   const [selectedVersion, setSelectedVersion] = useState<any>(null);
   const [originalData, setOriginalData] = useState<any>(null);
+  const [downloadingCover, setDownloadingCover] = useState(false);
+  const { toast } = useToast();
+
+  const handleDownloadCoverLetter = async () => {
+    if (!selectedVersion?.cover_letter) return;
+    
+    setDownloadingCover(true);
+    try {
+      const coverElement = document.getElementById('history-cover-letter-content');
+      if (!coverElement) throw new Error('Cover letter content not found');
+
+      const userName = selectedVersion.tailored_data?.name || 'User';
+      const opt = {
+        margin: 10,
+        filename: `${userName.replace(/\s+/g, '_')}_Cover_Letter.pdf`,
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+      };
+
+      await html2pdf().set(opt).from(coverElement).save();
+      toast({ title: "Cover letter downloaded successfully" });
+    } catch (error: any) {
+      console.error('Download error:', error);
+      toast({
+        title: "Download failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setDownloadingCover(false);
+    }
+  };
 
   useEffect(() => {
     fetchHistory();
@@ -71,6 +106,21 @@ export const JobHistory = ({ userId }: JobHistoryProps) => {
           changesSummary={[]}
           skillMatches={[]}
         />
+
+        {selectedVersion.cover_letter && (
+          <Card className="p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold">Cover Letter</h3>
+              <Button onClick={handleDownloadCoverLetter} disabled={downloadingCover}>
+                <Download className="w-4 h-4 mr-2" />
+                {downloadingCover ? "Generating PDF..." : "Download Cover Letter"}
+              </Button>
+            </div>
+            <div id="history-cover-letter-content" className="prose prose-sm max-w-none">
+              <pre className="whitespace-pre-wrap text-sm">{selectedVersion.cover_letter}</pre>
+            </div>
+          </Card>
+        )}
       </div>
     );
   }
