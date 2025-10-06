@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Download, Eye } from "lucide-react";
+import { Eye, Download } from "lucide-react";
 import { TailoredResumeView } from "@/components/TailoredResumeView";
 import html2pdf from "html2pdf.js";
 import { createPrintableCoverLetter } from "@/utils/pdfHelpers";
