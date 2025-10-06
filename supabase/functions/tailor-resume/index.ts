@@ -73,13 +73,15 @@ CRITICAL RULES:
 1. NEVER add new skills, experiences, or qualifications not in the original resume
 2. ONLY work with existing data - reorder, emphasize, and highlight what's already there
 3. Match existing skills to job requirements and assign relevance scores
-4. Keep original confidence scores for all skills
+4. Keep original confidence scores AND categories for all skills
+5. PRESERVE all education and certifications exactly as provided
 
 YOUR TASK:
 1. Analyze job description to extract required skills, qualifications, and keywords
 2. For each skill in the resume:
    - Calculate relevance score (0.0-1.0) based on how well it matches job requirements
    - Keep the original confidence score unchanged
+   - PRESERVE the original category field
    - Add a "relevance" field to each skill
 3. Reorder skills: Most relevant to job (high relevance * confidence) first
 4. For each experience entry:
@@ -92,9 +94,11 @@ YOUR TASK:
    - Add "relevance" field
 7. Reorder projects: Most relevant to job requirements first
 8. Rewrite summary to emphasize skills and experience that match the job description
-9. Track specific changes made for display to the user
+9. PRESERVE all education entries exactly as provided in the original resume
+10. PRESERVE all certifications exactly as provided in the original resume
+11. Track specific changes made for display to the user
 
-Remember: You can ONLY reorder, emphasize, and calculate relevance. Do NOT invent new content.`;
+Remember: You can ONLY reorder, emphasize, and calculate relevance. Do NOT invent new content. PRESERVE education and certifications completely.`;
 
     const userPrompt = `Resume Data:
 ${JSON.stringify(resume.parsed_data, null, 2)}
@@ -142,11 +146,12 @@ Please tailor this resume to match the job description. Reorder experiences to p
                           properties: {
                             skill: { type: "string" },
                             confidence: { type: "number" },
+                            category: { type: "string", description: "MUST preserve original category like 'Programming Languages', 'Frameworks & Libraries', etc." },
                             relevance: { type: "number", description: "0.0-1.0 score of relevance to job" }
                           },
-                          required: ["skill", "confidence", "relevance"]
+                          required: ["skill", "confidence", "category", "relevance"]
                         },
-                        description: "Skills reordered by (relevance * confidence)"
+                        description: "Skills reordered by (relevance * confidence). MUST preserve category field from original."
                       },
                       experience: {
                         type: "array",
@@ -169,7 +174,10 @@ Please tailor this resume to match the job description. Reorder experiences to p
                         },
                         description: "Experiences reordered by relevance and recency"
                       },
-                      education: { type: "array" },
+                      education: { 
+                        type: "array",
+                        description: "MUST preserve ALL education entries exactly as provided in original resume"
+                      },
                       projects: {
                         type: "array",
                         items: {
@@ -183,7 +191,10 @@ Please tailor this resume to match the job description. Reorder experiences to p
                         },
                         description: "Projects reordered by relevance"
                       },
-                      certifications: { type: "array" }
+                      certifications: { 
+                        type: "array",
+                        description: "MUST preserve ALL certifications exactly as provided in original resume"
+                      }
                     }
                   },
                   changes_summary: {
