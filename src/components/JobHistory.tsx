@@ -26,35 +26,63 @@ export const JobHistory = ({ userId }: JobHistoryProps) => {
     let title = 'Unknown Position';
     let company = 'Unknown Company';
     
-    // Extract company name - look for common company indicators
-    const companyMatch = description.match(/(?:at\s+|for\s+|Company:\s*)?([A-Z][a-zA-Z\s&]+?)(?:\s+powers|\s+is|\s+provides|,|\n)/);
-    if (companyMatch) {
-      const potentialCompany = companyMatch[1].trim();
-      if (potentialCompany.length > 2 && potentialCompany.length < 50) {
-        company = potentialCompany;
+    const lines = description.split('\n').map(l => l.trim()).filter(l => l);
+    
+    // Common section headers to skip
+    const skipHeaders = ['our purpose', 'overview', 'title and summary', 'job description', 
+                         'about us', 'company description', 'role', 'responsibilities'];
+    
+    // Extract company name - look for company names in the content
+    // Pattern 1: "CompanyName powers/is/provides/offers..."
+    const companyPattern = /^([A-Z][a-zA-Z0-9\s&.,-]{2,40}?)\s+(powers|is|provides|offers|delivers|enables|helps|supports|specializes|focuses)/i;
+    for (const line of lines) {
+      if (skipHeaders.some(header => line.toLowerCase().startsWith(header))) continue;
+      
+      const match = line.match(companyPattern);
+      if (match) {
+        company = match[1].trim();
+        break;
       }
     }
     
-    // Extract title - look for "Title and Summary" section or similar patterns
+    // If still not found, try to find capitalized company names
+    if (company === 'Unknown Company') {
+      for (const line of lines) {
+        if (skipHeaders.some(header => line.toLowerCase() === header)) continue;
+        if (line.length > 2 && line.length < 50 && /^[A-Z][a-zA-Z\s&.,-]+$/.test(line) && 
+            !line.includes('?') && !line.toLowerCase().includes('seeking')) {
+          company = line;
+          break;
+        }
+      }
+    }
+    
+    // Extract title - look for "Title and Summary" section
     const titleSummaryMatch = description.match(/Title and Summary[\s\n]+([^\n]+)/i);
     if (titleSummaryMatch) {
       title = titleSummaryMatch[1].trim();
     } else {
-      // Try other common patterns
-      const jobTitleMatch = description.match(/(?:Position|Role|Job Title):\s*([^\n]+)/i);
-      if (jobTitleMatch) {
-        title = jobTitleMatch[1].trim();
-      } else {
-        // Look for lines that might be job titles (capitalized, reasonable length)
-        const lines = description.split('\n').filter(line => line.trim());
+      // Try other patterns
+      const jobTitlePatterns = [
+        /(?:Position|Role|Job Title|Posting Title):\s*([^\n]+)/i,
+        /\b((?:Senior|Junior|Lead|Principal|Staff|Manager|Director|VP|Chief|Head of)\s+[A-Z][a-zA-Z\s]+(?:Engineer|Developer|Analyst|Manager|Designer|Architect|Consultant|Specialist))/,
+      ];
+      
+      for (const pattern of jobTitlePatterns) {
+        const match = description.match(pattern);
+        if (match) {
+          title = match[1].trim();
+          break;
+        }
+      }
+      
+      // If still not found, look through lines for likely job titles
+      if (title === 'Unknown Position') {
         for (const line of lines) {
-          const trimmed = line.trim();
-          if (trimmed.length > 5 && trimmed.length < 100 && 
-              /^[A-Z]/.test(trimmed) && 
-              !trimmed.includes('Our Purpose') &&
-              !trimmed.includes('Overview') &&
-              !trimmed.toLowerCase().startsWith('we ')) {
-            title = trimmed;
+          if (skipHeaders.some(header => line.toLowerCase() === header)) continue;
+          if (line.length > 10 && line.length < 100 && 
+              /(?:Engineer|Developer|Analyst|Manager|Designer|Architect|Consultant|Specialist|Coordinator|Administrator)/i.test(line)) {
+            title = line;
             break;
           }
         }
