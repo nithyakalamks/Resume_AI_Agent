@@ -1,0 +1,7 @@
+project_id = "biocmimbruhkadsnupqv"
+
+[functions.parse-resume]
+verify_jwt = true
+
+[functions.tailor-resume]
+verify_jwt = true
