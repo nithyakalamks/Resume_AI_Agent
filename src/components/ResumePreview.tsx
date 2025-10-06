@@ -7,7 +7,7 @@ interface ResumeData {
   linkedin?: string;
   other_links?: string;
   summary?: string;
-  skills?: Array<{ skill: string; confidence: number }>;
+  skills?: Array<{ skill: string; confidence: number; category?: string }>;
   experience?: Array<{
     company: string;
     title: string;
@@ -166,12 +166,40 @@ export const ResumePreview = ({ data }: ResumePreviewProps) => {
             <h2 className="text-base font-bold uppercase mb-1">
               Skills
             </h2>
-            <p className="text-sm">
-              {data.skills
-                .sort((a, b) => b.confidence - a.confidence)
-                .map(skill => skill.skill)
-                .join(", ")}
-            </p>
+            {(() => {
+              // Group skills by category
+              const categorized = data.skills.reduce((acc: any, skill: any) => {
+                const category = skill.category || 'Other';
+                if (!acc[category]) acc[category] = [];
+                acc[category].push(skill);
+                return acc;
+              }, {});
+
+              // Define order of categories
+              const categoryOrder = [
+                "Programming Languages",
+                "Frameworks & Libraries", 
+                "Technologies & Tools",
+                "Databases",
+                "Cloud & DevOps",
+                "Soft Skills",
+                "Other"
+              ];
+
+              return categoryOrder
+                .filter(cat => categorized[cat] && categorized[cat].length > 0)
+                .map((category, idx) => (
+                  <div key={idx} className="mb-2">
+                    <span className="text-sm font-semibold">{category}: </span>
+                    <span className="text-sm">
+                      {categorized[category]
+                        .sort((a: any, b: any) => b.confidence - a.confidence)
+                        .map((s: any) => s.skill)
+                        .join(", ")}
+                    </span>
+                  </div>
+                ));
+            })()}
           </div>
         </>
       )}

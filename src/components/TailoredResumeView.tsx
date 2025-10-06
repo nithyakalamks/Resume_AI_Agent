@@ -11,6 +11,7 @@ interface Skill {
   skill: string;
   confidence: number;
   relevance?: number;
+  category?: string;
 }
 
 interface Experience {
@@ -225,25 +226,52 @@ const ResumeContent = ({
       {data.skills && Array.isArray(data.skills) && data.skills.length > 0 && (
         <div>
           <h2 className="text-2xl font-bold mb-3 text-primary">Skills</h2>
-          <div className="flex flex-wrap gap-2">
-            {data.skills.map((skillItem, idx) => (
-              <div key={idx} className="flex items-center gap-2">
-                <Badge 
-                  variant="outline" 
-                  className={showRelevance && skillItem.relevance !== undefined 
-                    ? getRelevanceBadgeColor(skillItem.relevance)
-                    : ""}
-                >
-                  {skillItem.skill}
-                  {showRelevance && skillItem.relevance !== undefined && (
-                    <span className="ml-2 text-xs opacity-70">
-                      {(skillItem.relevance * 100).toFixed(0)}%
-                    </span>
-                  )}
-                </Badge>
-              </div>
-            ))}
-          </div>
+          {(() => {
+            // Group skills by category
+            const categorized = data.skills.reduce((acc: any, skillItem: any) => {
+              const category = skillItem.category || 'Other';
+              if (!acc[category]) acc[category] = [];
+              acc[category].push(skillItem);
+              return acc;
+            }, {});
+
+            // Define order of categories
+            const categoryOrder = [
+              "Programming Languages",
+              "Frameworks & Libraries", 
+              "Technologies & Tools",
+              "Databases",
+              "Cloud & DevOps",
+              "Soft Skills",
+              "Other"
+            ];
+
+            return categoryOrder
+              .filter(cat => categorized[cat] && categorized[cat].length > 0)
+              .map((category, catIdx) => (
+                <div key={catIdx} className="mb-4">
+                  <h3 className="text-sm font-semibold text-muted-foreground mb-2">{category}</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {categorized[category].map((skillItem: any, idx: number) => (
+                      <Badge 
+                        key={idx}
+                        variant="outline" 
+                        className={showRelevance && skillItem.relevance !== undefined 
+                          ? getRelevanceBadgeColor(skillItem.relevance)
+                          : ""}
+                      >
+                        {skillItem.skill}
+                        {showRelevance && skillItem.relevance !== undefined && (
+                          <span className="ml-2 text-xs opacity-70">
+                            {(skillItem.relevance * 100).toFixed(0)}%
+                          </span>
+                        )}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              ));
+          })()}
         </div>
       )}
 

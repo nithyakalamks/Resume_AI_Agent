@@ -92,14 +92,19 @@ serve(async (req) => {
             summary: { type: "string", description: "Professional summary or objective (2-3 sentences)" },
             skills: {
               type: "array",
-              description: "List of skills with confidence scores based on context and experience",
+              description: "List of skills categorized by type with confidence scores",
               items: {
                 type: "object",
                 properties: {
                   skill: { type: "string" },
-                  confidence: { type: "number", minimum: 0, maximum: 1 }
+                  confidence: { type: "number", minimum: 0, maximum: 1 },
+                  category: { 
+                    type: "string", 
+                    enum: ["Programming Languages", "Frameworks & Libraries", "Technologies & Tools", "Databases", "Cloud & DevOps", "Soft Skills", "Other"],
+                    description: "Category of the skill"
+                  }
                 },
-                required: ["skill", "confidence"]
+                required: ["skill", "confidence", "category"]
               }
             },
             experience: {
@@ -181,7 +186,7 @@ serve(async (req) => {
           messages: [
             {
               role: "system",
-              content: "You are an expert resume parser. Extract all information from the resume text and structure it according to the provided schema. For skills, assign confidence scores based on: explicit mentions (0.9-1.0), years of experience (0.7-0.9), or casual mentions (0.5-0.7). Parse dates into YYYY-MM format. Track raw_text_span character indices for each experience section."
+              content: "You are an expert resume parser. Extract all information from the resume text and structure it according to the provided schema. For skills: 1) Assign confidence scores based on: explicit mentions (0.9-1.0), years of experience (0.7-0.9), or casual mentions (0.5-0.7). 2) Categorize each skill into one of: 'Programming Languages' (Python, Java, JavaScript, TypeScript, etc.), 'Frameworks & Libraries' (React, Node.js, Spring Boot, etc.), 'Technologies & Tools' (Git, Docker, Latex, etc.), 'Databases' (MySQL, MongoDB, PostgreSQL, etc.), 'Cloud & DevOps' (AWS, CI/CD, GitHub Actions, etc.), 'Soft Skills' (Agile Methodologies, Team Leadership, etc.), or 'Other'. Parse dates into YYYY-MM format. Track raw_text_span character indices for each experience section."
             },
             {
               role: "user",
