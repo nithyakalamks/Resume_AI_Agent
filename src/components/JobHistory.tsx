@@ -4,8 +4,10 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, Download } from "lucide-react";
+import { Download, Eye } from "lucide-react";
 import { TailoredResumeView } from "@/components/TailoredResumeView";
+import html2pdf from "html2pdf.js";
+import { createPrintableCoverLetter } from "@/utils/pdfHelpers";
 
 interface JobHistoryProps {
   userId: string;
@@ -23,25 +25,35 @@ export const JobHistory = ({ userId }: JobHistoryProps) => {
     setDownloadingCover(true);
     try {
       const filename = `${name.replace(/\s+/g, '_')}_Cover_Letter.pdf`;
+      const printableHTML = createPrintableCoverLetter(coverLetter, name);
 
-      const { data: pdfBlob, error } = await supabase.functions.invoke('generate-resume-pdf', {
-        body: { 
-          type: 'cover-letter',
-          data: coverLetter,
-          name: filename
-        }
-      });
+      const opt = {
+        margin: [20, 20, 20, 20] as [number, number, number, number],
+        filename,
+        image: { type: 'jpeg' as const, quality: 1 },
+        html2canvas: { 
+          scale: 3,
+          useCORS: true,
+          letterRendering: true,
+          logging: false
+        },
+        jsPDF: { 
+          unit: 'mm', 
+          format: 'a4', 
+          orientation: 'portrait' as const,
+          compress: true
+        },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      };
 
-      if (error) throw error;
+      const temp = document.createElement('div');
+      temp.innerHTML = printableHTML;
+      temp.style.position = 'absolute';
+      temp.style.left = '-9999px';
+      document.body.appendChild(temp);
 
-      const url = window.URL.createObjectURL(new Blob([pdfBlob]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', filename);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
+      await html2pdf().set(opt).from(temp).save();
+      document.body.removeChild(temp);
 
       toast({ title: "Cover letter downloaded successfully" });
     } catch (error: any) {
