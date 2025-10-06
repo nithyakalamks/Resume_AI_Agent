@@ -18,21 +18,37 @@ serve(async (req) => {
       throw new Error('Resume ID and job description are required');
     }
 
+    const authHeader = req.headers.get('Authorization');
+    console.log('Auth header present:', !!authHeader);
+    
+    if (!authHeader) {
+      throw new Error('No authorization header provided');
+    }
+
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
         global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
+          headers: { Authorization: authHeader },
         },
       }
     );
 
     // Get the user
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
-    if (userError || !user) {
-      throw new Error('Unauthorized');
+    
+    if (userError) {
+      console.error('Auth error:', userError);
+      throw new Error(`Authentication failed: ${userError.message}`);
     }
+    
+    if (!user) {
+      console.error('No user found in token');
+      throw new Error('User not authenticated');
+    }
+    
+    console.log('Authenticated user:', user.id);
 
     // Fetch the resume data
     const { data: resume, error: resumeError } = await supabaseClient
@@ -64,8 +80,11 @@ serve(async (req) => {
     // Use Lovable AI to tailor the resume
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
+      console.error('LOVABLE_API_KEY not configured');
       throw new Error('AI service not configured');
     }
+
+    console.log('Starting AI tailoring process...');
 
     const systemPrompt = `You are an expert resume optimizer. Given a candidate's resume and a job description:
 
@@ -228,8 +247,10 @@ Please tailor this resume to match the job description. Reorder experiences to p
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
       console.error('AI API error:', aiResponse.status, errorText);
-      throw new Error(`AI service error: ${aiResponse.status}`);
+      throw new Error(`AI service error: ${aiResponse.status} - ${errorText}`);
     }
+
+    console.log('AI response received successfully');
 
     const aiResult = await aiResponse.json();
     const toolCall = aiResult.choices[0].message.tool_calls?.[0];
@@ -266,6 +287,8 @@ ${jobDescription}`;
 
     const coverLetterResult = await coverLetterResponse.json();
     const coverLetter = coverLetterResult.choices[0].message.content;
+
+    console.log('Storing tailored resume in database...');
 
     // Store the tailored resume
     const { data: tailoredResume, error: tailoredError } = await supabaseClient
