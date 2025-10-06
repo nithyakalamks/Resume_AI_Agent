@@ -4,8 +4,9 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Download } from "lucide-react";
 import { TailoredResumeView } from "@/components/TailoredResumeView";
+import html2pdf from "html2pdf.js";
 
 interface JobApplicationProps {
   userId: string;
@@ -20,6 +21,7 @@ export const JobApplication = ({ userId, currentResumeId }: JobApplicationProps)
   const [changesSummary, setChangesSummary] = useState<string[]>([]);
   const [skillMatches, setSkillMatches] = useState<any[]>([]);
   const [coverLetter, setCoverLetter] = useState("");
+  const [downloadingCover, setDownloadingCover] = useState(false);
   const { toast } = useToast();
 
   const handleTailor = async () => {
@@ -99,6 +101,34 @@ export const JobApplication = ({ userId, currentResumeId }: JobApplicationProps)
     }
   };
 
+  const handleDownloadCoverLetter = async () => {
+    setDownloadingCover(true);
+    try {
+      const coverElement = document.getElementById('cover-letter-content');
+      if (!coverElement) throw new Error('Cover letter content not found');
+
+      const opt = {
+        margin: 10,
+        filename: `${tailoredData.name.replace(/\s+/g, '_')}_cover_letter.pdf`,
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+      };
+
+      await html2pdf().set(opt).from(coverElement).save();
+      toast({ title: "Cover letter downloaded successfully" });
+    } catch (error: any) {
+      console.error('Download error:', error);
+      toast({
+        title: "Download failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setDownloadingCover(false);
+    }
+  };
+
   if (!currentResumeId) {
     return (
       <Card className="p-8 text-center">
@@ -145,8 +175,14 @@ export const JobApplication = ({ userId, currentResumeId }: JobApplicationProps)
 
           {coverLetter && (
             <Card className="p-6">
-              <h3 className="text-xl font-semibold mb-4">Generated Cover Letter</h3>
-              <div className="prose prose-sm max-w-none">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-semibold">Generated Cover Letter</h3>
+                <Button onClick={handleDownloadCoverLetter} disabled={downloadingCover}>
+                  <Download className="w-4 h-4 mr-2" />
+                  {downloadingCover ? "Generating PDF..." : "Download Cover Letter"}
+                </Button>
+              </div>
+              <div id="cover-letter-content" className="prose prose-sm max-w-none">
                 <pre className="whitespace-pre-wrap text-sm">{coverLetter}</pre>
               </div>
             </Card>

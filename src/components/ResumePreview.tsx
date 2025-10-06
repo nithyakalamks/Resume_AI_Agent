@@ -1,5 +1,9 @@
-import { Mail, Phone, Linkedin, Link2, Calendar } from "lucide-react";
+import { Mail, Phone, Linkedin, Link2, Calendar, Download } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
+import html2pdf from "html2pdf.js";
 
 interface ResumeData {
   name: string;
@@ -39,6 +43,9 @@ interface ResumePreviewProps {
 }
 
 export const ResumePreview = ({ data }: ResumePreviewProps) => {
+  const { toast } = useToast();
+  const [downloading, setDownloading] = useState(false);
+  
   const formatDate = (dateStr: string) => {
     if (dateStr === "Present" || !dateStr) return dateStr || "Present";
     const [year, month] = dateStr.split("-");
@@ -46,9 +53,45 @@ export const ResumePreview = ({ data }: ResumePreviewProps) => {
     return month ? `${months[parseInt(month) - 1]} ${year}` : year;
   };
 
+  const handleDownloadPDF = async () => {
+    setDownloading(true);
+    try {
+      const resumeElement = document.getElementById('resume-content');
+      if (!resumeElement) throw new Error('Resume content not found');
+
+      const opt = {
+        margin: 10,
+        filename: `${data.name.replace(/\s+/g, '_')}_resume.pdf`,
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+      };
+
+      await html2pdf().set(opt).from(resumeElement).save();
+      toast({ title: "Resume downloaded successfully" });
+    } catch (error: any) {
+      console.error('Download error:', error);
+      toast({
+        title: "Download failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
-    <Card className="max-w-4xl mx-auto p-8 bg-background shadow-lg">
-      {/* Header Section */}
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <Button onClick={handleDownloadPDF} disabled={downloading}>
+          <Download className="w-4 h-4 mr-2" />
+          {downloading ? "Generating PDF..." : "Download PDF"}
+        </Button>
+      </div>
+      
+      <Card id="resume-content" className="max-w-4xl mx-auto p-8 bg-background shadow-lg">
+        {/* Header Section */}
       <div className="border-b border-border pb-6 mb-6">
         <h1 className="text-4xl font-bold text-foreground mb-3">{data.name}</h1>
         <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
@@ -223,6 +266,7 @@ export const ResumePreview = ({ data }: ResumePreviewProps) => {
           </div>
         </div>
       )}
-    </Card>
+      </Card>
+    </div>
   );
 };

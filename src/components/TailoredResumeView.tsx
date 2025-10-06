@@ -1,7 +1,11 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowUp, ArrowRight, CheckCircle2, TrendingUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ArrowUp, ArrowRight, CheckCircle2, TrendingUp, Download } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
+import html2pdf from "html2pdf.js";
 
 interface Skill {
   skill: string;
@@ -57,6 +61,9 @@ export const TailoredResumeView = ({
   changesSummary,
   skillMatches 
 }: TailoredResumeViewProps) => {
+  const { toast } = useToast();
+  const [downloading, setDownloading] = useState(false);
+  
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return '';
     if (dateStr.toLowerCase() === 'present') return 'Present';
@@ -65,6 +72,34 @@ export const TailoredResumeView = ({
       return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
     } catch {
       return dateStr;
+    }
+  };
+
+  const handleDownloadPDF = async () => {
+    setDownloading(true);
+    try {
+      const resumeElement = document.getElementById('tailored-resume-content');
+      if (!resumeElement) throw new Error('Resume content not found');
+
+      const opt = {
+        margin: 10,
+        filename: `${tailoredData.name.replace(/\s+/g, '_')}_tailored_resume.pdf`,
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+      };
+
+      await html2pdf().set(opt).from(resumeElement).save();
+      toast({ title: "Resume downloaded successfully" });
+    } catch (error: any) {
+      console.error('Download error:', error);
+      toast({
+        title: "Download failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setDownloading(false);
     }
   };
 
@@ -123,13 +158,19 @@ export const TailoredResumeView = ({
 
       {/* Side-by-Side Comparison */}
       <Tabs defaultValue="tailored" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="tailored">Tailored Resume</TabsTrigger>
-          <TabsTrigger value="original">Original Resume</TabsTrigger>
-        </TabsList>
+        <div className="flex justify-between items-center mb-4">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="tailored">Tailored Resume</TabsTrigger>
+            <TabsTrigger value="original">Original Resume</TabsTrigger>
+          </TabsList>
+          <Button onClick={handleDownloadPDF} disabled={downloading}>
+            <Download className="w-4 h-4 mr-2" />
+            {downloading ? "Generating PDF..." : "Download Tailored PDF"}
+          </Button>
+        </div>
 
         <TabsContent value="tailored" className="mt-6">
-          <Card className="p-8">
+          <Card id="tailored-resume-content" className="p-8">
             <ResumeContent data={tailoredData} formatDate={formatDate} showRelevance />
           </Card>
         </TabsContent>
