@@ -181,7 +181,7 @@ const ResumeContent = ({
       )}
 
       {/* Skills */}
-      {data.skills && data.skills.length > 0 && (
+      {data.skills && Array.isArray(data.skills) && data.skills.length > 0 && (
         <div>
           <h2 className="text-2xl font-bold mb-3 text-primary">Skills</h2>
           <div className="flex flex-wrap gap-2">
@@ -207,7 +207,7 @@ const ResumeContent = ({
       )}
 
       {/* Experience */}
-      {data.experience && data.experience.length > 0 && (
+      {data.experience && Array.isArray(data.experience) && data.experience.length > 0 && (
         <div>
           <h2 className="text-2xl font-bold mb-4 text-primary">Experience</h2>
           <div className="space-y-6">
@@ -238,7 +238,7 @@ const ResumeContent = ({
                   )}
                 </div>
                 <ul className="list-disc list-inside space-y-1 text-foreground/90">
-                  {exp.description.map((item, i) => (
+                  {Array.isArray(exp.description) && exp.description.map((item, i) => (
                     <li key={i} className="leading-relaxed">{item}</li>
                   ))}
                 </ul>
@@ -249,7 +249,7 @@ const ResumeContent = ({
       )}
 
       {/* Projects */}
-      {data.projects && data.projects.length > 0 && (
+      {data.projects && Array.isArray(data.projects) && data.projects.length > 0 && (
         <div>
           <h2 className="text-2xl font-bold mb-4 text-primary">Projects</h2>
           <div className="space-y-4">
@@ -264,7 +264,7 @@ const ResumeContent = ({
                   )}
                 </h3>
                 <p className="text-foreground/90 mb-2">{project.description}</p>
-                {project.technologies && project.technologies.length > 0 && (
+                {project.technologies && Array.isArray(project.technologies) && project.technologies.length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {project.technologies.map((tech, i) => (
                       <Badge key={i} variant="secondary">{tech}</Badge>
@@ -278,7 +278,7 @@ const ResumeContent = ({
       )}
 
       {/* Education */}
-      {data.education && data.education.length > 0 && (
+      {data.education && Array.isArray(data.education) && data.education.length > 0 && (
         <div>
           <h2 className="text-2xl font-bold mb-4 text-primary">Education</h2>
           <div className="space-y-4">
@@ -296,7 +296,7 @@ const ResumeContent = ({
       )}
 
       {/* Certifications */}
-      {data.certifications && data.certifications.length > 0 && (
+      {data.certifications && Array.isArray(data.certifications) && data.certifications.length > 0 && (
         <div>
           <h2 className="text-2xl font-bold mb-4 text-primary">Certifications</h2>
           <ul className="space-y-2">
