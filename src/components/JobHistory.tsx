@@ -23,33 +23,41 @@ export const JobHistory = ({ userId }: JobHistoryProps) => {
   const extractJobDetails = (description: string) => {
     if (!description) return { title: 'Unknown Position', company: 'Unknown Company' };
     
-    // Try to extract company and role from common patterns
-    const lines = description.split('\n').filter(line => line.trim());
-    const firstLine = lines[0] || '';
-    
-    // Common patterns: "Company Name - Job Title", "Job Title at Company Name", etc.
     let title = 'Unknown Position';
     let company = 'Unknown Company';
     
-    // Pattern 1: "Role at Company" or "Role @ Company"
-    const atPattern = firstLine.match(/^(.+?)\s+(?:at|@)\s+(.+?)$/i);
-    if (atPattern) {
-      title = atPattern[1].trim();
-      company = atPattern[2].trim();
-    }
-    // Pattern 2: "Company - Role" or "Company: Role"
-    else if (firstLine.match(/[-:]/)) {
-      const parts = firstLine.split(/[-:]/);
-      if (parts.length >= 2) {
-        company = parts[0].trim();
-        title = parts[1].trim();
+    // Extract company name - look for common company indicators
+    const companyMatch = description.match(/(?:at\s+|for\s+|Company:\s*)?([A-Z][a-zA-Z\s&]+?)(?:\s+powers|\s+is|\s+provides|,|\n)/);
+    if (companyMatch) {
+      const potentialCompany = companyMatch[1].trim();
+      if (potentialCompany.length > 2 && potentialCompany.length < 50) {
+        company = potentialCompany;
       }
     }
-    // Pattern 3: Just use first line as title and try second line as company
-    else {
-      title = firstLine.substring(0, 60);
-      if (lines[1]) {
-        company = lines[1].substring(0, 40);
+    
+    // Extract title - look for "Title and Summary" section or similar patterns
+    const titleSummaryMatch = description.match(/Title and Summary[\s\n]+([^\n]+)/i);
+    if (titleSummaryMatch) {
+      title = titleSummaryMatch[1].trim();
+    } else {
+      // Try other common patterns
+      const jobTitleMatch = description.match(/(?:Position|Role|Job Title):\s*([^\n]+)/i);
+      if (jobTitleMatch) {
+        title = jobTitleMatch[1].trim();
+      } else {
+        // Look for lines that might be job titles (capitalized, reasonable length)
+        const lines = description.split('\n').filter(line => line.trim());
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (trimmed.length > 5 && trimmed.length < 100 && 
+              /^[A-Z]/.test(trimmed) && 
+              !trimmed.includes('Our Purpose') &&
+              !trimmed.includes('Overview') &&
+              !trimmed.toLowerCase().startsWith('we ')) {
+            title = trimmed;
+            break;
+          }
+        }
       }
     }
     
