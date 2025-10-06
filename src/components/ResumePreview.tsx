@@ -46,10 +46,10 @@ export const ResumePreview = ({ data }: ResumePreviewProps) => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-8 bg-white text-black">
+    <div className="max-w-4xl mx-auto p-6 bg-white text-black">
       {/* Header Section */}
-      <div className="text-center mb-4">
-        <h1 className="text-2xl font-bold uppercase mb-2">{data.name}</h1>
+      <div className="text-center mb-3">
+        <h1 className="text-2xl font-bold uppercase mb-1">{data.name}</h1>
         <div className="text-sm">
           {[
             data.phone,
@@ -63,9 +63,9 @@ export const ResumePreview = ({ data }: ResumePreviewProps) => {
       {/* Summary Section */}
       {data.summary && (
         <>
-          <hr className="border-t border-black my-3" />
-          <div className="mb-4">
-            <h2 className="text-base font-bold uppercase mb-2">
+          <hr className="border-t border-black my-2" />
+          <div className="mb-3">
+            <h2 className="text-base font-bold uppercase mb-1">
               Professional Summary
             </h2>
             <p className="text-sm leading-relaxed">{data.summary}</p>
@@ -76,9 +76,9 @@ export const ResumePreview = ({ data }: ResumePreviewProps) => {
       {/* Education Section */}
       {data.education && data.education.length > 0 && (
         <>
-          <hr className="border-t border-black my-3" />
-          <div className="mb-4">
-            <h2 className="text-base font-bold uppercase mb-2">
+          <hr className="border-t border-black my-2" />
+          <div className="mb-3">
+            <h2 className="text-base font-bold uppercase mb-1">
               Education
             </h2>
             <div className="space-y-2">
@@ -102,12 +102,12 @@ export const ResumePreview = ({ data }: ResumePreviewProps) => {
       {/* Experience Section */}
       {data.experience && data.experience.length > 0 && (
         <>
-          <hr className="border-t border-black my-3" />
-          <div className="mb-4">
-            <h2 className="text-base font-bold uppercase mb-2">
+          <hr className="border-t border-black my-2" />
+          <div className="mb-3">
+            <h2 className="text-base font-bold uppercase mb-1">
               Experience
             </h2>
-            <div className="space-y-4">
+            <div className="space-y-3">
               {data.experience.map((exp, idx) => (
                 <div key={idx}>
                   <div className="flex justify-between items-start mb-1">
@@ -117,10 +117,10 @@ export const ResumePreview = ({ data }: ResumePreviewProps) => {
                     </span>
                   </div>
                   {exp.bullets && exp.bullets.length > 0 && (
-                    <ul className="space-y-1 text-sm">
+                    <ul className="space-y-0.5 text-sm">
                       {exp.bullets.map((bullet, bulletIdx) => (
                         <li key={bulletIdx} className="leading-relaxed flex">
-                          <span className="mr-2">•</span>
+                          <span className="mr-1.5">-</span>
                           <span className="flex-1">{bullet}</span>
                         </li>
                       ))}
@@ -136,9 +136,9 @@ export const ResumePreview = ({ data }: ResumePreviewProps) => {
       {/* Projects Section */}
       {data.projects && data.projects.length > 0 && (
         <>
-          <hr className="border-t border-black my-3" />
-          <div className="mb-4">
-            <h2 className="text-base font-bold uppercase mb-2">
+          <hr className="border-t border-black my-2" />
+          <div className="mb-3">
+            <h2 className="text-base font-bold uppercase mb-1">
               Projects
             </h2>
             <div className="space-y-3">
@@ -161,9 +161,9 @@ export const ResumePreview = ({ data }: ResumePreviewProps) => {
       {/* Skills Section */}
       {data.skills && data.skills.length > 0 && (
         <>
-          <hr className="border-t border-black my-3" />
-          <div className="mb-4">
-            <h2 className="text-base font-bold uppercase mb-2">
+          <hr className="border-t border-black my-2" />
+          <div className="mb-3">
+            <h2 className="text-base font-bold uppercase mb-1">
               Skills
             </h2>
             <p className="text-sm">
@@ -179,15 +179,15 @@ export const ResumePreview = ({ data }: ResumePreviewProps) => {
       {/* Certifications Section */}
       {data.certifications && data.certifications.length > 0 && (
         <>
-          <hr className="border-t border-black my-3" />
-          <div className="mb-4">
-            <h2 className="text-base font-bold uppercase mb-2">
+          <hr className="border-t border-black my-2" />
+          <div className="mb-3">
+            <h2 className="text-base font-bold uppercase mb-1">
               Certifications and Achievements
             </h2>
-            <ul className="space-y-1 text-sm">
+            <ul className="space-y-0.5 text-sm">
               {data.certifications.map((cert, idx) => (
                 <li key={idx} className="leading-relaxed flex">
-                  <span className="mr-2">•</span>
+                  <span className="mr-1.5">-</span>
                   <span className="flex-1">
                     <span className="font-semibold">{cert.name}</span> - {cert.issuer}
                     {cert.date && <span className="text-sm"> ({formatDate(cert.date)})</span>}
