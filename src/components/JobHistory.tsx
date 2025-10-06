@@ -4,10 +4,9 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Download, Eye } from "lucide-react";
+import { Eye, Download } from "lucide-react";
 import { TailoredResumeView } from "@/components/TailoredResumeView";
 import html2pdf from "html2pdf.js";
-import { createPrintableCoverLetter } from "@/utils/pdfHelpers";
 
 interface JobHistoryProps {
   userId: string;
@@ -21,40 +20,24 @@ export const JobHistory = ({ userId }: JobHistoryProps) => {
   const [downloadingCover, setDownloadingCover] = useState(false);
   const { toast } = useToast();
 
-  const handleDownloadCoverLetter = async (coverLetter: string, name: string) => {
+  const handleDownloadCoverLetter = async () => {
+    if (!selectedVersion?.cover_letter) return;
+    
     setDownloadingCover(true);
     try {
-      const filename = `${name.replace(/\s+/g, '_')}_Cover_Letter.pdf`;
-      const printableHTML = createPrintableCoverLetter(coverLetter, name);
+      const coverElement = document.getElementById('history-cover-letter-content');
+      if (!coverElement) throw new Error('Cover letter content not found');
 
+      const userName = selectedVersion.tailored_data?.name || 'User';
       const opt = {
-        margin: [20, 20, 20, 20] as [number, number, number, number],
-        filename,
-        image: { type: 'jpeg' as const, quality: 1 },
-        html2canvas: { 
-          scale: 3,
-          useCORS: true,
-          letterRendering: true,
-          logging: false
-        },
-        jsPDF: { 
-          unit: 'mm', 
-          format: 'a4', 
-          orientation: 'portrait' as const,
-          compress: true
-        },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+        margin: 10,
+        filename: `${userName.replace(/\s+/g, '_')}_Cover_Letter.pdf`,
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
       };
 
-      const temp = document.createElement('div');
-      temp.innerHTML = printableHTML;
-      temp.style.position = 'absolute';
-      temp.style.left = '-9999px';
-      document.body.appendChild(temp);
-
-      await html2pdf().set(opt).from(temp).save();
-      document.body.removeChild(temp);
-
+      await html2pdf().set(opt).from(coverElement).save();
       toast({ title: "Cover letter downloaded successfully" });
     } catch (error: any) {
       console.error('Download error:', error);
@@ -128,7 +111,7 @@ export const JobHistory = ({ userId }: JobHistoryProps) => {
           <Card className="p-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-semibold">Cover Letter</h3>
-              <Button onClick={() => handleDownloadCoverLetter(selectedVersion.cover_letter, selectedVersion.tailored_data?.name || 'User')} disabled={downloadingCover}>
+              <Button onClick={handleDownloadCoverLetter} disabled={downloadingCover}>
                 <Download className="w-4 h-4 mr-2" />
                 {downloadingCover ? "Generating PDF..." : "Download Cover Letter"}
               </Button>

@@ -6,7 +6,6 @@ import { ArrowUp, ArrowRight, CheckCircle2, TrendingUp, Download } from "lucide-
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import html2pdf from "html2pdf.js";
-import { createPrintableResume } from "@/utils/pdfHelpers";
 
 interface Skill {
   skill: string;
@@ -79,37 +78,18 @@ export const TailoredResumeView = ({
   const handleDownloadPDF = async () => {
     setDownloading(true);
     try {
-      const filename = `${tailoredData.name.replace(/\s+/g, '_')}_Resume.pdf`;
-      const printableHTML = createPrintableResume(tailoredData, formatDate);
+      const resumeElement = document.getElementById('tailored-resume-content');
+      if (!resumeElement) throw new Error('Resume content not found');
 
       const opt = {
-        margin: [15, 15, 15, 15] as [number, number, number, number],
-        filename,
-        image: { type: 'jpeg' as const, quality: 1 },
-        html2canvas: { 
-          scale: 3,
-          useCORS: true,
-          letterRendering: true,
-          logging: false
-        },
-        jsPDF: { 
-          unit: 'mm', 
-          format: 'a4', 
-          orientation: 'portrait' as const,
-          compress: true
-        },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+        margin: 10,
+        filename: `${tailoredData.name.replace(/\s+/g, '_')}_Resume.pdf`,
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
       };
 
-      const temp = document.createElement('div');
-      temp.innerHTML = printableHTML;
-      temp.style.position = 'absolute';
-      temp.style.left = '-9999px';
-      document.body.appendChild(temp);
-
-      await html2pdf().set(opt).from(temp).save();
-      document.body.removeChild(temp);
-
+      await html2pdf().set(opt).from(resumeElement).save();
       toast({ title: "Resume downloaded successfully" });
     } catch (error: any) {
       console.error('Download error:', error);
