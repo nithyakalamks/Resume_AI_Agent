@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { Upload, FileText, Sparkles, LogOut } from "lucide-react";
+import { Upload, FileText, Sparkles, LogOut, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Auth } from "@/components/Auth";
 import { ResumePreview } from "@/components/ResumePreview";
+import { TailoredResumeView } from "@/components/TailoredResumeView";
 import type { User } from "@supabase/supabase-js";
 
 const Index = () => {
@@ -18,6 +19,13 @@ const Index = () => {
   const [isTailoring, setIsTailoring] = useState(false);
   const [currentResumeId, setCurrentResumeId] = useState<string | null>(null);
   const [parsedResume, setParsedResume] = useState<any>(null);
+  const [tailoredResume, setTailoredResume] = useState<any>(null);
+  const [tailoredData, setTailoredData] = useState<any>(null);
+  const [changesSummary, setChangesSummary] = useState<string[]>([]);
+  const [skillMatches, setSkillMatches] = useState<any[]>([]);
+  const [coverLetter, setCoverLetter] = useState<string>("");
+  const [tailoredVersions, setTailoredVersions] = useState<any[]>([]);
+  const [showVersionHistory, setShowVersionHistory] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -123,6 +131,26 @@ const Index = () => {
     }
   };
 
+  const fetchTailoredVersions = async () => {
+    if (!currentResumeId) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('tailored_resumes')
+        .select(`
+          *,
+          job_descriptions (description, created_at)
+        `)
+        .eq('resume_id', currentResumeId)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setTailoredVersions(data || []);
+    } catch (error: any) {
+      console.error('Error fetching versions:', error);
+    }
+  };
+
   const handleTailorResume = async () => {
     if (!currentResumeId || !jobDescription.trim()) {
       toast({
@@ -144,13 +172,19 @@ const Index = () => {
 
       if (error) throw error;
 
+      setTailoredData(data.tailored_data);
+      setChangesSummary(data.changes_summary || []);
+      setSkillMatches(data.skill_matches || []);
+      setCoverLetter(data.cover_letter || "");
+      setTailoredResume(data);
+
+      // Refresh version history
+      await fetchTailoredVersions();
+
       toast({
         title: "Resume tailored successfully!",
         description: `Made ${data.changes_summary?.length || 0} key changes to match the job.`,
       });
-
-      console.log('Tailored resume data:', data);
-      // TODO: Display the tailored resume and cover letter
       
     } catch (error: any) {
       console.error('Tailor error:', error);
@@ -163,6 +197,25 @@ const Index = () => {
       setIsTailoring(false);
     }
   };
+
+  const loadTailoredVersion = (version: any) => {
+    setTailoredData(version.tailored_data);
+    setChangesSummary([]);
+    setSkillMatches([]);
+    setCoverLetter(version.cover_letter || "");
+    setShowVersionHistory(false);
+    
+    toast({
+      title: "Version loaded",
+      description: "Viewing previous tailored version",
+    });
+  };
+
+  useEffect(() => {
+    if (currentResumeId) {
+      fetchTailoredVersions();
+    }
+  }, [currentResumeId]);
 
   if (isLoading) {
     return (
@@ -317,12 +370,83 @@ const Index = () => {
           </div>
 
           {/* Resume Preview Section */}
-          {parsedResume && (
+          {parsedResume && !tailoredData && (
             <div className="mt-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
               <h3 className="text-3xl font-bold text-center mb-8 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                 Your Resume Preview
               </h3>
               <ResumePreview data={parsedResume} />
+            </div>
+          )}
+
+          {/* Tailored Resume View */}
+          {tailoredData && parsedResume && (
+            <div className="mt-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <div className="flex items-center justify-between mb-8">
+                <h3 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                  Tailored Resume
+                </h3>
+                {tailoredVersions.length > 0 && (
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowVersionHistory(!showVersionHistory)}
+                  >
+                    <History className="w-4 h-4 mr-2" />
+                    Version History ({tailoredVersions.length})
+                  </Button>
+                )}
+              </div>
+
+              {showVersionHistory && (
+                <Card className="p-6 mb-8">
+                  <h4 className="font-semibold mb-4">Previous Versions</h4>
+                  <div className="space-y-3">
+                    {tailoredVersions.map((version) => (
+                      <div 
+                        key={version.id}
+                        className="flex items-center justify-between p-4 rounded-lg border border-border hover:border-primary/50 cursor-pointer transition-colors"
+                        onClick={() => loadTailoredVersion(version)}
+                      >
+                        <div className="flex-1">
+                          <p className="text-sm text-muted-foreground">
+                            {new Date(version.created_at).toLocaleDateString('en-US', {
+                              month: 'long',
+                              day: 'numeric',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </p>
+                          <p className="text-sm mt-1 line-clamp-1">
+                            {version.job_descriptions?.description || 'Job description'}
+                          </p>
+                        </div>
+                        <Button variant="ghost" size="sm">
+                          View
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              )}
+
+              <TailoredResumeView 
+                originalData={parsedResume}
+                tailoredData={tailoredData}
+                changesSummary={changesSummary}
+                skillMatches={skillMatches}
+              />
+
+              {coverLetter && (
+                <Card className="p-8 mt-8">
+                  <h3 className="text-2xl font-bold mb-4 text-primary">Cover Letter</h3>
+                  <div className="prose prose-sm max-w-none">
+                    {coverLetter.split('\n').map((paragraph, idx) => (
+                      paragraph.trim() && <p key={idx} className="mb-4">{paragraph}</p>
+                    ))}
+                  </div>
+                </Card>
+              )}
             </div>
           )}
         </div>

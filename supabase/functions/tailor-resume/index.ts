@@ -67,14 +67,34 @@ serve(async (req) => {
       throw new Error('AI service not configured');
     }
 
-    const systemPrompt = `You are an expert resume tailor. Given a resume and a job description, you need to:
-1. Analyze the job requirements and identify key skills, qualifications, and experience needed
-2. Match the candidate's experience and skills to the job requirements
-3. Reorder and emphasize relevant experience, skills, and achievements
-4. Generate a tailored professional summary that highlights relevant qualifications
-5. Return a modified version of the resume data that emphasizes relevant information
+    const systemPrompt = `You are an expert resume optimizer. Given a candidate's resume and a job description:
 
-Return your response as a JSON object with the same structure as the input resume data, but with reordered and emphasized content.`;
+CRITICAL RULES:
+1. NEVER add new skills, experiences, or qualifications not in the original resume
+2. ONLY work with existing data - reorder, emphasize, and highlight what's already there
+3. Match existing skills to job requirements and assign relevance scores
+4. Keep original confidence scores for all skills
+
+YOUR TASK:
+1. Analyze job description to extract required skills, qualifications, and keywords
+2. For each skill in the resume:
+   - Calculate relevance score (0.0-1.0) based on how well it matches job requirements
+   - Keep the original confidence score unchanged
+   - Add a "relevance" field to each skill
+3. Reorder skills: Most relevant to job (high relevance * confidence) first
+4. For each experience entry:
+   - Reorder bullet points to put most relevant achievements first based on job requirements
+   - Calculate overall relevance score for the experience (0.0-1.0)
+   - Add "relevance" field to each experience
+5. Reorder experiences: Most relevant first (considering both relevance and recency)
+6. For each project:
+   - Calculate relevance score (0.0-1.0) based on job requirements
+   - Add "relevance" field
+7. Reorder projects: Most relevant to job requirements first
+8. Rewrite summary to emphasize skills and experience that match the job description
+9. Track specific changes made for display to the user
+
+Remember: You can ONLY reorder, emphasize, and calculate relevance. Do NOT invent new content.`;
 
     const userPrompt = `Resume Data:
 ${JSON.stringify(resume.parsed_data, null, 2)}
@@ -101,21 +121,91 @@ Please tailor this resume to match the job description. Reorder experiences to p
             type: "function",
             function: {
               name: "tailor_resume",
-              description: "Return tailored resume data with reordered and emphasized content",
+              description: "Return tailored resume data with reordered content and relevance scores",
               parameters: {
                 type: "object",
                 properties: {
                   tailored_data: {
                     type: "object",
-                    description: "The tailored resume data with same structure as input"
+                    description: "Resume data with skills/experience/projects reordered by relevance. Each skill must have 'relevance' field (0.0-1.0). Each experience must have 'relevance' field. Each project must have 'relevance' field. Summary should be rewritten.",
+                    properties: {
+                      name: { type: "string" },
+                      email: { type: "string" },
+                      phone: { type: "string" },
+                      location: { type: "string" },
+                      linkedin: { type: "string" },
+                      summary: { type: "string", description: "Rewritten summary emphasizing relevant skills" },
+                      skills: {
+                        type: "array",
+                        items: {
+                          type: "object",
+                          properties: {
+                            skill: { type: "string" },
+                            confidence: { type: "number" },
+                            relevance: { type: "number", description: "0.0-1.0 score of relevance to job" }
+                          },
+                          required: ["skill", "confidence", "relevance"]
+                        },
+                        description: "Skills reordered by (relevance * confidence)"
+                      },
+                      experience: {
+                        type: "array",
+                        items: {
+                          type: "object",
+                          properties: {
+                            title: { type: "string" },
+                            company: { type: "string" },
+                            location: { type: "string" },
+                            start_date: { type: "string" },
+                            end_date: { type: "string" },
+                            description: {
+                              type: "array",
+                              items: { type: "string" },
+                              description: "Bullet points reordered by relevance"
+                            },
+                            relevance: { type: "number", description: "0.0-1.0 overall relevance score" }
+                          },
+                          required: ["title", "company", "description", "relevance"]
+                        },
+                        description: "Experiences reordered by relevance and recency"
+                      },
+                      education: { type: "array" },
+                      projects: {
+                        type: "array",
+                        items: {
+                          type: "object",
+                          properties: {
+                            name: { type: "string" },
+                            description: { type: "string" },
+                            technologies: { type: "array", items: { type: "string" } },
+                            relevance: { type: "number", description: "0.0-1.0 relevance score" }
+                          }
+                        },
+                        description: "Projects reordered by relevance"
+                      },
+                      certifications: { type: "array" }
+                    }
                   },
                   changes_summary: {
                     type: "array",
                     items: { type: "string" },
-                    description: "List of key changes made to tailor the resume"
+                    description: "Specific changes made (e.g., 'Reordered 12 skills to highlight Python and React', 'Moved Project X to top position')"
+                  },
+                  skill_matches: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        skill: { type: "string" },
+                        relevance: { type: "number" },
+                        reason: { type: "string", description: "Why this skill matches the job" }
+                      },
+                      required: ["skill", "relevance", "reason"]
+                    },
+                    description: "Top 5-10 most relevant skills with explanations"
                   }
                 },
-                required: ["tailored_data", "changes_summary"]
+                required: ["tailored_data", "changes_summary", "skill_matches"]
               }
             }
           }
@@ -190,6 +280,7 @@ ${jobDescription}`;
         tailored_resume_id: tailoredResume.id,
         tailored_data: tailoredResult.tailored_data,
         changes_summary: tailoredResult.changes_summary,
+        skill_matches: tailoredResult.skill_matches,
         cover_letter: coverLetter,
       }),
       {
