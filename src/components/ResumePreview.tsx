@@ -48,7 +48,7 @@ export const ResumePreview = ({ data }: ResumePreviewProps) => {
   return (
     <div className="max-w-4xl mx-auto p-8 bg-white text-black">
       {/* Header Section */}
-      <div className="text-center mb-6">
+      <div className="text-center mb-4">
         <h1 className="text-2xl font-bold uppercase mb-2">{data.name}</h1>
         <div className="text-sm">
           {[
@@ -62,119 +62,137 @@ export const ResumePreview = ({ data }: ResumePreviewProps) => {
 
       {/* Summary Section */}
       {data.summary && (
-        <div className="mb-6">
-          <h2 className="text-base font-bold uppercase mb-2">
-            Professional Summary
-          </h2>
-          <p className="text-sm leading-relaxed">{data.summary}</p>
-        </div>
-      )}
-
-      {/* Skills Section */}
-      {data.skills && data.skills.length > 0 && (
-        <div className="mb-6">
-          <h2 className="text-base font-bold uppercase mb-2">
-            Skills
-          </h2>
-          <p className="text-sm">
-            {data.skills
-              .sort((a, b) => b.confidence - a.confidence)
-              .map(skill => skill.skill)
-              .join(", ")}
-          </p>
-        </div>
-      )}
-
-      {/* Experience Section */}
-      {data.experience && data.experience.length > 0 && (
-        <div className="mb-6">
-          <h2 className="text-base font-bold uppercase mb-2">
-            Experience
-          </h2>
-          <div className="space-y-4">
-            {data.experience.map((exp, idx) => (
-              <div key={idx}>
-                <div className="flex justify-between items-start mb-1">
-                  <h3 className="text-sm font-bold">{exp.company} - {exp.title}</h3>
-                  <span className="text-sm whitespace-nowrap">
-                    {formatDate(exp.start)} - {formatDate(exp.end || "Present")}
-                  </span>
-                </div>
-                {exp.bullets && exp.bullets.length > 0 && (
-                  <ul className="list-disc list-inside space-y-1 text-sm ml-2">
-                    {exp.bullets.map((bullet, bulletIdx) => (
-                      <li key={bulletIdx} className="leading-relaxed">
-                        {bullet}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            ))}
+        <>
+          <hr className="border-t border-black my-3" />
+          <div className="mb-4">
+            <h2 className="text-base font-bold uppercase mb-2">
+              Professional Summary
+            </h2>
+            <p className="text-sm leading-relaxed">{data.summary}</p>
           </div>
-        </div>
+        </>
       )}
 
       {/* Education Section */}
       {data.education && data.education.length > 0 && (
-        <div className="mb-6">
-          <h2 className="text-base font-bold uppercase mb-2">
-            Education
-          </h2>
-          <div className="space-y-2">
-            {data.education.map((edu, idx) => (
-              <div key={idx} className="flex justify-between items-start">
-                <div className="text-sm">
-                  <span className="font-semibold">{edu.degree}</span>
-                  {edu.field && <span>, {edu.field}</span>}
-                  <span> - {edu.institution}</span>
+        <>
+          <hr className="border-t border-black my-3" />
+          <div className="mb-4">
+            <h2 className="text-base font-bold uppercase mb-2">
+              Education
+            </h2>
+            <div className="space-y-2">
+              {data.education.map((edu, idx) => (
+                <div key={idx} className="flex justify-between items-start">
+                  <div className="text-sm">
+                    <span className="font-semibold">{edu.degree}</span>
+                    {edu.field && <span>, {edu.field}</span>}
+                    <span> - {edu.institution}</span>
+                  </div>
+                  {edu.graduation_date && (
+                    <span className="text-sm whitespace-nowrap">{formatDate(edu.graduation_date)}</span>
+                  )}
                 </div>
-                {edu.graduation_date && (
-                  <span className="text-sm whitespace-nowrap">{formatDate(edu.graduation_date)}</span>
-                )}
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        </>
+      )}
+
+      {/* Experience Section */}
+      {data.experience && data.experience.length > 0 && (
+        <>
+          <hr className="border-t border-black my-3" />
+          <div className="mb-4">
+            <h2 className="text-base font-bold uppercase mb-2">
+              Experience
+            </h2>
+            <div className="space-y-4">
+              {data.experience.map((exp, idx) => (
+                <div key={idx}>
+                  <div className="flex justify-between items-start mb-1">
+                    <h3 className="text-sm font-bold">{exp.company} - {exp.title}</h3>
+                    <span className="text-sm whitespace-nowrap">
+                      {formatDate(exp.start)} - {formatDate(exp.end || "Present")}
+                    </span>
+                  </div>
+                  {exp.bullets && exp.bullets.length > 0 && (
+                    <ul className="list-disc list-inside space-y-1 text-sm ml-2">
+                      {exp.bullets.map((bullet, bulletIdx) => (
+                        <li key={bulletIdx} className="leading-relaxed">
+                          {bullet}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
       )}
 
       {/* Projects Section */}
       {data.projects && data.projects.length > 0 && (
-        <div className="mb-6">
-          <h2 className="text-base font-bold uppercase mb-2">
-            Projects
-          </h2>
-          <div className="space-y-3">
-            {data.projects.map((project, idx) => (
-              <div key={idx}>
-                <div className="flex justify-between items-start mb-1">
-                  <h3 className="text-sm font-bold">{project.name}</h3>
-                  {project.technologies && project.technologies.length > 0 && (
-                    <span className="text-sm italic">{project.technologies.join(", ")}</span>
-                  )}
+        <>
+          <hr className="border-t border-black my-3" />
+          <div className="mb-4">
+            <h2 className="text-base font-bold uppercase mb-2">
+              Projects
+            </h2>
+            <div className="space-y-3">
+              {data.projects.map((project, idx) => (
+                <div key={idx}>
+                  <div className="flex justify-between items-start mb-1">
+                    <h3 className="text-sm font-bold">{project.name}</h3>
+                    {project.technologies && project.technologies.length > 0 && (
+                      <span className="text-sm italic">{project.technologies.join(", ")}</span>
+                    )}
+                  </div>
+                  <p className="text-sm leading-relaxed">{project.description}</p>
                 </div>
-                <p className="text-sm leading-relaxed">{project.description}</p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        </>
+      )}
+
+      {/* Skills Section */}
+      {data.skills && data.skills.length > 0 && (
+        <>
+          <hr className="border-t border-black my-3" />
+          <div className="mb-4">
+            <h2 className="text-base font-bold uppercase mb-2">
+              Skills
+            </h2>
+            <p className="text-sm">
+              {data.skills
+                .sort((a, b) => b.confidence - a.confidence)
+                .map(skill => skill.skill)
+                .join(", ")}
+            </p>
+          </div>
+        </>
       )}
 
       {/* Certifications Section */}
       {data.certifications && data.certifications.length > 0 && (
-        <div className="mb-6">
-          <h2 className="text-base font-bold uppercase mb-2">
-            Certifications and Achievements
-          </h2>
-          <ul className="list-disc list-inside space-y-1 text-sm ml-2">
-            {data.certifications.map((cert, idx) => (
-              <li key={idx} className="leading-relaxed">
-                <span className="font-semibold">{cert.name}</span> - {cert.issuer}
-                {cert.date && <span className="text-sm"> ({formatDate(cert.date)})</span>}
-              </li>
-            ))}
-          </ul>
-        </div>
+        <>
+          <hr className="border-t border-black my-3" />
+          <div className="mb-4">
+            <h2 className="text-base font-bold uppercase mb-2">
+              Certifications and Achievements
+            </h2>
+            <ul className="list-disc list-inside space-y-1 text-sm ml-2">
+              {data.certifications.map((cert, idx) => (
+                <li key={idx} className="leading-relaxed">
+                  <span className="font-semibold">{cert.name}</span> - {cert.issuer}
+                  {cert.date && <span className="text-sm"> ({formatDate(cert.date)})</span>}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </>
       )}
     </div>
   );
