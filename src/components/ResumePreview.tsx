@@ -75,12 +75,18 @@ export const ResumePreview = ({ data }: ResumePreviewProps) => {
           {data.other_links && data.other_links.split(',').map((link: string, idx: number) => {
             const trimmedLink = link.trim();
             return (
-              <span key={idx}>
-                {(data.phone || data.email || data.linkedin || idx > 0) && <span>⋄</span>}
-                <a href={trimmedLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+              <>
+                {(data.phone || data.email || data.linkedin || idx > 0) && <span key={`sep-${idx}`}>⋄</span>}
+                <a 
+                  key={idx}
+                  href={trimmedLink} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-blue-600 hover:underline"
+                >
                   {getLinkLabel(trimmedLink)}
                 </a>
-              </span>
+              </>
             );
           })}
         </div>

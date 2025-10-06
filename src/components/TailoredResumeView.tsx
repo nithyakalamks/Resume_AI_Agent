@@ -227,24 +227,20 @@ const ResumeContent = ({
               LinkedIn
             </a>
           )}
-          {(data as any).other_links && (
-            <>
-              {(data as any).other_links.split(',').map((link: string, idx: number) => {
-                const trimmedLink = link.trim();
-                return (
-                  <a 
-                    key={idx}
-                    href={trimmedLink} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="text-primary hover:underline"
-                  >
-                    {getLinkLabel(trimmedLink)}
-                  </a>
-                );
-              })}
-            </>
-          )}
+          {(data as any).other_links && (data as any).other_links.split(',').map((link: string, idx: number) => {
+            const trimmedLink = link.trim();
+            return (
+              <a 
+                key={idx}
+                href={trimmedLink} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-primary hover:underline"
+              >
+                {getLinkLabel(trimmedLink)}
+              </a>
+            );
+          })}
         </div>
       </div>
 
