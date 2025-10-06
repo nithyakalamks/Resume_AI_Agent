@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Auth } from "@/components/Auth";
+import { ResumePreview } from "@/components/ResumePreview";
 import type { User } from "@supabase/supabase-js";
 
 const Index = () => {
@@ -16,6 +17,7 @@ const Index = () => {
   const [jobDescription, setJobDescription] = useState("");
   const [isTailoring, setIsTailoring] = useState(false);
   const [currentResumeId, setCurrentResumeId] = useState<string | null>(null);
+  const [parsedResume, setParsedResume] = useState<any>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -101,6 +103,7 @@ const Index = () => {
       if (parseError) throw parseError;
 
       setCurrentResumeId(data.resume_id);
+      setParsedResume(data.parsed_data);
       
       toast({
         title: "Resume uploaded successfully",
@@ -312,6 +315,16 @@ const Index = () => {
               </Card>
             ))}
           </div>
+
+          {/* Resume Preview Section */}
+          {parsedResume && (
+            <div className="mt-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <h3 className="text-3xl font-bold text-center mb-8 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                Your Resume Preview
+              </h3>
+              <ResumePreview data={parsedResume} />
+            </div>
+          )}
         </div>
       </main>
     </div>
