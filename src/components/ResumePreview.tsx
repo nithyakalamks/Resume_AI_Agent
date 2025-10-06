@@ -46,7 +46,7 @@ export const ResumePreview = ({ data }: ResumePreviewProps) => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white text-black">
+    <div className="max-w-4xl mx-auto p-4 bg-white text-black" style={{ pageBreakInside: 'avoid' }}>
       {/* Header Section */}
       <div className="text-center mb-3">
         <h1 className="text-2xl font-bold uppercase mb-1">{data.name}</h1>
@@ -109,7 +109,7 @@ export const ResumePreview = ({ data }: ResumePreviewProps) => {
             </h2>
             <div className="space-y-3">
               {data.experience.map((exp, idx) => (
-                <div key={idx}>
+                <div key={idx} style={{ pageBreakInside: 'avoid' }}>
                   <div className="flex justify-between items-start mb-1">
                     <h3 className="text-sm font-bold">{exp.company} - {exp.title}</h3>
                     <span className="text-sm whitespace-nowrap">
@@ -143,7 +143,7 @@ export const ResumePreview = ({ data }: ResumePreviewProps) => {
             </h2>
             <div className="space-y-3">
               {data.projects.map((project, idx) => (
-                <div key={idx}>
+                <div key={idx} style={{ pageBreakInside: 'avoid' }}>
                   <div className="flex justify-between items-start mb-1">
                     <h3 className="text-sm font-bold">{project.name}</h3>
                     {project.technologies && project.technologies.length > 0 && (

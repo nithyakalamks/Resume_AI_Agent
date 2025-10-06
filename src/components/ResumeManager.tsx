@@ -30,11 +30,12 @@ export const ResumeManager = ({ userId, onResumeChange }: ResumeManagerProps) =>
 
       const userName = currentResume.parsed_data.name || 'User';
       const opt = {
-        margin: 10,
+        margin: 5,
         filename: `${userName.replace(/\s+/g, '_')}_Resume.pdf`,
         image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
       };
 
       await html2pdf().set(opt).from(resumeElement).save();
