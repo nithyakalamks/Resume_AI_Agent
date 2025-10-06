@@ -117,10 +117,11 @@ export const ResumePreview = ({ data }: ResumePreviewProps) => {
                     </span>
                   </div>
                   {exp.bullets && exp.bullets.length > 0 && (
-                    <ul className="list-disc list-inside space-y-1 text-sm ml-2">
+                    <ul className="space-y-1 text-sm">
                       {exp.bullets.map((bullet, bulletIdx) => (
-                        <li key={bulletIdx} className="leading-relaxed">
-                          {bullet}
+                        <li key={bulletIdx} className="leading-relaxed flex">
+                          <span className="mr-2">•</span>
+                          <span className="flex-1">{bullet}</span>
                         </li>
                       ))}
                     </ul>
@@ -183,11 +184,14 @@ export const ResumePreview = ({ data }: ResumePreviewProps) => {
             <h2 className="text-base font-bold uppercase mb-2">
               Certifications and Achievements
             </h2>
-            <ul className="list-disc list-inside space-y-1 text-sm ml-2">
+            <ul className="space-y-1 text-sm">
               {data.certifications.map((cert, idx) => (
-                <li key={idx} className="leading-relaxed">
-                  <span className="font-semibold">{cert.name}</span> - {cert.issuer}
-                  {cert.date && <span className="text-sm"> ({formatDate(cert.date)})</span>}
+                <li key={idx} className="leading-relaxed flex">
+                  <span className="mr-2">•</span>
+                  <span className="flex-1">
+                    <span className="font-semibold">{cert.name}</span> - {cert.issuer}
+                    {cert.date && <span className="text-sm"> ({formatDate(cert.date)})</span>}
+                  </span>
                 </li>
               ))}
             </ul>
