@@ -1,48 +1,75 @@
-// No imports needed for simple template
+interface Skill {
+  skill: string;
+  confidence: number;
+  relevance?: number;
+  category?: string;
+}
+
+interface Experience {
+  company: string;
+  title: string;
+  start?: string;
+  end?: string;
+  start_date?: string;
+  end_date?: string;
+  location?: string;
+  bullets?: string[];
+  description?: string[];
+  relevance?: number;
+}
+
+interface Education {
+  institution: string;
+  degree: string;
+  field?: string;
+  graduation_date?: string;
+}
+
+interface Project {
+  name: string;
+  description: string;
+  technologies?: string[];
+  relevance?: number;
+}
+
+interface Certification {
+  name: string;
+  issuer: string;
+  date?: string;
+}
 
 interface ResumeData {
   name: string;
-  email: string;
+  email?: string;
   phone?: string;
+  location?: string;
   linkedin?: string;
   other_links?: string;
   summary?: string;
-  skills?: Array<{ skill: string; confidence: number; category?: string }>;
-  experience?: Array<{
-    company: string;
-    title: string;
-    start: string;
-    end?: string;
-    bullets: string[];
-  }>;
-  education?: Array<{
-    institution: string;
-    degree: string;
-    field?: string;
-    graduation_date?: string;
-  }>;
-  projects?: Array<{
-    name: string;
-    description: string;
-    technologies?: string[];
-  }>;
-  certifications?: Array<{
-    name: string;
-    issuer: string;
-    date?: string;
-  }>;
+  skills?: Skill[];
+  experience?: Experience[];
+  education?: Education[];
+  projects?: Project[];
+  certifications?: Certification[];
 }
 
-interface ResumePreviewProps {
+interface ResumeTemplateProps {
   data: ResumeData;
+  id?: string;
 }
 
-export const ResumePreview = ({ data }: ResumePreviewProps) => {
-  const formatDate = (dateStr: string) => {
-    if (dateStr === "Present" || !dateStr) return dateStr || "Present";
-    const [year, month] = dateStr.split("-");
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    return month ? `${months[parseInt(month) - 1]} ${year}` : year;
+export const ResumeTemplate = ({ data, id }: ResumeTemplateProps) => {
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return '';
+    if (dateStr === "Present" || dateStr.toLowerCase() === "present") return "Present";
+    
+    try {
+      const [year, month] = dateStr.split("-");
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      return month ? `${months[parseInt(month) - 1]} ${year}` : year;
+    } catch {
+      return dateStr;
+    }
   };
 
   const getLinkLabel = (url: string): string => {
@@ -54,7 +81,11 @@ export const ResumePreview = ({ data }: ResumePreviewProps) => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 pt-2 pb-4 bg-white text-black" style={{ pageBreakInside: 'avoid' }}>
+    <div 
+      id={id}
+      className="max-w-4xl mx-auto px-4 pt-2 pb-4 bg-white text-black" 
+      style={{ pageBreakInside: 'avoid' }}
+    >
       {/* Header Section */}
       <div className="text-center mb-3">
         <h1 className="text-2xl font-bold uppercase mb-1">{data.name}</h1>
@@ -140,26 +171,32 @@ export const ResumePreview = ({ data }: ResumePreviewProps) => {
               Experience
             </h2>
             <div className="space-y-3">
-              {data.experience.map((exp, idx) => (
-                <div key={idx} style={{ pageBreakInside: 'avoid' }}>
-                  <div className="flex justify-between items-start mb-1">
-                    <h3 className="text-sm font-bold">{exp.company} - {exp.title}</h3>
-                    <span className="text-sm whitespace-nowrap">
-                      {formatDate(exp.start)} - {formatDate(exp.end || "Present")}
-                    </span>
+              {data.experience.map((exp, idx) => {
+                const startDate = exp.start || exp.start_date;
+                const endDate = exp.end || exp.end_date;
+                const bulletPoints = exp.bullets || exp.description || [];
+                
+                return (
+                  <div key={idx} style={{ pageBreakInside: 'avoid' }}>
+                    <div className="flex justify-between items-start mb-1">
+                      <h3 className="text-sm font-bold">{exp.company} - {exp.title}</h3>
+                      <span className="text-sm whitespace-nowrap">
+                        {formatDate(startDate)} - {formatDate(endDate) || "Present"}
+                      </span>
+                    </div>
+                    {bulletPoints.length > 0 && (
+                      <ul className="space-y-0.5 text-sm">
+                        {bulletPoints.map((bullet, bulletIdx) => (
+                          <li key={bulletIdx} className="leading-relaxed flex">
+                            <span className="mr-1.5">-</span>
+                            <span className="flex-1">{bullet}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
-                  {exp.bullets && exp.bullets.length > 0 && (
-                    <ul className="space-y-0.5 text-sm">
-                      {exp.bullets.map((bullet, bulletIdx) => (
-                        <li key={bulletIdx} className="leading-relaxed flex">
-                          <span className="mr-1.5">-</span>
-                          <span className="flex-1">{bullet}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </>
@@ -199,15 +236,13 @@ export const ResumePreview = ({ data }: ResumePreviewProps) => {
               Skills
             </h2>
             {(() => {
-              // Group skills by category
-              const categorized = data.skills.reduce((acc: any, skill: any) => {
+              const categorized = data.skills.reduce((acc: any, skill: Skill) => {
                 const category = skill.category || 'Other';
                 if (!acc[category]) acc[category] = [];
                 acc[category].push(skill);
                 return acc;
               }, {});
 
-              // Define order of categories
               const categoryOrder = [
                 "Programming Languages",
                 "Frameworks & Libraries", 
@@ -225,8 +260,8 @@ export const ResumePreview = ({ data }: ResumePreviewProps) => {
                     <span className="text-sm font-semibold">{category}: </span>
                     <span className="text-sm">
                       {categorized[category]
-                        .sort((a: any, b: any) => b.confidence - a.confidence)
-                        .map((s: any) => s.skill)
+                        .sort((a: Skill, b: Skill) => b.confidence - a.confidence)
+                        .map((s: Skill) => s.skill)
                         .join(", ")}
                     </span>
                   </div>

@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, Eye, Pencil, Download } from "lucide-react";
-import { ResumePreview } from "@/components/ResumePreview";
+import { ResumeTemplate } from "@/components/ResumeTemplate";
 import html2pdf from "html2pdf.js";
 
 interface ResumeManagerProps {
@@ -255,9 +255,10 @@ export const ResumeManager = ({ userId, onResumeChange }: ResumeManagerProps) =>
           )}
 
           {showPreview && currentResume.parsed_data && (
-            <div id="original-resume-content">
-              <ResumePreview data={currentResume.parsed_data} />
-            </div>
+            <ResumeTemplate 
+              data={currentResume.parsed_data} 
+              id="original-resume-content"
+            />
           )}
         </div>
       )}
