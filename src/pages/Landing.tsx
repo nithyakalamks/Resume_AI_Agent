@@ -32,12 +32,12 @@ const Landing = () => {
             <span className="text-xl font-display font-bold text-foreground">Tweaker</span>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="ghost" onClick={() => navigate("/")}>
+            <Button variant="ghost" onClick={() => navigate("/auth?tab=signin")}>
               Log In
             </Button>
             <Button 
               className="bg-gradient-to-r from-primary via-[hsl(169,48%,53%)] to-accent hover:opacity-90 transition-opacity"
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/auth?tab=signup")}
             >
               Get Started Free
             </Button>
@@ -66,7 +66,7 @@ const Landing = () => {
             <Button 
               size="lg"
               className="bg-gradient-to-r from-primary via-[hsl(169,48%,53%)] to-accent hover:opacity-90 transition-opacity text-lg px-8"
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/auth?tab=signup")}
             >
               <Sparkles className="w-5 h-5 mr-2" />
               Get Started Free
@@ -74,7 +74,7 @@ const Landing = () => {
             <Button 
               size="lg" 
               variant="outline"
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/auth?tab=signin")}
             >
               Log In
             </Button>
@@ -208,7 +208,7 @@ const Landing = () => {
             <Button 
               size="lg"
               className="bg-gradient-to-r from-primary via-[hsl(169,48%,53%)] to-accent hover:opacity-90 transition-opacity"
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/auth?tab=signup")}
             >
               Try Tweaker — no manual edits ever again
               <Sparkles className="w-4 h-4 ml-2" />
@@ -304,7 +304,7 @@ const Landing = () => {
               <Button 
                 size="lg"
                 className="bg-white text-primary hover:bg-white/90 transition-colors text-lg px-8"
-                onClick={() => navigate("/")}
+                onClick={() => navigate("/auth?tab=signup")}
               >
                 <Sparkles className="w-5 h-5 mr-2" />
                 Start Free — No Credit Card Required
@@ -313,7 +313,7 @@ const Landing = () => {
                 size="lg"
                 variant="outline"
                 className="border-2 border-white text-white hover:bg-white/10"
-                onClick={() => navigate("/")}
+                onClick={() => navigate("/auth?tab=signin")}
               >
                 Login to Continue
               </Button>

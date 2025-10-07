@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Routes, Route, Navigate } from "react-router-dom";
@@ -12,6 +12,7 @@ import { HistoryPage } from "@/pages/HistoryPage";
 
 const Dashboard = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [hasResume, setHasResume] = useState<boolean | null>(null);
@@ -59,6 +60,7 @@ const Dashboard = () => {
     toast({
       title: "Signed out successfully",
     });
+    navigate("/auth?tab=signin");
   };
 
   if (loading) {
