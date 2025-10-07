@@ -20,7 +20,7 @@ export const ResumeManager = ({ userId, onResumeChange }: ResumeManagerProps) =>
   const [uploading, setUploading] = useState(false);
   const [uploadStage, setUploadStage] = useState<"uploading" | "parsing" | "complete">("uploading");
   const [currentResume, setCurrentResume] = useState<any>(null);
-  const [showPreview, setShowPreview] = useState(false);
+  const [showPreview, setShowPreview] = useState(true);
   const [downloading, setDownloading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const { toast } = useToast();

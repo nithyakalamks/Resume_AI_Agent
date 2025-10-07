@@ -96,6 +96,7 @@ const Dashboard = () => {
         <Route path="/" element={<DashboardHome userId={user.id} />} />
         <Route path="/resume" element={<ResumePage userId={user.id} />} />
         <Route path="/history" element={<HistoryPage userId={user.id} />} />
+        <Route path="/history/:id" element={<HistoryPage userId={user.id} />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </div>

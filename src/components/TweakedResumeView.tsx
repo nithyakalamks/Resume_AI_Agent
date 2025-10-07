@@ -92,11 +92,21 @@ export const TweakedResumeView = ({
 
   return (
     <Tabs defaultValue="customized" className="w-full">
-      <TabsList className="grid w-full max-w-2xl grid-cols-3">
+      <TabsList className="grid w-full max-w-3xl grid-cols-4">
+        <TabsTrigger value="original">Original Resume</TabsTrigger>
         <TabsTrigger value="customized">Customized Resume</TabsTrigger>
         <TabsTrigger value="cover">Cover Letter</TabsTrigger>
         <TabsTrigger value="analysis">Score Analysis</TabsTrigger>
       </TabsList>
+
+      <TabsContent value="original" className="mt-6">
+        <Card className="p-8">
+          <ResumeTemplate 
+            data={originalData} 
+            id="original-resume-content"
+          />
+        </Card>
+      </TabsContent>
 
       <TabsContent value="customized" className="mt-6">
         <Card className="p-8">
@@ -111,7 +121,7 @@ export const TweakedResumeView = ({
         <Card className="p-8">
           <div className="prose prose-sm max-w-none">
             {coverLetter ? (
-              <pre className="whitespace-pre-wrap text-sm font-sans">{coverLetter}</pre>
+              <pre id="cover-letter-content" className="whitespace-pre-wrap text-sm font-sans">{coverLetter}</pre>
             ) : (
               <p className="text-muted-foreground text-center py-8">
                 No cover letter available
