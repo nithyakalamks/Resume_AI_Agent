@@ -177,23 +177,26 @@ export const DashboardHome = ({ userId }: DashboardHomeProps) => {
 
   if (showSkillsReview && skillComparison) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <SkillsReview
-          jobSkills={skillComparison.job_skills}
-          matchingSkills={skillComparison.matching_skills}
-          missingSkills={skillComparison.missing_skills}
-          onConfirm={handleConfirmSkills}
-          onCancel={handleCancelSkillsReview}
-          loading={tweaking}
-        />
+      <div className="min-h-screen bg-gradient-to-br from-background via-secondary/30 to-background">
+        <div className="container mx-auto px-4 py-8">
+          <SkillsReview
+            jobSkills={skillComparison.job_skills}
+            matchingSkills={skillComparison.matching_skills}
+            missingSkills={skillComparison.missing_skills}
+            onConfirm={handleConfirmSkills}
+            onCancel={handleCancelSkillsReview}
+            loading={tweaking}
+          />
+        </div>
       </div>
     );
   }
 
   if (tweakedData) {
     return (
-      <div className="container mx-auto px-4 py-8 space-y-6">
-        <TweakedResumeView
+      <div className="min-h-screen bg-gradient-to-br from-background via-secondary/30 to-background">
+        <div className="container mx-auto px-4 py-8 space-y-6">
+          <TweakedResumeView
           originalData={originalData}
           tweakedData={tweakedData}
           changesSummary={changesSummary}
@@ -214,23 +217,26 @@ export const DashboardHome = ({ userId }: DashboardHomeProps) => {
           </Card>
         )}
 
-        <div className="flex justify-center">
-          <Button onClick={handleCreateAnother} size="lg">
-            Create Another Tweaked Resume
-          </Button>
+          <div className="flex justify-center">
+            <Button onClick={handleCreateAnother} size="lg">
+              Create Another Tweaked Resume
+            </Button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-8">
-      <DashboardHero 
-        hasResume={hasResume}
-        onStartTweaking={handleStartTweaking}
-        loading={analyzing}
-      />
-      <RecentTweaks userId={userId} />
+    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/30 to-background">
+      <div className="container mx-auto px-4 py-8 space-y-8">
+        <DashboardHero 
+          hasResume={hasResume}
+          onStartTweaking={handleStartTweaking}
+          loading={analyzing}
+        />
+        <RecentTweaks userId={userId} />
+      </div>
     </div>
   );
 };

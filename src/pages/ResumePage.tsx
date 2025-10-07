@@ -6,13 +6,15 @@ interface ResumePageProps {
 
 export const ResumePage = ({ userId }: ResumePageProps) => {
   return (
-    <div className="container mx-auto px-4 py-8 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">My Resume</h1>
-        <p className="text-muted-foreground">Manage your base resume</p>
+    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/30 to-background">
+      <div className="container mx-auto px-4 py-8 space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold font-display">My Resume</h1>
+          <p className="text-muted-foreground">Manage your base resume</p>
+        </div>
+        
+        <ResumeManager userId={userId} onResumeChange={() => {}} />
       </div>
-      
-      <ResumeManager userId={userId} onResumeChange={() => {}} />
     </div>
   );
 };

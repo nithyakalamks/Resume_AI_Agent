@@ -35,11 +35,11 @@ export const DashboardNav = ({ onSignOut }: DashboardNavProps) => {
               return (
                 <Link key={item.path} to={item.path}>
                   <Button
-                    variant={isActive ? "secondary" : "ghost"}
+                    variant="ghost"
                     size="sm"
                     className={cn(
-                      "gap-2",
-                      isActive && "bg-secondary/80"
+                      "gap-2 relative transition-colors",
+                      isActive && "text-primary after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-gradient-to-r after:from-primary after:via-[hsl(169,48%,53%)] after:to-accent after:rounded-full"
                     )}
                   >
                     <Icon className="w-4 h-4" />
