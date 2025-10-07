@@ -286,10 +286,27 @@ Please tweak this resume to match the job description while preserving education
                       },
                       required: ["skill", "relevance", "reason"]
                     },
-                    description: "Top 5-10 most relevant skills with explanations"
+                    description: "Skills from resume that match job requirements"
+                  },
+                  missing_skills: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        skill: { type: "string" },
+                        importance: { type: "string", description: "high, medium, or low" },
+                        reason: { type: "string", description: "Why this skill is important for the job" }
+                      },
+                      required: ["skill", "importance", "reason"]
+                    },
+                    description: "Skills required by job but missing from resume"
+                  },
+                  total_required_skills: {
+                    type: "number",
+                    description: "Total count of all skills required by the job (matching + missing)"
                   }
                 },
-                required: ["tweaked_data", "changes_summary", "skill_matches"]
+                required: ["tweaked_data", "changes_summary", "skill_matches", "missing_skills", "total_required_skills"]
               }
             }
           }
@@ -361,18 +378,31 @@ INSTRUCTIONS:
 
     console.log('Storing tweaked resume in database...');
 
-    // Calculate job fit scores
-    const calculateScore = (skillMatches: any[], addedCount: number = 0) => {
-      if (!skillMatches || skillMatches.length === 0) return 65;
-      const totalRelevance = skillMatches.reduce((sum: number, match: any) => sum + match.relevance, 0);
-      const averageRelevance = totalRelevance / skillMatches.length;
-      const baseScore = Math.round(averageRelevance * 100);
-      const addedBonus = Math.min(addedCount * 2, 10);
-      return Math.min(baseScore + addedBonus, 100);
+    // Calculate job fit scores using the optimized logic
+    const calculateScore = (skillMatches: any[], totalRequired: number, addedCount: number = 0) => {
+      if (!skillMatches || skillMatches.length === 0) return 0;
+      if (totalRequired === 0) return 65;
+      
+      const weightedScore = skillMatches.reduce((sum: number, match: any) => sum + match.relevance, 0);
+      const totalMatchedSkills = skillMatches.length + addedCount;
+      const matchPercentage = (totalMatchedSkills / totalRequired) * 100;
+      
+      const averageRelevance = weightedScore / skillMatches.length;
+      const relevanceBonus = (averageRelevance - 0.7) * 10;
+      
+      const finalScore = Math.min(
+        Math.round(matchPercentage + Math.max(0, relevanceBonus)),
+        100
+      );
+      
+      return Math.max(0, finalScore);
     };
 
-    const originalScore = calculateScore(tweakedResult.skill_matches, 0);
-    const customizedScore = calculateScore(tweakedResult.skill_matches, addedSkills.length);
+    const totalRequiredSkills = tweakedResult.total_required_skills || 
+                                (tweakedResult.skill_matches.length + (tweakedResult.missing_skills?.length || 0));
+
+    const originalScore = calculateScore(tweakedResult.skill_matches, totalRequiredSkills, 0);
+    const customizedScore = calculateScore(tweakedResult.skill_matches, totalRequiredSkills, addedSkills.length);
 
     // Store the tweaked resume with added skills metadata
     const { data: tweakedResume, error: tweakedError } = await supabaseClient

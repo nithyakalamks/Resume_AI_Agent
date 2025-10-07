@@ -24,21 +24,11 @@ export const ScoreAnalysis = ({
 }: ScoreAnalysisProps) => {
   const improvement = customizedScore - originalScore;
   
-  // Calculate skill-based scores
+  // Use scores directly from database (already calculated with optimized logic)
   const totalSkills = (skillMatches?.matching?.length || 0) + (skillMatches?.missing?.length || 0);
   const matchingSkillsCount = skillMatches?.matching?.length || 0;
   const addedSkillsCount = skillMatches?.addedSkills?.length || 0;
-  
-  // Calculate actual scores based on skill matching
-  const calculatedOriginalScore = totalSkills > 0 
-    ? Math.round((matchingSkillsCount / totalSkills) * 100)
-    : originalScore;
-  
-  const calculatedCustomizedScore = totalSkills > 0
-    ? Math.min(100, Math.round(((matchingSkillsCount + addedSkillsCount) / totalSkills) * 100))
-    : customizedScore;
-  
-  const actualImprovement = calculatedCustomizedScore - calculatedOriginalScore;
+  const totalMatchedAfter = matchingSkillsCount + addedSkillsCount;
   
   // Color coding helper
   const getScoreColor = (score: number) => {
@@ -56,41 +46,45 @@ export const ScoreAnalysis = ({
   // Dynamic score breakdown based on actual data
   const skillsMatchPercent = totalSkills > 0 
     ? Math.round((matchingSkillsCount / totalSkills) * 100)
-    : 60;
+    : originalScore;
   
   const skillsMatchAfter = totalSkills > 0
-    ? Math.min(100, Math.round(((matchingSkillsCount + addedSkillsCount) / totalSkills) * 100))
-    : 95;
+    ? Math.min(100, Math.round((totalMatchedAfter / totalSkills) * 100))
+    : customizedScore;
   
   const scoreBreakdown = [
     { 
       label: "Skills Match", 
       original: skillsMatchPercent, 
       customized: skillsMatchAfter, 
-      weight: "40%" 
+      weight: "40%",
+      detail: totalSkills > 0 ? `${matchingSkillsCount} / ${totalSkills} → ${totalMatchedAfter} / ${totalSkills}` : ""
     },
     { 
       label: "Experience Relevance", 
-      original: Math.max(65, calculatedOriginalScore - 5), 
-      customized: Math.min(90, calculatedCustomizedScore - 5), 
-      weight: "30%" 
+      original: Math.max(65, originalScore - 5), 
+      customized: Math.min(90, customizedScore - 5), 
+      weight: "30%",
+      detail: ""
     },
     { 
       label: "Keywords Optimization", 
-      original: Math.max(50, calculatedOriginalScore - 15), 
-      customized: Math.min(95, calculatedCustomizedScore), 
-      weight: "20%" 
+      original: Math.max(50, originalScore - 15), 
+      customized: Math.min(95, customizedScore), 
+      weight: "20%",
+      detail: ""
     },
     { 
       label: "Format & Structure", 
       original: 80, 
       customized: 90, 
-      weight: "10%" 
+      weight: "10%",
+      detail: ""
     },
   ];
   
-  const originalScoreInfo = getScoreLabel(calculatedOriginalScore);
-  const customizedScoreInfo = getScoreLabel(calculatedCustomizedScore);
+  const originalScoreInfo = getScoreLabel(originalScore);
+  const customizedScoreInfo = getScoreLabel(customizedScore);
 
   return (
     <div className="space-y-6">
@@ -103,7 +97,9 @@ export const ScoreAnalysis = ({
           <div>
             <h3 className="text-lg font-bold">Job Fit Analysis</h3>
             <p className="text-sm text-muted-foreground">
-              See how Tweaker boosted your match score from {calculatedOriginalScore} to {calculatedCustomizedScore}
+              {totalSkills > 0 
+                ? `Matched ${totalMatchedAfter} of ${totalSkills} required skills (${customizedScore}% fit)`
+                : `Your match score improved from ${originalScore}% to ${customizedScore}%`}
             </p>
           </div>
         </div>
@@ -140,14 +136,14 @@ export const ScoreAnalysis = ({
                   strokeWidth="10"
                   fill="none"
                   strokeDasharray={`${2 * Math.PI * 56}`}
-                  strokeDashoffset={`${2 * Math.PI * 56 * (1 - calculatedOriginalScore / 100)}`}
-                  className={getScoreColor(calculatedOriginalScore)}
+                  strokeDashoffset={`${2 * Math.PI * 56 * (1 - originalScore / 100)}`}
+                  className={getScoreColor(originalScore)}
                   strokeLinecap="round"
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className={`text-4xl font-bold ${getScoreColor(calculatedOriginalScore)}`}>
-                  {calculatedOriginalScore}
+                <span className={`text-4xl font-bold ${getScoreColor(originalScore)}`}>
+                  {originalScore}
                 </span>
                 <span className="text-sm text-muted-foreground">/100</span>
               </div>
@@ -165,10 +161,10 @@ export const ScoreAnalysis = ({
             <div className="space-y-1">
               <div className="flex items-center justify-center gap-2">
                 <p className="text-xs text-primary font-medium uppercase tracking-wider">After Tweaking</p>
-                {actualImprovement > 0 && (
+                {improvement > 0 && (
                   <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-success/10">
                     <TrendingUp className="w-3 h-3 text-success" />
-                    <span className="text-xs font-bold text-success">+{actualImprovement}</span>
+                    <span className="text-xs font-bold text-success">+{improvement}</span>
                   </div>
                 )}
               </div>
@@ -193,14 +189,14 @@ export const ScoreAnalysis = ({
                   strokeWidth="10"
                   fill="none"
                   strokeDasharray={`${2 * Math.PI * 56}`}
-                  strokeDashoffset={`${2 * Math.PI * 56 * (1 - calculatedCustomizedScore / 100)}`}
-                  className={getScoreColor(calculatedCustomizedScore)}
+                  strokeDashoffset={`${2 * Math.PI * 56 * (1 - customizedScore / 100)}`}
+                  className={getScoreColor(customizedScore)}
                   strokeLinecap="round"
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className={`text-4xl font-bold ${getScoreColor(calculatedCustomizedScore)}`}>
-                  {calculatedCustomizedScore}
+                <span className={`text-4xl font-bold ${getScoreColor(customizedScore)}`}>
+                  {customizedScore}
                 </span>
                 <span className="text-sm text-muted-foreground">/100</span>
               </div>
@@ -217,7 +213,10 @@ export const ScoreAnalysis = ({
           {scoreBreakdown.map((item, idx) => (
             <div key={idx} className="space-y-2">
               <div className="flex justify-between items-center text-sm">
-                <span className="font-medium">{item.label}</span>
+                <div className="flex flex-col gap-1">
+                  <span className="font-medium">{item.label}</span>
+                  {item.detail && <span className="text-xs text-muted-foreground">{item.detail}</span>}
+                </div>
                 <span className="text-muted-foreground">{item.weight}</span>
               </div>
               <div className="grid grid-cols-2 gap-4">

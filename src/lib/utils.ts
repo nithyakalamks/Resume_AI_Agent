@@ -12,18 +12,30 @@ interface SkillMatch {
 }
 
 export function calculateJobFitScore(
-  skillMatches: SkillMatch[], 
+  matchingSkills: SkillMatch[],
+  totalRequiredSkills: number,
   addedSkillsCount: number = 0
 ): number {
-  if (!skillMatches || skillMatches.length === 0) return 65; // default fallback
+  if (!matchingSkills || matchingSkills.length === 0) return 0;
+  if (totalRequiredSkills === 0) return 65; // fallback for edge cases
   
-  // Calculate based on skill relevance scores
-  const totalRelevance = skillMatches.reduce((sum, match) => sum + match.relevance, 0);
-  const averageRelevance = totalRelevance / skillMatches.length;
-  const baseScore = Math.round(averageRelevance * 100);
+  // Calculate weighted score based on relevance
+  const weightedScore = matchingSkills.reduce((sum, match) => 
+    sum + match.relevance, 0
+  );
   
-  // Bonus for added skills (up to 10 points)
-  const addedSkillsBonus = Math.min(addedSkillsCount * 2, 10);
+  // Calculate percentage: (matched + added) / total required
+  const totalMatchedSkills = matchingSkills.length + addedSkillsCount;
+  const matchPercentage = (totalMatchedSkills / totalRequiredSkills) * 100;
   
-  return Math.min(baseScore + addedSkillsBonus, 100);
+  // Apply relevance weighting (boost for high-quality matches)
+  const averageRelevance = weightedScore / matchingSkills.length;
+  const relevanceBonus = (averageRelevance - 0.7) * 10; // Up to +3% for high-quality matches
+  
+  const finalScore = Math.min(
+    Math.round(matchPercentage + Math.max(0, relevanceBonus)),
+    100
+  );
+  
+  return Math.max(0, finalScore);
 }
