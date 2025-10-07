@@ -26,6 +26,7 @@ export const DashboardHome = ({ userId }: DashboardHomeProps) => {
   const [tweakedData, setTweakedData] = useState<any>(null);
   const [changesSummary, setChangesSummary] = useState<string[]>([]);
   const [coverLetter, setCoverLetter] = useState("");
+  const [downloadingResume, setDownloadingResume] = useState(false);
   const [downloadingCover, setDownloadingCover] = useState(false);
   const [jobInfo, setJobInfo] = useState({ companyName: "", roleName: "", jobDescription: "" });
   const { toast } = useToast();
@@ -143,17 +144,20 @@ export const DashboardHome = ({ userId }: DashboardHomeProps) => {
   };
 
   const handleDownloadResume = async () => {
-    setDownloadingCover(true);
+    setDownloadingResume(true);
     try {
-      const element = document.getElementById('resume-content');
-      if (!element) throw new Error('Resume content not found');
+      const element = document.getElementById("hidden-resume-content");
+      if (!element) {
+        console.error("Resume content not found");
+        return;
+      }
 
       const opt = {
-        margin: 10,
-        filename: `${tweakedData?.name.replace(/\s+/g, '_')}_Resume.pdf`,
-        image: { type: 'jpeg' as const, quality: 0.98 },
+        margin: 0.5,
+        filename: `tweaked-resume-${jobInfo.companyName}-${jobInfo.roleName}.pdf`,
+        image: { type: "jpeg" as const, quality: 0.98 },
         html2canvas: { scale: 2 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+        jsPDF: { unit: "in", format: "letter", orientation: "portrait" as const },
       };
 
       await html2pdf().set(opt).from(element).save();
@@ -165,25 +169,28 @@ export const DashboardHome = ({ userId }: DashboardHomeProps) => {
         variant: "destructive"
       });
     } finally {
-      setDownloadingCover(false);
+      setDownloadingResume(false);
     }
   };
 
   const handleDownloadCoverLetter = async () => {
     setDownloadingCover(true);
     try {
-      const coverElement = document.getElementById('cover-letter-content');
-      if (!coverElement) throw new Error('Cover letter content not found');
+      const element = document.getElementById("hidden-cover-letter-content");
+      if (!element) {
+        console.error("Cover letter content not found");
+        return;
+      }
 
       const opt = {
-        margin: 10,
-        filename: `${tweakedData?.name.replace(/\s+/g, '_')}_Cover_Letter.pdf`,
-        image: { type: 'jpeg' as const, quality: 0.98 },
+        margin: 1,
+        filename: `cover-letter-${jobInfo.companyName}-${jobInfo.roleName}.pdf`,
+        image: { type: "jpeg" as const, quality: 0.98 },
         html2canvas: { scale: 2 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+        jsPDF: { unit: "in", format: "letter", orientation: "portrait" as const },
       };
 
-      await html2pdf().set(opt).from(coverElement).save();
+      await html2pdf().set(opt).from(element).save();
       toast({ title: "Cover letter downloaded successfully" });
     } catch (error: any) {
       toast({
@@ -247,38 +254,38 @@ export const DashboardHome = ({ userId }: DashboardHomeProps) => {
           </Card>
 
           <Card className="p-8">
-            <div className="flex flex-col items-center text-center space-y-4">
-              <div className="relative w-32 h-32">
-                <svg className="transform -rotate-90 w-32 h-32">
+            <div className="flex items-center gap-6">
+              <div className="relative w-20 h-20 flex-shrink-0">
+                <svg className="transform -rotate-90 w-20 h-20">
                   <circle
-                    cx="64"
-                    cy="64"
-                    r="56"
+                    cx="40"
+                    cy="40"
+                    r="36"
                     stroke="currentColor"
-                    strokeWidth="8"
+                    strokeWidth="6"
                     fill="transparent"
                     className="text-muted"
                   />
                   <circle
-                    cx="64"
-                    cy="64"
-                    r="56"
+                    cx="40"
+                    cy="40"
+                    r="36"
                     stroke="currentColor"
-                    strokeWidth="8"
+                    strokeWidth="6"
                     fill="transparent"
-                    strokeDasharray={`${2 * Math.PI * 56}`}
-                    strokeDashoffset={`${2 * Math.PI * 56 * (1 - 0.91)}`}
+                    strokeDasharray={`${2 * Math.PI * 36}`}
+                    strokeDashoffset={`${2 * Math.PI * 36 * (1 - 0.91)}`}
                     className="text-primary transition-all duration-1000 ease-out"
                     strokeLinecap="round"
                   />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-3xl font-bold">91</span>
+                  <span className="text-xl font-bold">91/100</span>
                 </div>
               </div>
-              <div>
-                <h3 className="text-2xl font-bold mb-2">Job Fit Score</h3>
-                <p className="text-muted-foreground max-w-md">
+              <div className="flex-1">
+                <h3 className="text-2xl font-bold mb-2">Job Fit Score: 91/100</h3>
+                <p className="text-muted-foreground">
                   Your resume shows an excellent match with the job requirements
                 </p>
               </div>
@@ -299,10 +306,10 @@ export const DashboardHome = ({ userId }: DashboardHomeProps) => {
           </div>
 
           <div className="hidden">
-            <div id="resume-content">
+            <div id="hidden-resume-content">
               <ResumeTemplate data={tweakedData} />
             </div>
-            <div id="cover-letter-content" className="p-8">
+            <div id="hidden-cover-letter-content" className="p-8">
               <pre className="whitespace-pre-wrap font-sans text-sm">{coverLetter}</pre>
             </div>
           </div>

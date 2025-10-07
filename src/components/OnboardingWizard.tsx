@@ -11,6 +11,7 @@ import { UploadProgress } from "@/components/ui/upload-progress";
 import { SuccessBanner } from "@/components/ui/success-banner";
 import { TweakedResumeView } from "@/components/TweakedResumeView";
 import { SkillsReview } from "@/components/SkillsReview";
+import { ResumeTemplate } from "@/components/ResumeTemplate";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Sparkles, Download } from "lucide-react";
 import html2pdf from "html2pdf.js";
@@ -245,15 +246,58 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
   };
 
   // Step 3: Download functionality
+  const handleDownloadResume = async () => {
+    setIsDownloading(true);
+    try {
+      const element = document.getElementById("hidden-resume-content");
+      if (!element) {
+        console.error("Resume content not found");
+        toast({
+          title: "Download failed",
+          description: "Resume content not found",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const opt = {
+        margin: 0.5,
+        filename: `tweaked-resume-${companyName}-${roleName}.pdf`,
+        image: { type: "jpeg" as const, quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: "in", format: "letter", orientation: "portrait" as const },
+      };
+
+      await html2pdf().set(opt).from(element).save();
+      toast({ title: "Resume downloaded!" });
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast({
+        title: "Download failed",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   const handleDownloadCoverLetter = async () => {
     setIsDownloading(true);
-    const element = document.getElementById("cover-letter-content");
-    if (!element) return;
-
     try {
+      const element = document.getElementById("hidden-cover-letter-content");
+      if (!element) {
+        console.error("Cover letter content not found");
+        toast({
+          title: "Download failed",
+          description: "Cover letter content not found",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const opt = {
         margin: 1,
-        filename: `cover-letter-${companyName || "job"}.pdf`,
+        filename: `cover-letter-${companyName}-${roleName}.pdf`,
         image: { type: "jpeg" as const, quality: 0.98 },
         html2canvas: { scale: 2 },
         jsPDF: { unit: "in", format: "letter", orientation: "portrait" as const },
@@ -262,7 +306,7 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
       await html2pdf().set(opt).from(element).save();
       toast({ title: "Cover letter downloaded!" });
     } catch (error) {
-      console.error("Download error:", error);
+      console.error("Error generating PDF:", error);
       toast({
         title: "Download failed",
         variant: "destructive",
@@ -439,53 +483,73 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
         {/* Step 3: Results */}
         {currentStep === 3 && tweakedData && (
           <div className="mt-8 space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-primary" />
-                  Your Tweaked Resume is Ready!
-                </CardTitle>
-                <CardDescription>
-                  Review your customized resume and cover letter below. Download them when you're ready.
-                </CardDescription>
-              </CardHeader>
+            <div className="text-center space-y-2 mb-8">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                Tweaker has done its magic!
+              </h1>
+              <p className="text-lg text-muted-foreground">
+                Tweaked for {roleName} at {companyName}
+              </p>
+            </div>
+
+            <Card className="p-6">
+              <div className="flex flex-wrap gap-4 justify-center">
+                <Button onClick={handleDownloadResume} disabled={isDownloading} size="lg">
+                  <Download className="w-4 h-4 mr-2" />
+                  Download Resume
+                </Button>
+                <Button onClick={handleDownloadCoverLetter} disabled={isDownloading} size="lg" variant="outline">
+                  <Download className="w-4 h-4 mr-2" />
+                  {isDownloading ? "Generating PDF..." : "Download Cover Letter"}
+                </Button>
+              </div>
+            </Card>
+
+            <Card className="p-8">
+              <div className="flex items-center gap-6">
+                <div className="relative w-20 h-20 flex-shrink-0">
+                  <svg className="transform -rotate-90 w-20 h-20">
+                    <circle
+                      cx="40"
+                      cy="40"
+                      r="36"
+                      stroke="currentColor"
+                      strokeWidth="6"
+                      fill="transparent"
+                      className="text-muted"
+                    />
+                    <circle
+                      cx="40"
+                      cy="40"
+                      r="36"
+                      stroke="currentColor"
+                      strokeWidth="6"
+                      fill="transparent"
+                      strokeDasharray={`${2 * Math.PI * 36}`}
+                      strokeDashoffset={`${2 * Math.PI * 36 * (1 - 0.91)}`}
+                      className="text-primary transition-all duration-1000 ease-out"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-xl font-bold">91/100</span>
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-2xl font-bold mb-2">Job Fit Score: 91/100</h3>
+                  <p className="text-muted-foreground">
+                    Your resume shows an excellent match with the job requirements
+                  </p>
+                </div>
+              </div>
             </Card>
 
             <TweakedResumeView
-              tweakedData={tweakedData}
               originalData={resumeData}
+              tweakedData={tweakedData}
               changesSummary={changesSummary}
+              coverLetter={coverLetter}
             />
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Generated Cover Letter</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div
-                  id="cover-letter-content"
-                  className="prose prose-sm max-w-none bg-background p-8 rounded-lg border"
-                  dangerouslySetInnerHTML={{ __html: coverLetter }}
-                />
-                <Button
-                  onClick={handleDownloadCoverLetter}
-                  disabled={isDownloading}
-                  className="w-full mt-4"
-                >
-                  {isDownloading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Downloading...
-                    </>
-                  ) : (
-                    <>
-                      <Download className="w-4 h-4 mr-2" />
-                      Download Cover Letter (PDF)
-                    </>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
 
             <Card className="bg-primary/5 border-primary/20">
               <CardContent className="pt-6">
@@ -497,6 +561,15 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
                 </Button>
               </CardContent>
             </Card>
+
+            <div className="hidden">
+              <div id="hidden-resume-content">
+                <ResumeTemplate data={tweakedData} />
+              </div>
+              <div id="hidden-cover-letter-content" className="p-8">
+                <pre className="whitespace-pre-wrap font-sans text-sm">{coverLetter}</pre>
+              </div>
+            </div>
           </div>
         )}
       </div>
