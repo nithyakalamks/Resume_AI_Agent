@@ -12,7 +12,15 @@ serve(async (req) => {
   }
 
   try {
-    const { resumeId, companyName, roleName, jobDescription, addedSkills = [] } = await req.json();
+    const { resumeId, companyName, roleName, jobDescription, addedSkills = [], originalMissingSkills = [] } = await req.json();
+    
+    console.log('📥 Edge function received:', {
+      resumeId,
+      addedSkillsCount: addedSkills.length,
+      addedSkills: addedSkills,
+      originalMissingSkillsCount: originalMissingSkills.length,
+      hasOriginalMissingSkills: originalMissingSkills.length > 0
+    });
     
     if (!resumeId || !companyName || !roleName || !jobDescription) {
       throw new Error('Resume ID, company name, role name, and job description are required');
@@ -327,6 +335,12 @@ Please tweak this resume to match the job description while preserving education
     const toolCall = aiResult.choices[0].message.tool_calls?.[0];
     const tweakedResult = JSON.parse(toolCall.function.arguments);
 
+    console.log('📊 AI returned skills:', {
+      skillMatchesFromAI: tweakedResult.skill_matches?.length || 0,
+      missingSkillsFromAI: tweakedResult.missing_skills?.length || 0,
+      totalRequiredFromAI: tweakedResult.total_required_skills || 0
+    });
+
     // Generate cover letter using AI
     const coverLetterPrompt = `Write a professional cover letter for this candidate applying to this job.
 
@@ -405,22 +419,50 @@ INSTRUCTIONS:
       return Math.max(0, finalScore);
     };
 
-    const totalRequiredSkills = tweakedResult.total_required_skills || 
-                                (tweakedResult.skill_matches.length + (tweakedResult.missing_skills?.length || 0));
+    // Use original missing skills from compare-skills if provided, otherwise fall back to AI
+    const missingSkillsToStore = originalMissingSkills.length > 0 
+      ? originalMissingSkills 
+      : tweakedResult.missing_skills;
+    
+    const totalRequiredSkills = originalMissingSkills.length > 0
+      ? tweakedResult.skill_matches.length + originalMissingSkills.length
+      : (tweakedResult.total_required_skills || (tweakedResult.skill_matches.length + (tweakedResult.missing_skills?.length || 0)));
 
-    console.log('Score calculation inputs:', {
+    console.log('✅ Using original missing skills for calculation');
+    console.log('📊 Score calculation inputs:', {
       totalRequiredSkills,
       matchingSkillsCount: tweakedResult.skill_matches.length,
-      missingSkillsCount: tweakedResult.missing_skills?.length || 0,
+      originalMissingSkillsCount: originalMissingSkills.length,
+      missingSkillsToStoreCount: missingSkillsToStore.length,
       addedSkillsCount: addedSkills.length,
+      addedSkillsList: addedSkills
     });
+
+    // Validate that added skills count matches what was selected
+    if (addedSkills.length > 0 && addedSkills.length !== originalMissingSkills.length) {
+      console.log('⚠️ WARNING: Added skills count mismatch!', {
+        selectedByUser: addedSkills.length,
+        availableToSelect: originalMissingSkills.length
+      });
+    }
 
     const originalScore = calculateScore(tweakedResult.skill_matches, totalRequiredSkills, 0);
     const customizedScore = calculateScore(tweakedResult.skill_matches, totalRequiredSkills, addedSkills.length);
 
-    console.log('Calculated scores:', { originalScore, customizedScore });
+    console.log('📈 Calculated scores:', { 
+      originalScore, 
+      customizedScore,
+      formula: `(${tweakedResult.skill_matches.length} + ${addedSkills.length}) / ${totalRequiredSkills} = ${customizedScore}%`
+    });
 
     // Store the tweaked resume with added skills metadata
+    console.log('💾 Storing to database:', {
+      missingSkillsCount: missingSkillsToStore.length,
+      addedSkillsCount: addedSkills.length,
+      originalScore,
+      customizedScore
+    });
+
     const { data: tweakedResume, error: tweakedError } = await supabaseClient
       .from('tweaked_resumes')
       .insert({
@@ -437,7 +479,7 @@ INSTRUCTIONS:
           ...(addedSkills.length > 0 ? [`Added ${addedSkills.length} user-verified skill${addedSkills.length > 1 ? 's' : ''}: ${addedSkills.join(', ')}`] : [])
         ],
         skill_matches: tweakedResult.skill_matches,
-        missing_skills: tweakedResult.missing_skills,
+        missing_skills: missingSkillsToStore, // Use original missing skills, not AI re-analysis
         original_score: originalScore,
         customized_score: customizedScore,
       })

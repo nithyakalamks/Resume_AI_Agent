@@ -140,7 +140,14 @@ export const SkillsReview = ({
         {/* Action Buttons */}
         <div className="flex gap-3 pt-4">
           <Button
-            onClick={() => onConfirm(Array.from(selectedSkills))}
+            onClick={() => {
+              const skillsArray = Array.from(selectedSkills);
+              console.log('✅ SkillsReview confirming skills:', {
+                count: skillsArray.length,
+                skills: skillsArray
+              });
+              onConfirm(skillsArray);
+            }}
             disabled={loading}
             className="flex-1"
           >

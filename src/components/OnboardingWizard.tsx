@@ -200,6 +200,11 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
         setGenerationStage((prev) => Math.min(prev + 1, 4));
       }, 1500);
 
+      console.log('✅ OnboardingWizard sending to tweak-resume:', {
+        addedSkillsCount: selectedSkills.length,
+        originalMissingSkillsCount: skillsData?.missing_skills?.length || 0
+      });
+
       const { data, error } = await supabase.functions.invoke("tweak-resume", {
         body: {
           resumeId,
@@ -207,6 +212,7 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
           companyName,
           roleName,
           addedSkills: selectedSkills,
+          originalMissingSkills: skillsData?.missing_skills || [],
         },
       });
 
