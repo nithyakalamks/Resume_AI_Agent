@@ -9,16 +9,21 @@ interface JobFitScoreProps {
 
 export const JobFitScore = ({ score, onViewAnalysis }: JobFitScoreProps) => {
   const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-accent";
-    if (score >= 60) return "text-primary";
+    if (score >= 71) return "text-success";
+    if (score >= 41) return "text-warning";
     return "text-destructive";
   };
 
   const getScoreLabel = (score: number) => {
-    if (score >= 80) return "Strong match";
-    if (score >= 60) return "Good match";
-    if (score >= 40) return "Moderate match";
-    return "Needs improvement";
+    if (score >= 71) return "Strong match";
+    if (score >= 41) return "Moderate match";
+    return "Low match";
+  };
+
+  const getMessage = (score: number) => {
+    if (score >= 71) return "Excellent match! Your resume strongly aligns with this role.";
+    if (score >= 41) return "Good progress! Some relevant skills present, but gaps remain.";
+    return "Needs improvement. Consider adding more relevant skills and experience.";
   };
 
   return (
@@ -61,7 +66,7 @@ export const JobFitScore = ({ score, onViewAnalysis }: JobFitScoreProps) => {
             <h3 className="text-xl font-semibold">Job Fit Score: {score}/100</h3>
           </div>
           <p className="text-muted-foreground">
-            {getScoreLabel(score)} {score >= 60 ? "Your resume aligns well with this role." : "Consider adding more relevant skills to improve your match."}
+            {getScoreLabel(score)}. {getMessage(score)}
           </p>
           <Button variant="outline" size="sm" onClick={onViewAnalysis} className="mt-2">
             <TrendingUp className="w-4 h-4 mr-2" />

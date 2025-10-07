@@ -52,17 +52,15 @@ export const ScoreAnalysis = ({
   
   // Color coding helper
   const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-success";
-    if (score >= 60) return "text-primary";
-    if (score >= 40) return "text-warning";
+    if (score >= 71) return "text-success";
+    if (score >= 41) return "text-warning";
     return "text-destructive";
   };
   
   const getScoreLabel = (score: number) => {
-    if (score >= 80) return { label: "Strong Match", emoji: "🟢", description: "Your resume is well-aligned with this role" };
-    if (score >= 60) return { label: "Good Match", emoji: "🟡", description: "Good foundation with some room for improvement" };
-    if (score >= 40) return { label: "Moderate Match", emoji: "🟠", description: "Some relevant skills present, but gaps remain" };
-    return { label: "Needs Work", emoji: "🔴", description: "Significant skill gaps - consider adding more relevant experience" };
+    if (score >= 71) return { label: "Strong Match", emoji: "🟢", description: "Excellent match! Your resume strongly aligns with this role." };
+    if (score >= 41) return { label: "Moderate Match", emoji: "🟡", description: "Good progress! Some relevant skills present, but gaps remain." };
+    return { label: "Low Match", emoji: "🔴", description: "Needs improvement. Consider adding more relevant skills and experience." };
   };
   
   // Dynamic score breakdown based on actual data
