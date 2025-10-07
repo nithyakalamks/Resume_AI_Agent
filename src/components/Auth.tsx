@@ -78,9 +78,9 @@ export const Auth = () => {
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-secondary/30 to-background p-4 overflow-hidden">
       {/* Circular gradient orbs */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-br from-primary/30 via-[hsl(169,48%,53%)]/20 to-transparent rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-1/4 right-1/4 w-[32rem] h-[32rem] bg-gradient-to-tl from-accent/30 via-[hsl(169,48%,53%)]/20 to-transparent rounded-full blur-3xl animate-pulse delay-1000" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] bg-gradient-to-r from-primary/10 via-accent/10 to-transparent rounded-full blur-3xl" />
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-br from-primary/50 via-[hsl(169,48%,53%)]/40 to-transparent rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-1/4 right-1/4 w-[32rem] h-[32rem] bg-gradient-to-tl from-accent/50 via-[hsl(169,48%,53%)]/40 to-transparent rounded-full blur-3xl animate-pulse delay-1000" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] bg-gradient-to-r from-primary/20 via-accent/20 to-transparent rounded-full blur-3xl" />
       
       {/* Decorative gears */}
       <DecorativeGear size="lg" className="absolute top-20 right-10 opacity-5" />
