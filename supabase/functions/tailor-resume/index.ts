@@ -256,35 +256,32 @@ Please tailor this resume to match the job description. Reorder experiences to p
     const tailoredResult = JSON.parse(toolCall.function.arguments);
 
     // Generate cover letter using AI
-    const coverLetterPrompt = `Based on the following resume and job description, write a professional cover letter 400-500 words that:
-1. Opens with enthusiasm for the specific role (2-3 lines).
-2. Highlights 2-3 most relevant qualifications and experiences
-3. Explains why the candidate is a great fit
-4. Closes with a call to action (2-3 lines).
+    const coverLetterPrompt = `Write a professional cover letter for this candidate applying to this job.
 
-Format of cover letter:
+CANDIDATE INFORMATION:
+Name: ${resume.parsed_data.name}
+Email: ${resume.parsed_data.email || ''}
+Phone: ${resume.parsed_data.phone || ''}
+Location: ${resume.parsed_data.location || ''}
 
-Dear [Company] Recruitment Team,
+CANDIDATE'S BACKGROUND:
+Summary: ${resume.parsed_data.summary}
+Key Skills: ${resume.parsed_data.skills?.slice(0, 10).map((s: any) => s.skill).join(', ')}
+Recent Experience: ${resume.parsed_data.experience?.[0]?.title} at ${resume.parsed_data.experience?.[0]?.company}
 
-[Body paragraphs - 400-500 words total]
+JOB DESCRIPTION:
+${jobDescription}
 
-Sincerely,
-[Candidate Name]
-
-IMPORTANT FORMATTING RULES:
-1. Use the candidate's actual name: ${resume.parsed_data.name}
-2. Do NOT include any placeholder text like [Your Name], [Your Address], [Date], etc.
-3. Do NOT include address, phone, email, or date at the top
-5. Use "Dear [Company] Recruitment Team," as the greeting (extract company name from job description)
-6. Write 400-500 words in the body
-7. End with "Sincerely, [Candidate Name]"
-
-Resume Summary: ${resume.parsed_data.summary}
-Key Skills: ${resume.parsed_data.skills.map((s: any) => s.skill).join(', ')}
-Recent Experience: ${resume.parsed_data.experience[0]?.title} at ${resume.parsed_data.experience[0]?.company}
-
-Job Description:
-${jobDescription}`;
+INSTRUCTIONS:
+1. Write 400-500 words
+2. Start with: "Dear [Company Name from job description] Recruitment Team,"
+3. Write 3-4 body paragraphs highlighting relevant qualifications
+4. End with: "Sincerely," followed by the candidate's name: ${resume.parsed_data.name}
+5. CRITICAL: Do NOT use ANY placeholders like [Your Name], [Your Address], [Date], [Your Phone Number], [Your Email], etc.
+6. Do NOT include addresses, phone numbers, emails, or dates anywhere in the letter
+7. Use ONLY the actual candidate name provided: ${resume.parsed_data.name}
+8. Extract the company name from the job description and use it in the greeting
+9. Make it personal and specific to this job and candidate`;
 
     const coverLetterResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
