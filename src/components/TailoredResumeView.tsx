@@ -1,8 +1,7 @@
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, CheckCircle2, TrendingUp, Download } from "lucide-react";
+import { ArrowRight, CheckCircle2, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import html2pdf from "html2pdf.js";
@@ -50,18 +49,12 @@ interface TailoredResumeViewProps {
   originalData: ResumeData;
   tailoredData: ResumeData;
   changesSummary: string[];
-  skillMatches: Array<{
-    skill: string;
-    relevance: number;
-    reason: string;
-  }>;
 }
 
 export const TailoredResumeView = ({ 
   originalData, 
   tailoredData, 
-  changesSummary,
-  skillMatches 
+  changesSummary
 }: TailoredResumeViewProps) => {
   const { toast } = useToast();
   const [downloading, setDownloading] = useState(false);
@@ -95,12 +88,6 @@ export const TailoredResumeView = ({
     }
   };
 
-  const getRelevanceBadgeColor = (relevance: number) => {
-    if (relevance >= 0.8) return "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20";
-    if (relevance >= 0.5) return "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20";
-    return "bg-muted text-muted-foreground border-border";
-  };
-
   return (
     <div className="space-y-8">
       {/* Changes Summary */}
@@ -120,33 +107,6 @@ export const TailoredResumeView = ({
                   </li>
                 ))}
               </ul>
-            </div>
-          </div>
-        </Card>
-      )}
-
-      {/* Skill Matches */}
-      {skillMatches && skillMatches.length > 0 && (
-        <Card className="p-6">
-          <div className="flex items-start gap-3 mb-6">
-            <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
-              <TrendingUp className="w-5 h-5 text-accent" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-xl font-semibold mb-4">Top Skill Matches</h3>
-              <div className="space-y-3">
-                {skillMatches.map((match, idx) => (
-                  <div key={idx} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                    <Badge className={getRelevanceBadgeColor(match.relevance)}>
-                      {(match.relevance * 100).toFixed(0)}%
-                    </Badge>
-                    <div className="flex-1">
-                      <p className="font-medium">{match.skill}</p>
-                      <p className="text-sm text-muted-foreground mt-1">{match.reason}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
             </div>
           </div>
         </Card>

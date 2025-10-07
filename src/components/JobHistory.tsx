@@ -131,7 +131,6 @@ export const JobHistory = ({ userId }: JobHistoryProps) => {
           originalData={originalData}
           tailoredData={selectedVersion.tailored_data}
           changesSummary={selectedVersion.changes_summary || []}
-          skillMatches={selectedVersion.skill_matches || []}
         />
 
         {selectedVersion.cover_letter && (

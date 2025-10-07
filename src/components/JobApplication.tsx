@@ -23,7 +23,6 @@ export const JobApplication = ({ userId, currentResumeId }: JobApplicationProps)
   const [originalData, setOriginalData] = useState<any>(null);
   const [tailoredData, setTailoredData] = useState<any>(null);
   const [changesSummary, setChangesSummary] = useState<string[]>([]);
-  const [skillMatches, setSkillMatches] = useState<any[]>([]);
   const [coverLetter, setCoverLetter] = useState("");
   const [downloadingCover, setDownloadingCover] = useState(false);
   const { toast } = useToast();
@@ -74,7 +73,6 @@ export const JobApplication = ({ userId, currentResumeId }: JobApplicationProps)
       setOriginalData(resumeData.parsed_data);
       setTailoredData(functionData.tailored_data);
       setChangesSummary(functionData.changes_summary || []);
-      setSkillMatches(functionData.skill_matches || []);
       setCoverLetter(functionData.cover_letter || "");
 
       toast({
@@ -185,7 +183,6 @@ export const JobApplication = ({ userId, currentResumeId }: JobApplicationProps)
             originalData={originalData}
             tailoredData={tailoredData}
             changesSummary={changesSummary}
-            skillMatches={skillMatches}
           />
 
           {coverLetter && (
