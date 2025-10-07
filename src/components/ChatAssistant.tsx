@@ -14,41 +14,87 @@ interface Message {
 }
 
 interface ChatAssistantProps {
+  tweakedResumeId?: string;
   resumeData: any;
   coverLetter?: string;
   onUpdate: (updatedData: any, updatedCoverLetter?: string, changedSections?: string[]) => void;
 }
 
-export const ChatAssistant = ({ resumeData, coverLetter, onUpdate }: ChatAssistantProps) => {
-  const STORAGE_KEY = 'tweaker-chat-history';
+export const ChatAssistant = ({ tweakedResumeId, resumeData, coverLetter, onUpdate }: ChatAssistantProps) => {
+  const getWelcomeMessage = (): Message[] => [{
+    role: 'assistant',
+    content: "👋 Hi! I'm Tweaker's AI assistant. I can help you refine your resume and cover letter. Try asking me to:\n\n• Make your summary more impactful\n• Add leadership language\n• Emphasize specific skills\n• Improve bullet points\n\nWhat would you like to improve?",
+    timestamp: Date.now()
+  }];
   
-  // Load chat history from localStorage
-  const loadChatHistory = () => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        return JSON.parse(saved);
-      }
-    } catch (error) {
-      console.error('Failed to load chat history:', error);
-    }
-    return [{
-      role: 'assistant',
-      content: "👋 Hi! I'm Tweaker's AI assistant. I can help you refine your resume and cover letter. Try asking me to:\n\n• Make your summary more impactful\n• Add leadership language\n• Emphasize specific skills\n• Improve bullet points\n\nWhat would you like to improve?",
-      timestamp: Date.now()
-    }];
-  };
-
-  const [messages, setMessages] = useState<Message[]>(loadChatHistory);
+  const [messages, setMessages] = useState<Message[]>(getWelcomeMessage());
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  // Save chat history to localStorage whenever messages change
+  // Load chat history from database
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
-  }, [messages]);
+    const loadChatHistory = async () => {
+      // If no tweakedResumeId, this is onboarding/preview mode - show welcome message
+      if (!tweakedResumeId) {
+        setMessages(getWelcomeMessage());
+        return;
+      }
+
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setMessages(getWelcomeMessage());
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from('chat_messages')
+          .select('*')
+          .eq('tweaked_resume_id', tweakedResumeId)
+          .order('created_at', { ascending: true });
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          const loadedMessages = data.map(msg => ({
+            role: msg.role as 'user' | 'assistant' | 'system',
+            content: msg.content,
+            timestamp: new Date(msg.created_at).getTime()
+          }));
+          setMessages(loadedMessages);
+        } else {
+          setMessages(getWelcomeMessage());
+        }
+      } catch (error) {
+        console.error('Failed to load chat history:', error);
+        setMessages(getWelcomeMessage());
+      }
+    };
+
+    loadChatHistory();
+  }, [tweakedResumeId]);
+
+  // Save message to database
+  const saveMessageToDB = async (role: string, content: string) => {
+    // Only save to database if we have a tweakedResumeId (not in onboarding mode)
+    if (!tweakedResumeId) return;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      await supabase.from('chat_messages').insert({
+        user_id: user.id,
+        tweaked_resume_id: tweakedResumeId,
+        role,
+        content
+      });
+    } catch (error) {
+      console.error('Failed to save message:', error);
+    }
+  };
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -62,11 +108,13 @@ export const ChatAssistant = ({ resumeData, coverLetter, onUpdate }: ChatAssista
     const userMessage = input.trim();
     setInput("");
     
-    const newMessages: Message[] = [
-      ...messages,
-      { role: 'user', content: userMessage, timestamp: Date.now() }
-    ];
+    const userMsg: Message = { role: 'user', content: userMessage, timestamp: Date.now() };
+    const newMessages: Message[] = [...messages, userMsg];
     setMessages(newMessages);
+    
+    // Save user message to database
+    await saveMessageToDB('user', userMessage);
+    
     setIsLoading(true);
 
     try {
@@ -81,11 +129,15 @@ export const ChatAssistant = ({ resumeData, coverLetter, onUpdate }: ChatAssista
       if (error) throw error;
 
       // Add AI response
-      setMessages(prev => [...prev, {
+      const assistantMsg: Message = {
         role: 'assistant',
         content: data.message,
         timestamp: Date.now()
-      }]);
+      };
+      setMessages(prev => [...prev, assistantMsg]);
+      
+      // Save assistant message to database
+      await saveMessageToDB('assistant', data.message);
 
       // If there are updates, apply them
       if (data.updatedData || data.updatedCoverLetter) {
@@ -96,11 +148,15 @@ export const ChatAssistant = ({ resumeData, coverLetter, onUpdate }: ChatAssista
         );
         
         // Add system message
-        setMessages(prev => [...prev, {
+        const systemMsg: Message = {
           role: 'system',
           content: '✅ Resume updated successfully. Changes are highlighted in the preview.',
           timestamp: Date.now()
-        }]);
+        };
+        setMessages(prev => [...prev, systemMsg]);
+        
+        // Save system message to database
+        await saveMessageToDB('system', systemMsg.content);
         
         toast({
           title: "Changes applied",
@@ -110,11 +166,15 @@ export const ChatAssistant = ({ resumeData, coverLetter, onUpdate }: ChatAssista
 
     } catch (error) {
       console.error('Chat error:', error);
-      setMessages(prev => [...prev, {
+      const errorMsg: Message = {
         role: 'assistant',
         content: "I'm having trouble processing that request. Please try again or rephrase your question.",
         timestamp: Date.now()
-      }]);
+      };
+      setMessages(prev => [...prev, errorMsg]);
+      
+      // Save error message to database
+      await saveMessageToDB('assistant', errorMsg.content);
       
       toast({
         title: "Error",

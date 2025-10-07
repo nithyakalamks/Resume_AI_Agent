@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      chat_messages: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          role: string
+          tweaked_resume_id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          role: string
+          tweaked_resume_id: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          role?: string
+          tweaked_resume_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_tweaked_resume_id_fkey"
+            columns: ["tweaked_resume_id"]
+            isOneToOne: false
+            referencedRelation: "tweaked_resumes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_descriptions: {
         Row: {
           company_name: string | null

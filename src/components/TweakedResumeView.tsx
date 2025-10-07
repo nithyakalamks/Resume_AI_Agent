@@ -49,6 +49,7 @@ interface ResumeData {
 }
 
 interface TweakedResumeViewProps {
+  tweakedResumeId?: string;
   originalData: ResumeData;
   tweakedData: ResumeData;
   changesSummary: string[];
@@ -60,6 +61,7 @@ interface TweakedResumeViewProps {
 }
 
 export const TweakedResumeView = ({ 
+  tweakedResumeId,
   originalData, 
   tweakedData, 
   changesSummary,
@@ -179,6 +181,7 @@ export const TweakedResumeView = ({
 
       <div className="w-full lg:w-96 h-[600px] lg:h-[800px] lg:sticky lg:top-6">
         <ChatAssistant
+          tweakedResumeId={tweakedResumeId}
           resumeData={currentTweakedData}
           coverLetter={currentCoverLetter}
           onUpdate={handleChatUpdate}

@@ -273,6 +273,7 @@ export const JobHistory = ({ userId, selectedId }: JobHistoryProps) => {
 
         {/* Tabs for Resume, Cover Letter, and Analysis */}
         <TweakedResumeView
+          tweakedResumeId={selectedVersion.id}
           originalData={originalData}
           tweakedData={selectedVersion.tweaked_data}
           changesSummary={selectedVersion.changes_summary || []}
