@@ -43,7 +43,7 @@ export const DashboardHero = ({ hasResume, onStartTweaking, loading }: Dashboard
             <span className="text-sm font-medium">AI-Powered Resume Tweaking</span>
           </div>
           <h1 className="text-3xl md:text-4xl font-bold">Tweak Your Resume for Any Job</h1>
-          <p className="text-muted-foreground text-md max-w-2xl mx-auto">
+          <p className="text-muted-foreground text-sm max-w-2xl mx-auto">
             Get a customized resume and cover letter in minutes, perfectly matched to the job description
           </p>
         </div>
