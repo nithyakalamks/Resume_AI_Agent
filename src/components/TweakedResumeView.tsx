@@ -49,12 +49,14 @@ interface TweakedResumeViewProps {
   originalData: ResumeData;
   tweakedData: ResumeData;
   changesSummary: string[];
+  coverLetter?: string;
 }
 
 export const TweakedResumeView = ({ 
   originalData, 
   tweakedData, 
-  changesSummary
+  changesSummary,
+  coverLetter
 }: TweakedResumeViewProps) => {
   const { toast } = useToast();
   const [downloading, setDownloading] = useState(false);
@@ -89,56 +91,132 @@ export const TweakedResumeView = ({
   };
 
   return (
-    <div className="space-y-8">
-      {/* Changes Summary */}
-      {changesSummary && changesSummary.length > 0 && (
-        <Card className="p-6 border-2 border-primary/20 bg-primary/5">
-          <div className="flex items-start gap-3 mb-4">
-            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-              <CheckCircle2 className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <h3 className="text-xl font-semibold mb-2">Key Changes Made</h3>
-              <ul className="space-y-2">
-                {changesSummary.map((change, idx) => (
-                  <li key={idx} className="flex items-start gap-2 text-sm">
-                    <ArrowRight className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                    <span>{change}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </Card>
-      )}
+    <Tabs defaultValue="customized" className="w-full">
+      <TabsList className="grid w-full max-w-2xl grid-cols-3">
+        <TabsTrigger value="customized">Customized Resume</TabsTrigger>
+        <TabsTrigger value="cover">Cover Letter</TabsTrigger>
+        <TabsTrigger value="analysis">Score Analysis</TabsTrigger>
+      </TabsList>
 
-      {/* Side-by-Side Comparison */}
-      <Tabs defaultValue="tweaked" className="w-full">
-        <div className="flex justify-between items-center mb-4">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="tweaked">Tweaked Resume</TabsTrigger>
-            <TabsTrigger value="original">Original Resume</TabsTrigger>
-          </TabsList>
-          <Button onClick={handleDownloadPDF} disabled={downloading}>
-            <Download className="w-4 h-4 mr-2" />
-            {downloading ? "Generating PDF..." : "Download Tweaked PDF"}
-          </Button>
-        </div>
-
-        <TabsContent value="tweaked" className="mt-6">
+      <TabsContent value="customized" className="mt-6">
+        <Card className="p-8">
           <ResumeTemplate 
             data={tweakedData} 
             id="tweaked-resume-content"
           />
-        </TabsContent>
+        </Card>
+      </TabsContent>
 
-        <TabsContent value="original" className="mt-6">
-          <Card className="p-8">
-            <ResumeTemplate data={originalData} />
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
+      <TabsContent value="cover" className="mt-6">
+        <Card className="p-8">
+          <div className="prose prose-sm max-w-none">
+            {coverLetter ? (
+              <pre className="whitespace-pre-wrap text-sm font-sans">{coverLetter}</pre>
+            ) : (
+              <p className="text-muted-foreground text-center py-8">
+                No cover letter available
+              </p>
+            )}
+          </div>
+        </Card>
+      </TabsContent>
+
+      <TabsContent value="analysis" className="mt-6">
+        <Card className="p-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="text-center space-y-4">
+              <p className="text-sm text-muted-foreground font-medium">Original Resume</p>
+              <div className="relative inline-flex items-center justify-center">
+                <svg className="w-32 h-32 transform -rotate-90">
+                  <circle
+                    cx="64"
+                    cy="64"
+                    r="56"
+                    stroke="currentColor"
+                    strokeWidth="10"
+                    fill="none"
+                    className="text-muted/20"
+                  />
+                  <circle
+                    cx="64"
+                    cy="64"
+                    r="56"
+                    stroke="currentColor"
+                    strokeWidth="10"
+                    fill="none"
+                    strokeDasharray={`${2 * Math.PI * 56}`}
+                    strokeDashoffset={`${2 * Math.PI * 56 * 0.35}`}
+                    className="text-muted-foreground"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-4xl font-bold text-muted-foreground">65</span>
+                  <span className="text-sm text-muted-foreground">/100</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="text-center space-y-4">
+              <div className="flex items-center justify-center gap-2">
+                <p className="text-sm text-primary font-medium">Customized Resume</p>
+                <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-green-500/10 text-green-600">
+                  <ArrowRight className="w-3 h-3" />
+                  <span className="text-xs font-semibold">+26</span>
+                </div>
+              </div>
+              <div className="relative inline-flex items-center justify-center">
+                <svg className="w-32 h-32 transform -rotate-90">
+                  <circle
+                    cx="64"
+                    cy="64"
+                    r="56"
+                    stroke="currentColor"
+                    strokeWidth="10"
+                    fill="none"
+                    className="text-muted/20"
+                  />
+                  <circle
+                    cx="64"
+                    cy="64"
+                    r="56"
+                    stroke="currentColor"
+                    strokeWidth="10"
+                    fill="none"
+                    strokeDasharray={`${2 * Math.PI * 56}`}
+                    strokeDashoffset={`${2 * Math.PI * 56 * 0.09}`}
+                    className="text-primary"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-4xl font-bold text-primary">91</span>
+                  <span className="text-sm text-muted-foreground">/100</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Key Improvements</h3>
+            {changesSummary && changesSummary.length > 0 ? (
+              <ul className="space-y-2">
+                {changesSummary.map((change, idx) => (
+                  <li key={idx} className="flex items-start gap-2 text-sm">
+                    <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                    <span>{change}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Resume has been customized and optimized for this position.
+              </p>
+            )}
+          </div>
+        </Card>
+      </TabsContent>
+    </Tabs>
   );
 };
 

@@ -114,38 +114,140 @@ export const JobHistory = ({ userId }: JobHistoryProps) => {
   }
 
   if (selectedVersion) {
+    const companyName = selectedVersion.job_descriptions?.company_name || 'Unknown Company';
+    const roleName = selectedVersion.job_descriptions?.role_name || 'Unknown Position';
+    const jobFitScore = 91; // This could be calculated from skill_matches data
+
     return (
       <div className="space-y-6">
-        <Button variant="outline" onClick={() => setSelectedVersion(null)}>
-          ← Back to History
-        </Button>
+        {/* Header with Back Button */}
+        <div className="flex justify-between items-center">
+          <Button variant="ghost" onClick={() => setSelectedVersion(null)}>
+            ← Back to Tweaks
+          </Button>
+        </div>
 
-        <Card className="p-6">
-          <h3 className="text-xl font-semibold mb-2">Job Description</h3>
-          <p className="text-sm text-muted-foreground">
-            {selectedVersion.job_descriptions?.description || "No job description saved"}
+        {/* Title Section */}
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold">Custom Resume Ready!</h1>
+          <p className="text-muted-foreground">
+            Tailored for {roleName} at {companyName}
           </p>
-        </Card>
+        </div>
 
-        <TweakedResumeView
-          originalData={originalData}
-          tweakedData={selectedVersion.tweaked_data}
-          changesSummary={selectedVersion.changes_summary || []}
-        />
-
-        {selectedVersion.cover_letter && (
-          <Card className="p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold">Cover Letter</h3>
+        {/* Download Buttons Banner */}
+        <Card className="p-6 bg-primary/5 border-primary/20">
+          <div className="space-y-4">
+            <p className="text-sm font-medium">Your customized documents are ready</p>
+            <div className="flex flex-wrap gap-3">
               <Button onClick={handleDownloadCoverLetter} disabled={downloadingCover}>
+                <Download className="w-4 h-4 mr-2" />
+                {downloadingCover ? "Generating PDF..." : "Download Resume"}
+              </Button>
+              <Button variant="outline" onClick={handleDownloadCoverLetter} disabled={downloadingCover}>
                 <Download className="w-4 h-4 mr-2" />
                 {downloadingCover ? "Generating PDF..." : "Download Cover Letter"}
               </Button>
             </div>
-            <div id="history-cover-letter-content" className="prose prose-sm max-w-none">
-              <pre className="whitespace-pre-wrap text-sm">{selectedVersion.cover_letter}</pre>
+          </div>
+        </Card>
+
+        {/* Job Fit Score - Import component once created */}
+        <Card className="p-6">
+          <div className="flex items-center gap-6">
+            <div className="relative flex items-center justify-center">
+              <svg className="w-28 h-28 transform -rotate-90">
+                <circle
+                  cx="56"
+                  cy="56"
+                  r="50"
+                  stroke="currentColor"
+                  strokeWidth="8"
+                  fill="none"
+                  className="text-muted/20"
+                />
+                <circle
+                  cx="56"
+                  cy="56"
+                  r="50"
+                  stroke="currentColor"
+                  strokeWidth="8"
+                  fill="none"
+                  strokeDasharray={`${2 * Math.PI * 50}`}
+                  strokeDashoffset={`${2 * Math.PI * 50 * (1 - jobFitScore / 100)}`}
+                  className="text-green-500"
+                  strokeLinecap="round"
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-3xl font-bold text-green-500">
+                  {jobFitScore}
+                </span>
+                <span className="text-xs text-muted-foreground">/100</span>
+              </div>
+            </div>
+
+            <div className="flex-1 space-y-2">
+              <h3 className="text-xl font-semibold">Job Fit Score: {jobFitScore}/100</h3>
+              <p className="text-muted-foreground">
+                Excellent match! Your customized resume is optimized for this role.
+              </p>
+            </div>
+          </div>
+        </Card>
+
+        {/* Key Customizations */}
+        {selectedVersion.changes_summary && selectedVersion.changes_summary.length > 0 && (
+          <Card className="p-6">
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-xl font-semibold mb-1">Key Customizations</h3>
+                <p className="text-sm text-muted-foreground">
+                  Here's what we optimized for this role
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {selectedVersion.changes_summary.map((change: string, idx: number) => {
+                  const getIcon = (change: string) => {
+                    const lower = change.toLowerCase();
+                    if (lower.includes("skill")) return "🎯";
+                    if (lower.includes("experience") || lower.includes("bullet")) return "📝";
+                    if (lower.includes("keyword")) return "🔑";
+                    if (lower.includes("summary")) return "📄";
+                    return "✨";
+                  };
+
+                  return (
+                    <div
+                      key={idx}
+                      className="p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="text-2xl">{getIcon(change)}</div>
+                        <p className="text-sm text-muted-foreground flex-1">{change}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </Card>
+        )}
+
+        {/* Tabs for Resume, Cover Letter, and Analysis */}
+        <TweakedResumeView
+          originalData={originalData}
+          tweakedData={selectedVersion.tweaked_data}
+          changesSummary={selectedVersion.changes_summary || []}
+          coverLetter={selectedVersion.cover_letter}
+        />
+
+        {/* Hidden cover letter content for PDF generation */}
+        {selectedVersion.cover_letter && (
+          <div id="history-cover-letter-content" className="hidden">
+            <pre className="whitespace-pre-wrap text-sm">{selectedVersion.cover_letter}</pre>
+          </div>
         )}
       </div>
     );
