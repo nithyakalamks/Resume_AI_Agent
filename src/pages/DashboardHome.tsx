@@ -177,7 +177,7 @@ export const DashboardHome = ({ userId }: DashboardHomeProps) => {
 
   if (showSkillsReview && skillComparison) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-primary/20 to-accent/20">
+      <div className="min-h-screen bg-gradient-to-br from-primary/30 via-accent/20 to-primary/30">
         <div className="container mx-auto px-4 py-8">
           <SkillsReview
             jobSkills={skillComparison.job_skills}
@@ -194,7 +194,7 @@ export const DashboardHome = ({ userId }: DashboardHomeProps) => {
 
   if (tweakedData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-primary/20 to-accent/20">
+      <div className="min-h-screen bg-gradient-to-br from-primary/30 via-accent/20 to-primary/30">
         <div className="container mx-auto px-4 py-8 space-y-6">
           <TweakedResumeView
           originalData={originalData}
@@ -228,7 +228,7 @@ export const DashboardHome = ({ userId }: DashboardHomeProps) => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-primary/20 to-accent/20">
+    <div className="min-h-screen bg-gradient-to-br from-primary/30 via-accent/20 to-primary/30">
       <div className="container mx-auto px-4 py-8 space-y-8">
         <DashboardHero 
           hasResume={hasResume}
