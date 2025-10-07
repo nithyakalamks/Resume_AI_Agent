@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, Download } from "lucide-react";
+import { Eye, Download, Trash2 } from "lucide-react";
 import { TailoredResumeView } from "@/components/TailoredResumeView";
 import html2pdf from "html2pdf.js";
 
@@ -18,6 +18,7 @@ export const JobHistory = ({ userId }: JobHistoryProps) => {
   const [selectedVersion, setSelectedVersion] = useState<any>(null);
   const [originalData, setOriginalData] = useState<any>(null);
   const [downloadingCover, setDownloadingCover] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
   const { toast } = useToast();
 
   const extractJobDetails = (description: string) => {
@@ -150,6 +151,32 @@ export const JobHistory = ({ userId }: JobHistoryProps) => {
     setOriginalData(version.resumes?.parsed_data || null);
   };
 
+  const handleDelete = async (id: string) => {
+    setDeleting(id);
+    try {
+      const { error } = await supabase
+        .from("tailored_resumes")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Application deleted successfully",
+      });
+      
+      await fetchHistory();
+    } catch (error: any) {
+      toast({
+        title: "Delete failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setDeleting(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center py-12">
@@ -222,10 +249,21 @@ export const JobHistory = ({ userId }: JobHistoryProps) => {
                     </Badge>
                   </div>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => handleView(item)}>
-                  <Eye className="w-4 h-4 mr-2" />
-                  View
-                </Button>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => handleView(item)}>
+                    <Eye className="w-4 h-4 mr-2" />
+                    View
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => handleDelete(item.id)}
+                    disabled={deleting === item.id}
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    {deleting === item.id ? "Deleting..." : "Delete"}
+                  </Button>
+                </div>
               </div>
             </Card>
           );
