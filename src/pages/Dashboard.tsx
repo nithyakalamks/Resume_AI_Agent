@@ -8,18 +8,42 @@ import { useToast } from "@/hooks/use-toast";
 import { ResumeManager } from "@/components/ResumeManager";
 import { JobApplication } from "@/components/JobApplication";
 import { JobHistory } from "@/components/JobHistory";
+import { OnboardingWizard } from "@/components/OnboardingWizard";
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentResumeId, setCurrentResumeId] = useState<string | null>(null);
+  const [hasResume, setHasResume] = useState<boolean | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const initializeUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        // Check if user has uploaded a resume
+        const { data: resumes } = await supabase
+          .from("resumes")
+          .select("id")
+          .eq("user_id", session.user.id)
+          .limit(1);
+        
+        const userHasResume = resumes && resumes.length > 0;
+        setHasResume(userHasResume);
+        
+        // Show onboarding for new users (no resume)
+        if (!userHasResume) {
+          setShowOnboarding(true);
+        }
+      }
+      
       setLoading(false);
-    });
+    };
+
+    initializeUser();
 
     const {
       data: { subscription },
@@ -50,6 +74,31 @@ const Dashboard = () => {
     return null;
   }
 
+  // Show onboarding wizard for new users
+  if (showOnboarding) {
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="border-b border-border bg-card">
+          <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 className="text-2xl font-bold text-primary">Tweaker</h1>
+            <Button onClick={handleSignOut} variant="ghost" size="sm">
+              <LogOut className="w-4 h-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
+        </header>
+        <OnboardingWizard
+          userId={user.id}
+          onComplete={() => {
+            setShowOnboarding(false);
+            setHasResume(true);
+          }}
+        />
+      </div>
+    );
+  }
+
+  // Show main dashboard for existing users
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
