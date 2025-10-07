@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, Send, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import logo from "@/assets/logo.png";
 
 interface Message {
   role: 'user' | 'assistant' | 'system';
@@ -118,6 +119,15 @@ export const ChatAssistant = ({ tweakedResumeId, resumeData, coverLetter, onUpda
     setIsLoading(true);
 
     try {
+      console.log('📤 Sending to chat-assistant:', {
+        messagesCount: newMessages.length,
+        resumeDataName: resumeData?.name,
+        resumeDataSkills: resumeData?.skills?.map((s: any) => s.skill),
+        resumeDataSkillsCount: resumeData?.skills?.length,
+        coverLetter: coverLetter ? 'Present' : 'Missing',
+        lastMessage: newMessages[newMessages.length - 1]?.content
+      });
+      
       const { data, error } = await supabase.functions.invoke('chat-assistant', {
         body: {
           messages: newMessages,
@@ -127,6 +137,23 @@ export const ChatAssistant = ({ tweakedResumeId, resumeData, coverLetter, onUpda
       });
 
       if (error) throw error;
+
+      console.log('📥 ChatAssistant received response:', {
+        hasMessage: !!data.message,
+        hasUpdatedData: !!data.updatedData,
+        hasUpdatedCoverLetter: !!data.updatedCoverLetter,
+        hasChangedSections: !!data.changedSections,
+        updatedDataSkills: data.updatedData?.skills?.map((s: any) => s.skill),
+        updatedDataSkillsCount: data.updatedData?.skills?.length,
+        responseData: data
+      });
+      
+      console.log('🔍 Detailed response analysis:', {
+        dataKeys: Object.keys(data),
+        updatedDataType: typeof data.updatedData,
+        updatedDataValue: data.updatedData,
+        messageValue: data.message
+      });
 
       // Add AI response
       const assistantMsg: Message = {
@@ -141,6 +168,20 @@ export const ChatAssistant = ({ tweakedResumeId, resumeData, coverLetter, onUpda
 
       // If there are updates, apply them
       if (data.updatedData || data.updatedCoverLetter) {
+        console.log('🤖 ChatAssistant received updates:', {
+          hasUpdatedData: !!data.updatedData,
+          hasUpdatedCoverLetter: !!data.updatedCoverLetter,
+          changedSections: data.changedSections,
+          updatedDataSkills: data.updatedData?.skills?.map((s: any) => s.skill),
+          updatedDataSkillsCount: data.updatedData?.skills?.length
+        });
+        
+        console.log('🔄 Calling onUpdate with:', {
+          updatedData: data.updatedData,
+          updatedCoverLetter: data.updatedCoverLetter,
+          changedSections: data.changedSections
+        });
+        
         onUpdate(
           data.updatedData || resumeData,
           data.updatedCoverLetter || coverLetter,
@@ -161,6 +202,13 @@ export const ChatAssistant = ({ tweakedResumeId, resumeData, coverLetter, onUpda
         toast({
           title: "Changes applied",
           description: "Your resume has been updated. Check the highlighted sections.",
+        });
+      } else {
+        console.log('⚠️ No updates detected in response:', {
+          hasUpdatedData: !!data.updatedData,
+          hasUpdatedCoverLetter: !!data.updatedCoverLetter,
+          dataKeys: Object.keys(data),
+          message: data.message
         });
       }
 
@@ -190,8 +238,8 @@ export const ChatAssistant = ({ tweakedResumeId, resumeData, coverLetter, onUpda
     <Card className="h-full flex flex-col bg-gradient-to-br from-primary/5 via-accent/10 to-primary/5">
       <div className="p-4 border-b bg-gradient-to-r from-primary/10 to-accent/10">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-            <Sparkles className="w-4 h-4 text-white" />
+          <div className="w-10 h-10 rounded-full flex items-center justify-center">
+            <img src={logo} alt="Tweaker" className="h-10 w-10" />
           </div>
           <div>
             <h3 className="font-semibold text-sm">Chat with Tweaker</h3>

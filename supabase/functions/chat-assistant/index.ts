@@ -71,10 +71,32 @@ If just providing suggestions without changes, respond with plain text.`;
     // Try to parse as JSON for updates, otherwise return as plain message
     let result;
     try {
+      // First try to parse the message directly
       result = JSON.parse(aiMessage);
+      console.log('✅ Parsed as direct JSON');
     } catch {
-      result = { message: aiMessage };
+      // If that fails, try to extract JSON from markdown code blocks
+      try {
+        const jsonMatch = aiMessage.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
+        if (jsonMatch && jsonMatch[1]) {
+          console.log('✅ Found JSON in markdown code block');
+          result = JSON.parse(jsonMatch[1]);
+        } else {
+          console.log('⚠️ No JSON found in markdown, treating as plain message');
+          result = { message: aiMessage };
+        }
+      } catch (parseError) {
+        console.log('❌ Failed to parse JSON from markdown:', parseError);
+        result = { message: aiMessage };
+      }
     }
+
+    console.log('Final result:', {
+      hasUpdatedData: !!result.updatedData,
+      hasUpdatedCoverLetter: !!result.updatedCoverLetter,
+      hasChangedSections: !!result.changedSections,
+      resultKeys: Object.keys(result)
+    });
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

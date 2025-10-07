@@ -3,11 +3,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, CheckCircle2, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import html2pdf from "html2pdf.js";
 import { ResumeTemplate } from "@/components/ResumeTemplate";
 import { ScoreAnalysis } from "@/components/ScoreAnalysis";
 import { ChatAssistant } from "@/components/ChatAssistant";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Skill {
   skill: string;
@@ -58,6 +59,7 @@ interface TweakedResumeViewProps {
   customizedScore?: number;
   skillMatches?: any[];
   missingSkills?: any[];
+  onDataUpdate?: (updatedData: ResumeData, updatedCoverLetter?: string) => void;
 }
 
 export const TweakedResumeView = ({ 
@@ -69,7 +71,8 @@ export const TweakedResumeView = ({
   originalScore,
   customizedScore,
   skillMatches,
-  missingSkills
+  missingSkills,
+  onDataUpdate
 }: TweakedResumeViewProps) => {
   const { toast } = useToast();
   const [downloading, setDownloading] = useState(false);
@@ -80,7 +83,25 @@ export const TweakedResumeView = ({
   // Calculate total required skills from matching + missing skills
   const totalRequiredSkills = (skillMatches?.length || 0) + (missingSkills?.length || 0);
 
-  const handleChatUpdate = (updatedData: any, updatedCoverLetter?: string, sections?: string[]) => {
+  // Debug: Log when currentTweakedData changes
+  useEffect(() => {
+    console.log('📊 currentTweakedData updated:', {
+      name: currentTweakedData?.name,
+      skills: currentTweakedData?.skills?.map((s: any) => s.skill),
+      skillsCount: currentTweakedData?.skills?.length,
+      fullData: currentTweakedData
+    });
+  }, [currentTweakedData]);
+
+  const handleChatUpdate = async (updatedData: any, updatedCoverLetter?: string, sections?: string[]) => {
+    console.log('🔄 handleChatUpdate called with:', {
+      updatedData: updatedData,
+      updatedCoverLetter: updatedCoverLetter,
+      sections: sections,
+      tweakedResumeId: tweakedResumeId
+    });
+    
+    // Update local state
     setCurrentTweakedData(updatedData);
     if (updatedCoverLetter) {
       setCurrentCoverLetter(updatedCoverLetter);
@@ -89,6 +110,42 @@ export const TweakedResumeView = ({
       setChangedSections(sections);
       // Clear highlights after 3 seconds
       setTimeout(() => setChangedSections([]), 3000);
+    }
+
+    // Notify parent component of the update
+    if (onDataUpdate) {
+      console.log('📤 Notifying parent component of update');
+      onDataUpdate(updatedData, updatedCoverLetter);
+    }
+
+    // Save to database if we have a tweakedResumeId
+    if (tweakedResumeId) {
+      console.log('💾 Saving to database with tweakedResumeId:', tweakedResumeId);
+      try {
+        const { error } = await supabase
+          .from('tweaked_resumes')
+          .update({
+            tweaked_data: updatedData,
+            cover_letter: updatedCoverLetter || currentCoverLetter,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', tweakedResumeId);
+
+        if (error) {
+          console.error('❌ Failed to save chat updates:', error);
+          toast({
+            title: "Warning",
+            description: "Changes applied but failed to save. Please try again.",
+            variant: "destructive"
+          });
+        } else {
+          console.log('✅ Successfully saved chat updates to database');
+        }
+      } catch (error) {
+        console.error('❌ Error saving chat updates:', error);
+      }
+    } else {
+      console.log('⚠️ No tweakedResumeId - skipping database save');
     }
   };
 
@@ -144,6 +201,7 @@ export const TweakedResumeView = ({
       <TabsContent value="customized" className="mt-6">
         <Card className={`p-8 bg-gradient-to-br from-primary/10 via-accent/20 to-primary/10 transition-all duration-500 ${changedSections.length > 0 ? 'ring-2 ring-accent shadow-lg' : ''}`}>
           <ResumeTemplate 
+            key={JSON.stringify(currentTweakedData)}
             data={currentTweakedData} 
             id="tweaked-resume-content"
           />

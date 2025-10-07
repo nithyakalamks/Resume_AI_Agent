@@ -61,6 +61,15 @@ interface ResumeTemplateProps {
 }
 
 export const ResumeTemplate = ({ data, id }: ResumeTemplateProps) => {
+  // Debug: Log the data being rendered
+  console.log('🎨 ResumeTemplate rendering with data:', {
+    id: id,
+    name: data?.name,
+    skills: data?.skills?.map((s: any) => s.skill),
+    skillsCount: data?.skills?.length,
+    fullData: data
+  });
+  
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return '';
     if (dateStr === "Present" || dateStr.toLowerCase() === "present") return "Present";
