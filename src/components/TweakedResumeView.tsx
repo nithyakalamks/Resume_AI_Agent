@@ -120,8 +120,8 @@ export const TweakedResumeView = ({
   };
 
   return (
-    <div className="flex gap-6 w-full">
-      <div className="flex-1">
+    <div className="flex flex-col lg:flex-row gap-6 w-full">
+      <div className="flex-1 min-w-0">
         <Tabs defaultValue="customized" className="w-full">
           <TabsList className="grid w-full grid-cols-4 mb-8">
             <TabsTrigger value="original">Original Resume</TabsTrigger>
@@ -177,8 +177,8 @@ export const TweakedResumeView = ({
         </Tabs>
       </div>
 
-      <div className="w-96 h-[800px]">
-        <ChatAssistant 
+      <div className="w-full lg:w-96 h-[600px] lg:h-[800px] lg:sticky lg:top-6">
+        <ChatAssistant
           resumeData={currentTweakedData}
           coverLetter={currentCoverLetter}
           onUpdate={handleChatUpdate}

@@ -8,8 +8,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 interface Message {
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant' | 'system';
   content: string;
+  timestamp?: number;
 }
 
 interface ChatAssistantProps {
@@ -19,16 +20,35 @@ interface ChatAssistantProps {
 }
 
 export const ChatAssistant = ({ resumeData, coverLetter, onUpdate }: ChatAssistantProps) => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: 'assistant',
-      content: "👋 Hi! I'm Tweaker's AI assistant. I can help you refine your resume and cover letter. Try asking me to:\n\n• Make your summary more impactful\n• Add leadership language\n• Emphasize specific skills\n• Improve bullet points\n\nWhat would you like to improve?"
+  const STORAGE_KEY = 'tweaker-chat-history';
+  
+  // Load chat history from localStorage
+  const loadChatHistory = () => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (error) {
+      console.error('Failed to load chat history:', error);
     }
-  ]);
+    return [{
+      role: 'assistant',
+      content: "👋 Hi! I'm Tweaker's AI assistant. I can help you refine your resume and cover letter. Try asking me to:\n\n• Make your summary more impactful\n• Add leadership language\n• Emphasize specific skills\n• Improve bullet points\n\nWhat would you like to improve?",
+      timestamp: Date.now()
+    }];
+  };
+
+  const [messages, setMessages] = useState<Message[]>(loadChatHistory);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  // Save chat history to localStorage whenever messages change
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+  }, [messages]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -44,7 +64,7 @@ export const ChatAssistant = ({ resumeData, coverLetter, onUpdate }: ChatAssista
     
     const newMessages: Message[] = [
       ...messages,
-      { role: 'user', content: userMessage }
+      { role: 'user', content: userMessage, timestamp: Date.now() }
     ];
     setMessages(newMessages);
     setIsLoading(true);
@@ -63,7 +83,8 @@ export const ChatAssistant = ({ resumeData, coverLetter, onUpdate }: ChatAssista
       // Add AI response
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: data.message
+        content: data.message,
+        timestamp: Date.now()
       }]);
 
       // If there are updates, apply them
@@ -73,6 +94,13 @@ export const ChatAssistant = ({ resumeData, coverLetter, onUpdate }: ChatAssista
           data.updatedCoverLetter || coverLetter,
           data.changedSections
         );
+        
+        // Add system message
+        setMessages(prev => [...prev, {
+          role: 'system',
+          content: '✅ Resume updated successfully. Changes are highlighted in the preview.',
+          timestamp: Date.now()
+        }]);
         
         toast({
           title: "Changes applied",
@@ -84,7 +112,8 @@ export const ChatAssistant = ({ resumeData, coverLetter, onUpdate }: ChatAssista
       console.error('Chat error:', error);
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: "I'm having trouble processing that request. Please try again or rephrase your question."
+        content: "I'm having trouble processing that request. Please try again or rephrase your question.",
+        timestamp: Date.now()
       }]);
       
       toast({
@@ -116,13 +145,19 @@ export const ChatAssistant = ({ resumeData, coverLetter, onUpdate }: ChatAssista
           {messages.map((msg, idx) => (
             <div
               key={idx}
-              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              className={`flex ${
+                msg.role === 'user' ? 'justify-end' : 
+                msg.role === 'system' ? 'justify-center' : 
+                'justify-start'
+              }`}
             >
               <div
-                className={`max-w-[80%] rounded-lg p-3 ${
+                className={`rounded-lg p-3 ${
                   msg.role === 'user'
-                    ? 'bg-gradient-to-br from-primary to-primary/80 text-white'
-                    : 'bg-white/80 backdrop-blur-sm border border-primary/20'
+                    ? 'max-w-[80%] bg-gradient-to-br from-primary to-primary/80 text-white'
+                    : msg.role === 'system'
+                    ? 'max-w-[90%] bg-accent/20 text-accent-foreground text-xs border border-accent/30'
+                    : 'max-w-[80%] bg-white/80 backdrop-blur-sm border border-primary/20'
                 }`}
               >
                 <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
@@ -131,8 +166,9 @@ export const ChatAssistant = ({ resumeData, coverLetter, onUpdate }: ChatAssista
           ))}
           {isLoading && (
             <div className="flex justify-start">
-              <div className="bg-white/80 backdrop-blur-sm border border-primary/20 rounded-lg p-3">
-                <Loader2 className="w-4 h-4 animate-spin" />
+              <div className="bg-white/80 backdrop-blur-sm border border-primary/20 rounded-lg p-3 flex items-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                <span className="text-xs text-muted-foreground">Tweaker is thinking...</span>
               </div>
             </div>
           )}
