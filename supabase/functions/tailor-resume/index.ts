@@ -144,7 +144,13 @@ ${JSON.stringify(resume.parsed_data, null, 2)}
 Job Description:
 ${jobDescription}
 
-Please tailor this resume to match the job description. Reorder experiences to put most relevant ones first, emphasize matching skills, and create a compelling summary.`;
+CRITICAL REMINDER:
+- You MUST include ALL education entries from the resume data above in your response
+- You MUST include ALL certifications from the resume data above in your response
+- Copy these sections EXACTLY as they appear in the resume data
+- If education or certifications arrays are present in the resume, they MUST NOT be empty in your output
+
+Please tailor this resume to match the job description while preserving education and certifications exactly as shown above.`;
 
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -214,7 +220,18 @@ Please tailor this resume to match the job description. Reorder experiences to p
                       },
                       education: { 
                         type: "array",
-                        description: "MUST preserve ALL education entries exactly as provided in original resume. If original has education entries, they MUST be included in the output verbatim."
+                        items: {
+                          type: "object",
+                          properties: {
+                            degree: { type: "string" },
+                            institution: { type: "string" },
+                            location: { type: "string" },
+                            start_date: { type: "string" },
+                            end_date: { type: "string" },
+                            gpa: { type: "string" }
+                          }
+                        },
+                        description: "REQUIRED: MUST preserve ALL education entries exactly as provided in original resume. Copy every field verbatim. NEVER return empty array if original has education."
                       },
                       projects: {
                         type: "array",
@@ -231,7 +248,16 @@ Please tailor this resume to match the job description. Reorder experiences to p
                       },
                       certifications: { 
                         type: "array",
-                        description: "MUST preserve ALL certifications exactly as provided in original resume. If original has certification entries, they MUST be included in the output verbatim."
+                        items: {
+                          type: "object",
+                          properties: {
+                            name: { type: "string" },
+                            issuer: { type: "string" },
+                            date: { type: "string" },
+                            url: { type: "string" }
+                          }
+                        },
+                        description: "REQUIRED: MUST preserve ALL certifications exactly as provided in original resume. Copy every field verbatim. NEVER return empty array if original has certifications."
                       }
                     }
                   },
