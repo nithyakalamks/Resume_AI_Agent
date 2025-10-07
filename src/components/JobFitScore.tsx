@@ -15,9 +15,10 @@ export const JobFitScore = ({ score, onViewAnalysis }: JobFitScoreProps) => {
   };
 
   const getScoreLabel = (score: number) => {
-    if (score >= 80) return "Excellent match!";
-    if (score >= 60) return "Good match!";
-    return "Fair match";
+    if (score >= 80) return "Strong match";
+    if (score >= 60) return "Good match";
+    if (score >= 40) return "Moderate match";
+    return "Needs improvement";
   };
 
   return (
@@ -60,7 +61,7 @@ export const JobFitScore = ({ score, onViewAnalysis }: JobFitScoreProps) => {
             <h3 className="text-xl font-semibold">Job Fit Score: {score}/100</h3>
           </div>
           <p className="text-muted-foreground">
-            {getScoreLabel(score)} Your customized resume is optimized for this role.
+            {getScoreLabel(score)} {score >= 60 ? "Your resume aligns well with this role." : "Consider adding more relevant skills to improve your match."}
           </p>
           <Button variant="outline" size="sm" onClick={onViewAnalysis} className="mt-2">
             <TrendingUp className="w-4 h-4 mr-2" />

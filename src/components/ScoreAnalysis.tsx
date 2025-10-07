@@ -25,22 +25,44 @@ export const ScoreAnalysis = ({
   const improvement = customizedScore - originalScore;
   
   // Use scores directly from database (already calculated with optimized logic)
-  const totalSkills = (skillMatches?.matching?.length || 0) + (skillMatches?.missing?.length || 0);
   const matchingSkillsCount = skillMatches?.matching?.length || 0;
+  const missingSkillsCount = skillMatches?.missing?.length || 0;
   const addedSkillsCount = skillMatches?.addedSkills?.length || 0;
+  
+  // If missing skills data is not available, estimate based on score
+  const totalSkills = missingSkillsCount > 0 
+    ? matchingSkillsCount + missingSkillsCount
+    : Math.max(matchingSkillsCount, Math.round(matchingSkillsCount / (customizedScore / 100)));
+  
   const totalMatchedAfter = matchingSkillsCount + addedSkillsCount;
+  
+  // Debug logging
+  console.log('ScoreAnalysis Debug:', {
+    matching: skillMatches?.matching,
+    missing: skillMatches?.missing,
+    added: skillMatches?.addedSkills,
+    matchingCount: matchingSkillsCount,
+    missingCount: missingSkillsCount,
+    addedCount: addedSkillsCount,
+    totalSkills,
+    totalMatchedAfter,
+    originalScore,
+    customizedScore
+  });
   
   // Color coding helper
   const getScoreColor = (score: number) => {
-    if (score >= 71) return "text-success";
-    if (score >= 41) return "text-warning";
+    if (score >= 80) return "text-success";
+    if (score >= 60) return "text-primary";
+    if (score >= 40) return "text-warning";
     return "text-destructive";
   };
   
   const getScoreLabel = (score: number) => {
-    if (score >= 71) return { label: "Strong Match", emoji: "🟢", description: "Your resume is a great fit!" };
-    if (score >= 41) return { label: "Moderate Match", emoji: "🟡", description: "Good foundation with room to improve" };
-    return { label: "Low Match", emoji: "🔴", description: "Significant improvements recommended" };
+    if (score >= 80) return { label: "Strong Match", emoji: "🟢", description: "Your resume is well-aligned with this role" };
+    if (score >= 60) return { label: "Good Match", emoji: "🟡", description: "Good foundation with some room for improvement" };
+    if (score >= 40) return { label: "Moderate Match", emoji: "🟠", description: "Some relevant skills present, but gaps remain" };
+    return { label: "Needs Work", emoji: "🔴", description: "Significant skill gaps - consider adding more relevant experience" };
   };
   
   // Dynamic score breakdown based on actual data
@@ -100,6 +122,11 @@ export const ScoreAnalysis = ({
               {totalSkills > 0 
                 ? `Matched ${totalMatchedAfter} of ${totalSkills} required skills (${customizedScore}% fit)`
                 : `Your match score improved from ${originalScore}% to ${customizedScore}%`}
+              {totalSkills > 0 && totalMatchedAfter < totalSkills && missingSkillsCount > 0 && (
+                <span className="block text-xs text-muted-foreground mt-1">
+                  {totalSkills - totalMatchedAfter} skills still missing - consider gaining experience in these areas
+                </span>
+              )}
             </p>
           </div>
         </div>
@@ -253,7 +280,7 @@ export const ScoreAnalysis = ({
               <div>
                 <p className="font-medium text-sm">Added {addedSkillsCount} Key {addedSkillsCount === 1 ? 'Skill' : 'Skills'}</p>
                 <p className="text-sm text-muted-foreground">
-                  Integrated missing skills that match the job requirements
+                  Integrated {addedSkillsCount} user-verified skills to improve match
                 </p>
               </div>
             </div>

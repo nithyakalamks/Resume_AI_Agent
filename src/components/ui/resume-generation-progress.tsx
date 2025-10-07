@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Sparkles, CheckCircle2, Loader2 } from "lucide-react";
+import logo from "@/assets/logo.png";
 
 interface ResumeGenerationProgressProps {
   companyName: string;
@@ -9,9 +10,9 @@ interface ResumeGenerationProgressProps {
 }
 
 const STAGES = [
-  "Parsing job description...",
-  "Identifying key requirements...",
-  "Matching relevant skills...",
+  "Writing a new summary...",
+  "Tweaking your skills...",
+  "Calculating job fit score...",
   "Optimizing resume content...",
   "Generating cover letter...",
 ];
@@ -27,15 +28,17 @@ export const ResumeGenerationProgress = ({
     <div className="min-h-screen bg-gradient-to-br from-primary/30 via-accent/20 to-primary/30 flex items-center justify-center p-4">
       <Card className="w-full max-w-2xl">
         <CardHeader className="text-center space-y-4 pb-6">
-          <div className="mx-auto w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center">
-            <Sparkles className="w-10 h-10 text-primary animate-pulse" />
-          </div>
+          <img 
+              src={logo} 
+              alt="Tweaker Logo" 
+              className="h-10 md:h-12 w-auto animate-fade-in-up transition-transform duration-300 group-hover:scale-105"
+            />
           <div className="space-y-2">
             <CardTitle className="text-3xl font-bold">
-              Customizing Your Resume
+              Tweaking Your documents
             </CardTitle>
             <p className="text-muted-foreground">
-              AI is analyzing the job description and tailoring your resume for{" "}
+              AI is analyzing the job description and tweaking your documents for{" "}
               <span className="font-semibold text-foreground">{roleName}</span> at{" "}
               <span className="font-semibold text-foreground">{companyName}</span>
             </p>

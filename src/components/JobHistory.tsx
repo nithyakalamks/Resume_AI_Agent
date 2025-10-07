@@ -180,7 +180,7 @@ export const JobHistory = ({ userId, selectedId }: JobHistoryProps) => {
     const jobFitScore = selectedVersion.customized_score || 
       (selectedVersion.skill_matches?.length > 0 
         ? Math.round((selectedVersion.skill_matches.reduce((sum: number, s: any) => sum + s.relevance, 0) / selectedVersion.skill_matches.length) * 100)
-        : 85);
+        : 50); // More conservative default score
 
     return (
       <div className="space-y-6">
@@ -263,6 +263,7 @@ export const JobHistory = ({ userId, selectedId }: JobHistoryProps) => {
           originalScore={selectedVersion.original_score}
           customizedScore={selectedVersion.customized_score}
           skillMatches={selectedVersion.skill_matches}
+          missingSkills={selectedVersion.missing_skills}
         />
 
         {/* Hidden elements for PDF generation - always rendered */}

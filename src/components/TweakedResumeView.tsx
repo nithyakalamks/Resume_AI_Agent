@@ -55,6 +55,7 @@ interface TweakedResumeViewProps {
   originalScore?: number;
   customizedScore?: number;
   skillMatches?: any[];
+  missingSkills?: any[];
 }
 
 export const TweakedResumeView = ({ 
@@ -64,7 +65,8 @@ export const TweakedResumeView = ({
   coverLetter,
   originalScore,
   customizedScore,
-  skillMatches
+  skillMatches,
+  missingSkills
 }: TweakedResumeViewProps) => {
   const { toast } = useToast();
   const [downloading, setDownloading] = useState(false);
@@ -144,8 +146,8 @@ export const TweakedResumeView = ({
           originalScore={originalScore}
           customizedScore={customizedScore || 85}
           skillMatches={{
-            matching: skillMatches?.filter((s: any) => s.relevance >= 0.5) || [],
-            missing: [],
+            matching: skillMatches || [],
+            missing: missingSkills || [],
             addedSkills: tweakedData?.added_skills || []
           }}
         />

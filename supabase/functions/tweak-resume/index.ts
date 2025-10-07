@@ -378,20 +378,27 @@ INSTRUCTIONS:
 
     console.log('Storing tweaked resume in database...');
 
-    // Calculate job fit scores using the optimized logic
+    // Calculate job fit scores using accurate logic
     const calculateScore = (skillMatches: any[], totalRequired: number, addedCount: number = 0) => {
       if (!skillMatches || skillMatches.length === 0) return 0;
       if (totalRequired === 0) return 65;
       
-      const weightedScore = skillMatches.reduce((sum: number, match: any) => sum + match.relevance, 0);
       const totalMatchedSkills = skillMatches.length + addedCount;
       const matchPercentage = (totalMatchedSkills / totalRequired) * 100;
       
-      const averageRelevance = weightedScore / skillMatches.length;
-      const relevanceBonus = (averageRelevance - 0.7) * 10;
+      // Calculate average relevance of matched skills (only if we have matches)
+      let averageRelevance = 0.5; // Default for added skills
+      if (skillMatches.length > 0) {
+        const weightedScore = skillMatches.reduce((sum: number, match: any) => sum + match.relevance, 0);
+        averageRelevance = weightedScore / skillMatches.length;
+      }
       
+      // Apply a small relevance bonus (max 10 points) to reward high-quality matches
+      const relevanceBonus = Math.min(Math.max(0, (averageRelevance - 0.5) * 20), 10);
+      
+      // Base score is primarily the match percentage, with small relevance bonus
       const finalScore = Math.min(
-        Math.round(matchPercentage + Math.max(0, relevanceBonus)),
+        Math.round(matchPercentage + relevanceBonus),
         100
       );
       
@@ -421,6 +428,7 @@ INSTRUCTIONS:
           ...(addedSkills.length > 0 ? [`Added ${addedSkills.length} user-verified skill${addedSkills.length > 1 ? 's' : ''}: ${addedSkills.join(', ')}`] : [])
         ],
         skill_matches: tweakedResult.skill_matches,
+        missing_skills: tweakedResult.missing_skills,
         original_score: originalScore,
         customized_score: customizedScore,
       })
@@ -439,6 +447,7 @@ INSTRUCTIONS:
         tweaked_data: tweakedResult.tweaked_data,
         changes_summary: tweakedResult.changes_summary,
         skill_matches: tweakedResult.skill_matches,
+        missing_skills: tweakedResult.missing_skills,
         cover_letter: coverLetter,
         original_score: originalScore,
         customized_score: customizedScore,
