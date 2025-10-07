@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Auth } from "@/components/Auth";
 import { User } from "@supabase/supabase-js";
 import { useNavigate } from "react-router-dom";
+import Landing from "./Landing";
 
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -40,7 +40,7 @@ const Index = () => {
     );
   }
 
-  return <Auth />;
+  return <Landing />;
 };
 
 export default Index;
