@@ -13,7 +13,7 @@ export const DashboardNav = ({ onSignOut }: DashboardNavProps) => {
   const navItems = [
     { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { path: "/dashboard/resume", label: "My Resume", icon: FileText },
-    { path: "/dashboard/history", label: "History", icon: History },
+    { path: "/dashboard/history", label: "Tweaks", icon: History },
   ];
 
   return (

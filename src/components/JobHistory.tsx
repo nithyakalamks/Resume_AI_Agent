@@ -153,8 +153,6 @@ export const JobHistory = ({ userId }: JobHistoryProps) => {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-bold">Past Applications</h2>
-      
       {history.length === 0 ? (
         <Card className="p-8 text-center">
           <p className="text-muted-foreground">
