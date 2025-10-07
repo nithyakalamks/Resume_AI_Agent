@@ -5,6 +5,7 @@ import { DashboardHero } from "@/components/DashboardHero";
 import { RecentTweaks } from "@/components/RecentTweaks";
 import { SkillsReview } from "@/components/SkillsReview";
 import { TweakedResumeView } from "@/components/TweakedResumeView";
+import { ResumeTemplate } from "@/components/ResumeTemplate";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
@@ -141,6 +142,33 @@ export const DashboardHome = ({ userId }: DashboardHomeProps) => {
     setSkillComparison(null);
   };
 
+  const handleDownloadResume = async () => {
+    setDownloadingCover(true);
+    try {
+      const element = document.getElementById('resume-content');
+      if (!element) throw new Error('Resume content not found');
+
+      const opt = {
+        margin: 10,
+        filename: `${tweakedData?.name.replace(/\s+/g, '_')}_Resume.pdf`,
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+      };
+
+      await html2pdf().set(opt).from(element).save();
+      toast({ title: "Resume downloaded successfully" });
+    } catch (error: any) {
+      toast({
+        title: "Download failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setDownloadingCover(false);
+    }
+  };
+
   const handleDownloadCoverLetter = async () => {
     setDownloadingCover(true);
     try {
@@ -149,7 +177,7 @@ export const DashboardHome = ({ userId }: DashboardHomeProps) => {
 
       const opt = {
         margin: 10,
-        filename: `${tweakedData.name.replace(/\s+/g, '_')}_Cover_Letter.pdf`,
+        filename: `${tweakedData?.name.replace(/\s+/g, '_')}_Cover_Letter.pdf`,
         image: { type: 'jpeg' as const, quality: 0.98 },
         html2canvas: { scale: 2 },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
@@ -196,31 +224,87 @@ export const DashboardHome = ({ userId }: DashboardHomeProps) => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary/30 via-accent/20 to-primary/30">
         <div className="container mx-auto px-4 py-8 space-y-6">
-          <TweakedResumeView
-          originalData={originalData}
-          tweakedData={tweakedData}
-          changesSummary={changesSummary}
-        />
+          <div className="text-center space-y-2 mb-8">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              Tweaker has done its magic!
+            </h1>
+            <p className="text-lg text-muted-foreground">
+              Tweaked for {jobInfo.roleName} at {jobInfo.companyName}
+            </p>
+          </div>
 
-        {coverLetter && (
           <Card className="p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold">Generated Cover Letter</h3>
-              <Button onClick={handleDownloadCoverLetter} disabled={downloadingCover}>
+            <div className="flex flex-wrap gap-4 justify-center">
+              <Button onClick={handleDownloadResume} disabled={downloadingCover} size="lg">
+                <Download className="w-4 h-4 mr-2" />
+                Download Resume
+              </Button>
+              <Button onClick={handleDownloadCoverLetter} disabled={downloadingCover} size="lg" variant="outline">
                 <Download className="w-4 h-4 mr-2" />
                 {downloadingCover ? "Generating PDF..." : "Download Cover Letter"}
               </Button>
             </div>
-            <div id="cover-letter-content" className="prose prose-sm max-w-none">
-              <pre className="whitespace-pre-wrap text-sm">{coverLetter}</pre>
+          </Card>
+
+          <Card className="p-8">
+            <div className="flex flex-col items-center text-center space-y-4">
+              <div className="relative w-32 h-32">
+                <svg className="transform -rotate-90 w-32 h-32">
+                  <circle
+                    cx="64"
+                    cy="64"
+                    r="56"
+                    stroke="currentColor"
+                    strokeWidth="8"
+                    fill="transparent"
+                    className="text-muted"
+                  />
+                  <circle
+                    cx="64"
+                    cy="64"
+                    r="56"
+                    stroke="currentColor"
+                    strokeWidth="8"
+                    fill="transparent"
+                    strokeDasharray={`${2 * Math.PI * 56}`}
+                    strokeDashoffset={`${2 * Math.PI * 56 * (1 - 0.91)}`}
+                    className="text-primary transition-all duration-1000 ease-out"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-3xl font-bold">91</span>
+                </div>
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold mb-2">Job Fit Score</h3>
+                <p className="text-muted-foreground max-w-md">
+                  Your resume shows an excellent match with the job requirements
+                </p>
+              </div>
             </div>
           </Card>
-        )}
+
+          <TweakedResumeView
+            originalData={originalData}
+            tweakedData={tweakedData}
+            changesSummary={changesSummary}
+            coverLetter={coverLetter}
+          />
 
           <div className="flex justify-center">
             <Button onClick={handleCreateAnother} size="lg">
               Create Another Tweaked Resume
             </Button>
+          </div>
+
+          <div className="hidden">
+            <div id="resume-content">
+              <ResumeTemplate data={tweakedData} />
+            </div>
+            <div id="cover-letter-content" className="p-8">
+              <pre className="whitespace-pre-wrap font-sans text-sm">{coverLetter}</pre>
+            </div>
           </div>
         </div>
       </div>

@@ -1,3 +1,5 @@
+import React from 'react';
+
 interface Skill {
   skill: string;
   confidence: number;
@@ -106,18 +108,17 @@ export const ResumeTemplate = ({ data, id }: ResumeTemplateProps) => {
           {data.other_links && data.other_links.split(',').map((link: string, idx: number) => {
             const trimmedLink = link.trim();
             return (
-              <>
-                {(data.phone || data.email || data.linkedin || idx > 0) && <span key={`sep-${idx}`}>⋄</span>}
+              <React.Fragment key={`link-${idx}`}>
+                {(data.phone || data.email || data.linkedin || idx > 0) && <span>⋄</span>}
                 <a 
-                  key={idx}
-                  href={trimmedLink} 
+                  href={trimmedLink}
                   target="_blank" 
                   rel="noopener noreferrer" 
                   className="text-blue-600 hover:underline"
                 >
                   {getLinkLabel(trimmedLink)}
                 </a>
-              </>
+              </React.Fragment>
             );
           })}
         </div>
