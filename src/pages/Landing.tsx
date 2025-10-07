@@ -303,7 +303,7 @@ const Landing = () => {
             <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
               <Button 
                 size="lg"
-                className="bg-white text-primary hover:bg-white/90 transition-colors text-lg px-8"
+                className="bg-white text-[hsl(199,89%,12%)] hover:bg-white/90 transition-colors text-lg px-8 shadow-lg font-semibold"
                 onClick={() => navigate("/auth?tab=signup")}
               >
                 <Sparkles className="w-5 h-5 mr-2" />
@@ -311,8 +311,7 @@ const Landing = () => {
               </Button>
               <Button 
                 size="lg"
-                variant="outline"
-                className="border-2 border-white text-white hover:bg-white/10"
+                className="bg-white/20 backdrop-blur-sm text-white border-2 border-white/50 hover:bg-white/30 transition-colors font-semibold"
                 onClick={() => navigate("/auth?tab=signin")}
               >
                 Login to Continue
