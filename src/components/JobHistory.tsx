@@ -182,7 +182,7 @@ export const JobHistory = ({ userId, selectedId }: JobHistoryProps) => {
         {/* Title Section */}
         <div className="flex justify-between items-center">
           <div className="space-y-2">
-          <h1 className="text-3xl font-bold">Tweaker has done its magic!</h1>
+          <h1 className="text-3xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent font-bold">Tweaker has done its magic!</h1>
           <p className="text-muted-foreground">
             Tweaked for {roleName} at {companyName}
           </p>

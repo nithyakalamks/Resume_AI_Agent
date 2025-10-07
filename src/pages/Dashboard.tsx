@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Routes, Route, Navigate } from "react-router-dom";
@@ -10,6 +11,7 @@ import { ResumePage } from "@/pages/ResumePage";
 import { HistoryPage } from "@/pages/HistoryPage";
 
 const Dashboard = () => {
+  const location = useLocation();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [hasResume, setHasResume] = useState<boolean | null>(null);
@@ -72,8 +74,9 @@ const Dashboard = () => {
     return null;
   }
 
-  // Show onboarding wizard for new users
-  if (showOnboarding) {
+  // Show onboarding wizard for new users, but not when on history routes
+  const isHistoryRoute = location.pathname.startsWith('/dashboard/history/');
+  if (showOnboarding && !isHistoryRoute) {
     return (
       <div className="min-h-screen bg-background">
         <DashboardNav onSignOut={handleSignOut} />

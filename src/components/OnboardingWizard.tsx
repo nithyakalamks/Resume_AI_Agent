@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ const STEPS = [
 ];
 
 export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) => {
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const { toast } = useToast();
   const companyNameRef = useRef<HTMLInputElement>(null);
@@ -202,32 +204,14 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
 
       if (error) throw error;
 
-      // Save to database
-      const { data: jobDescRecord } = await supabase
-        .from("job_descriptions")
-        .insert({
-          user_id: userId,
-          company_name: companyName,
-          role_name: roleName,
-          description: jobDescription,
-          resume_id: resumeId,
-        })
-        .select()
-        .single();
-
-      if (jobDescRecord) {
-        await supabase.from("tweaked_resumes").insert({
-          user_id: userId,
-          resume_id: resumeId,
-          job_description_id: jobDescRecord.id,
-          tweaked_data: data.tweaked_resume,
-          changes_summary: data.changes_summary,
-          skill_matches: skillsData,
-          cover_letter: data.cover_letter,
-        });
+      // Redirect to the history page with the newly created tweaked resume ID
+      if (data.tweaked_resume_id) {
+        navigate(`/dashboard/history/${data.tweaked_resume_id}`);
+        return;
       }
 
-      setTweakedData(data.tweaked_resume);
+      // Fallback to the old behavior if no ID is returned
+      setTweakedData(data.tweaked_data);
       setChangesSummary(data.changes_summary);
       setCoverLetter(data.cover_letter);
       setCurrentStep(3);
@@ -465,7 +449,7 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
 
         {/* Step 2b: Skills Review */}
         {currentStep === 2 && skillsData && (
-          <div className="mt-8">
+          <div className="mt-2">
             <SkillsReview
               jobSkills={skillsData.job_skills || []}
               matchingSkills={skillsData.matching_skills || []}

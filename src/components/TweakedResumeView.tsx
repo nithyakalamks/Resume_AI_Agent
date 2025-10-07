@@ -100,7 +100,7 @@ export const TweakedResumeView = ({
       </TabsList>
 
       <TabsContent value="original" className="mt-6">
-        <Card className="p-8">
+        <Card className="p-8 bg-gradient-to-br from-primary/10 via-accent/20 to-primary/10">
           <ResumeTemplate 
             data={originalData} 
             id="original-resume-content"
@@ -109,7 +109,7 @@ export const TweakedResumeView = ({
       </TabsContent>
 
       <TabsContent value="customized" className="mt-6">
-        <Card className="p-8">
+        <Card className="p-8 bg-gradient-to-br from-primary/10 via-accent/20 to-primary/10">
           <ResumeTemplate 
             data={tweakedData} 
             id="tweaked-resume-content"
