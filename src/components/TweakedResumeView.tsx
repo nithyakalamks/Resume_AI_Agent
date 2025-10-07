@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import html2pdf from "html2pdf.js";
 import { ResumeTemplate } from "@/components/ResumeTemplate";
+import { ScoreAnalysis } from "@/components/ScoreAnalysis";
 
 interface Skill {
   skill: string;
@@ -43,6 +44,7 @@ interface ResumeData {
   education?: any[];
   projects?: Project[];
   certifications?: any[];
+  added_skills?: string[];
 }
 
 interface TweakedResumeViewProps {
@@ -50,13 +52,19 @@ interface TweakedResumeViewProps {
   tweakedData: ResumeData;
   changesSummary: string[];
   coverLetter?: string;
+  originalScore?: number;
+  customizedScore?: number;
+  skillMatches?: any[];
 }
 
 export const TweakedResumeView = ({ 
   originalData, 
   tweakedData, 
   changesSummary,
-  coverLetter
+  coverLetter,
+  originalScore,
+  customizedScore,
+  skillMatches
 }: TweakedResumeViewProps) => {
   const { toast } = useToast();
   const [downloading, setDownloading] = useState(false);
@@ -132,99 +140,15 @@ export const TweakedResumeView = ({
       </TabsContent>
 
       <TabsContent value="analysis" className="mt-6">
-        <Card className="p-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div className="text-center space-y-4">
-              <p className="text-sm text-muted-foreground font-medium">Original Resume</p>
-              <div className="relative inline-flex items-center justify-center">
-                <svg className="w-32 h-32 transform -rotate-90">
-                  <circle
-                    cx="64"
-                    cy="64"
-                    r="56"
-                    stroke="currentColor"
-                    strokeWidth="10"
-                    fill="none"
-                    className="text-muted/20"
-                  />
-                  <circle
-                    cx="64"
-                    cy="64"
-                    r="56"
-                    stroke="currentColor"
-                    strokeWidth="10"
-                    fill="none"
-                    strokeDasharray={`${2 * Math.PI * 56}`}
-                    strokeDashoffset={`${2 * Math.PI * 56 * 0.35}`}
-                    className="text-muted-foreground"
-                    strokeLinecap="round"
-                  />
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-4xl font-bold text-muted-foreground">65</span>
-                  <span className="text-sm text-muted-foreground">/100</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="text-center space-y-4">
-              <div className="flex items-center justify-center gap-2">
-                <p className="text-sm text-primary font-medium">Customized Resume</p>
-                <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-green-500/10 text-green-600">
-                  <ArrowRight className="w-3 h-3" />
-                  <span className="text-xs font-semibold">+26</span>
-                </div>
-              </div>
-              <div className="relative inline-flex items-center justify-center">
-                <svg className="w-32 h-32 transform -rotate-90">
-                  <circle
-                    cx="64"
-                    cy="64"
-                    r="56"
-                    stroke="currentColor"
-                    strokeWidth="10"
-                    fill="none"
-                    className="text-muted/20"
-                  />
-                  <circle
-                    cx="64"
-                    cy="64"
-                    r="56"
-                    stroke="currentColor"
-                    strokeWidth="10"
-                    fill="none"
-                    strokeDasharray={`${2 * Math.PI * 56}`}
-                    strokeDashoffset={`${2 * Math.PI * 56 * 0.09}`}
-                    className="text-primary"
-                    strokeLinecap="round"
-                  />
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-4xl font-bold text-primary">91</span>
-                  <span className="text-sm text-muted-foreground">/100</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Key Improvements</h3>
-            {changesSummary && changesSummary.length > 0 ? (
-              <ul className="space-y-2">
-                {changesSummary.map((change, idx) => (
-                  <li key={idx} className="flex items-start gap-2 text-sm">
-                    <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                    <span>{change}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Resume has been customized and optimized for this position.
-              </p>
-            )}
-          </div>
-        </Card>
+        <ScoreAnalysis 
+          originalScore={originalScore}
+          customizedScore={customizedScore || 85}
+          skillMatches={{
+            matching: skillMatches?.filter((s: any) => s.relevance >= 0.5) || [],
+            missing: [],
+            addedSkills: tweakedData?.added_skills || []
+          }}
+        />
       </TabsContent>
     </Tabs>
   );

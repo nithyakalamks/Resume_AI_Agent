@@ -87,9 +87,11 @@ export type Database = {
           changes_summary: Json | null
           cover_letter: string | null
           created_at: string | null
+          customized_score: number | null
           html_preview: string | null
           id: string
           job_description_id: string | null
+          original_score: number | null
           pdf_path: string | null
           resume_id: string | null
           skill_matches: Json | null
@@ -100,9 +102,11 @@ export type Database = {
           changes_summary?: Json | null
           cover_letter?: string | null
           created_at?: string | null
+          customized_score?: number | null
           html_preview?: string | null
           id?: string
           job_description_id?: string | null
+          original_score?: number | null
           pdf_path?: string | null
           resume_id?: string | null
           skill_matches?: Json | null
@@ -113,9 +117,11 @@ export type Database = {
           changes_summary?: Json | null
           cover_letter?: string | null
           created_at?: string | null
+          customized_score?: number | null
           html_preview?: string | null
           id?: string
           job_description_id?: string | null
+          original_score?: number | null
           pdf_path?: string | null
           resume_id?: string | null
           skill_matches?: Json | null

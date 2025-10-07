@@ -361,6 +361,19 @@ INSTRUCTIONS:
 
     console.log('Storing tweaked resume in database...');
 
+    // Calculate job fit scores
+    const calculateScore = (skillMatches: any[], addedCount: number = 0) => {
+      if (!skillMatches || skillMatches.length === 0) return 65;
+      const totalRelevance = skillMatches.reduce((sum: number, match: any) => sum + match.relevance, 0);
+      const averageRelevance = totalRelevance / skillMatches.length;
+      const baseScore = Math.round(averageRelevance * 100);
+      const addedBonus = Math.min(addedCount * 2, 10);
+      return Math.min(baseScore + addedBonus, 100);
+    };
+
+    const originalScore = calculateScore(tweakedResult.skill_matches, 0);
+    const customizedScore = calculateScore(tweakedResult.skill_matches, addedSkills.length);
+
     // Store the tweaked resume with added skills metadata
     const { data: tweakedResume, error: tweakedError } = await supabaseClient
       .from('tweaked_resumes')
@@ -378,6 +391,8 @@ INSTRUCTIONS:
           ...(addedSkills.length > 0 ? [`Added ${addedSkills.length} user-verified skill${addedSkills.length > 1 ? 's' : ''}: ${addedSkills.join(', ')}`] : [])
         ],
         skill_matches: tweakedResult.skill_matches,
+        original_score: originalScore,
+        customized_score: customizedScore,
       })
       .select()
       .single();
@@ -395,6 +410,8 @@ INSTRUCTIONS:
         changes_summary: tweakedResult.changes_summary,
         skill_matches: tweakedResult.skill_matches,
         cover_letter: coverLetter,
+        original_score: originalScore,
+        customized_score: customizedScore,
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
