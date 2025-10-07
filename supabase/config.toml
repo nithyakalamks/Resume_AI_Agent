@@ -3,5 +3,5 @@ project_id = "biocmimbruhkadsnupqv"
 [functions.parse-resume]
 verify_jwt = true
 
-[functions.tailor-resume]
+[functions.tweak-resume]
 verify_jwt = true

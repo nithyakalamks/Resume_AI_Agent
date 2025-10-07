@@ -161,7 +161,7 @@ export const ResumeManager = ({ userId, onResumeChange }: ResumeManagerProps) =>
         <Card className="p-8">
           <h2 className="text-2xl font-bold mb-4">Upload Your Resume</h2>
           <p className="text-muted-foreground mb-6">
-            Upload your resume once and tailor it for any job application
+            Upload your resume once and tweak it for any job application
           </p>
 
           <div

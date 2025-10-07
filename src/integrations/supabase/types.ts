@@ -82,7 +82,7 @@ export type Database = {
         }
         Relationships: []
       }
-      tailored_resumes: {
+      tweaked_resumes: {
         Row: {
           changes_summary: Json | null
           cover_letter: string | null
@@ -93,7 +93,7 @@ export type Database = {
           pdf_path: string | null
           resume_id: string | null
           skill_matches: Json | null
-          tailored_data: Json
+          tweaked_data: Json
           user_id: string | null
         }
         Insert: {
@@ -106,7 +106,7 @@ export type Database = {
           pdf_path?: string | null
           resume_id?: string | null
           skill_matches?: Json | null
-          tailored_data: Json
+          tweaked_data: Json
           user_id?: string | null
         }
         Update: {
@@ -119,19 +119,19 @@ export type Database = {
           pdf_path?: string | null
           resume_id?: string | null
           skill_matches?: Json | null
-          tailored_data?: Json
+          tweaked_data?: Json
           user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "tailored_resumes_job_description_id_fkey"
+            foreignKeyName: "tweaked_resumes_job_description_id_fkey"
             columns: ["job_description_id"]
             isOneToOne: false
             referencedRelation: "job_descriptions"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "tailored_resumes_resume_id_fkey"
+            foreignKeyName: "tweaked_resumes_resume_id_fkey"
             columns: ["resume_id"]
             isOneToOne: false
             referencedRelation: "resumes"

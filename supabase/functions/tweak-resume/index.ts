@@ -79,14 +79,14 @@ serve(async (req) => {
       throw new Error('Failed to save job description');
     }
 
-    // Use Lovable AI to tailor the resume
+    // Use Lovable AI to tweak the resume
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
       console.error('LOVABLE_API_KEY not configured');
       throw new Error('AI service not configured');
     }
 
-    console.log('Starting AI tailoring process...');
+    console.log('Starting AI tweaking process...');
 
     const systemPrompt = `You are an expert resume optimizer. Given a candidate's resume and a job description, make MINOR STRATEGIC TWEAKS to align the resume with the job.
 
@@ -150,7 +150,7 @@ CRITICAL REMINDER:
 - Copy these sections EXACTLY as they appear in the resume data
 - If education or certifications arrays are present in the resume, they MUST NOT be empty in your output
 
-Please tailor this resume to match the job description while preserving education and certifications exactly as shown above.`;
+Please tweak this resume to match the job description while preserving education and certifications exactly as shown above.`;
 
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -168,12 +168,12 @@ Please tailor this resume to match the job description while preserving educatio
           {
             type: "function",
             function: {
-              name: "tailor_resume",
+              name: "tweak_resume",
               description: "Return resume data with only skills reordered by relevance and relevance scores added",
               parameters: {
                 type: "object",
                 properties: {
-                  tailored_data: {
+                  tweaked_data: {
                     type: "object",
                     description: "Resume data with skills/experience/projects reordered by relevance. Each skill must have 'relevance' field (0.0-1.0). Each experience must have 'relevance' field. Each project must have 'relevance' field. Summary should be rewritten.",
                     properties: {
@@ -280,12 +280,12 @@ Please tailor this resume to match the job description while preserving educatio
                     description: "Top 5-10 most relevant skills with explanations"
                   }
                 },
-                required: ["tailored_data", "changes_summary", "skill_matches"]
+                required: ["tweaked_data", "changes_summary", "skill_matches"]
               }
             }
           }
         ],
-        tool_choice: { type: "function", function: { name: "tailor_resume" } }
+        tool_choice: { type: "function", function: { name: "tweak_resume" } }
       }),
     });
 
@@ -299,7 +299,7 @@ Please tailor this resume to match the job description while preserving educatio
 
     const aiResult = await aiResponse.json();
     const toolCall = aiResult.choices[0].message.tool_calls?.[0];
-    const tailoredResult = JSON.parse(toolCall.function.arguments);
+    const tweakedResult = JSON.parse(toolCall.function.arguments);
 
     // Generate cover letter using AI
     const coverLetterPrompt = `Write a professional cover letter for this candidate applying to this job.
@@ -350,35 +350,35 @@ INSTRUCTIONS:
     const coverLetterResult = await coverLetterResponse.json();
     const coverLetter = coverLetterResult.choices[0].message.content;
 
-    console.log('Storing tailored resume in database...');
+    console.log('Storing tweaked resume in database...');
 
-    // Store the tailored resume
-    const { data: tailoredResume, error: tailoredError } = await supabaseClient
-      .from('tailored_resumes')
+    // Store the tweaked resume
+    const { data: tweakedResume, error: tweakedError } = await supabaseClient
+      .from('tweaked_resumes')
       .insert({
         user_id: user.id,
         resume_id: resumeId,
         job_description_id: jobDescRecord.id,
-        tailored_data: tailoredResult.tailored_data,
+        tweaked_data: tweakedResult.tweaked_data,
         cover_letter: coverLetter,
-        changes_summary: tailoredResult.changes_summary,
-        skill_matches: tailoredResult.skill_matches,
+        changes_summary: tweakedResult.changes_summary,
+        skill_matches: tweakedResult.skill_matches,
       })
       .select()
       .single();
 
-    if (tailoredError) {
-      console.error('Tailored resume insert error:', tailoredError);
-      throw new Error('Failed to save tailored resume');
+    if (tweakedError) {
+      console.error('Tweaked resume insert error:', tweakedError);
+      throw new Error('Failed to save tweaked resume');
     }
 
     return new Response(
       JSON.stringify({ 
         success: true,
-        tailored_resume_id: tailoredResume.id,
-        tailored_data: tailoredResult.tailored_data,
-        changes_summary: tailoredResult.changes_summary,
-        skill_matches: tailoredResult.skill_matches,
+        tweaked_resume_id: tweakedResume.id,
+        tweaked_data: tweakedResult.tweaked_data,
+        changes_summary: tweakedResult.changes_summary,
+        skill_matches: tweakedResult.skill_matches,
         cover_letter: coverLetter,
       }),
       {
@@ -388,7 +388,7 @@ INSTRUCTIONS:
     );
 
   } catch (error) {
-    console.error('Error in tailor-resume function:', error);
+    console.error('Error in tweak-resume function:', error);
     return new Response(
       JSON.stringify({ 
         error: error instanceof Error ? error.message : 'Unknown error occurred' 

@@ -45,29 +45,29 @@ interface ResumeData {
   certifications?: any[];
 }
 
-interface TailoredResumeViewProps {
+interface TweakedResumeViewProps {
   originalData: ResumeData;
-  tailoredData: ResumeData;
+  tweakedData: ResumeData;
   changesSummary: string[];
 }
 
-export const TailoredResumeView = ({ 
+export const TweakedResumeView = ({ 
   originalData, 
-  tailoredData, 
+  tweakedData, 
   changesSummary
-}: TailoredResumeViewProps) => {
+}: TweakedResumeViewProps) => {
   const { toast } = useToast();
   const [downloading, setDownloading] = useState(false);
 
   const handleDownloadPDF = async () => {
     setDownloading(true);
     try {
-      const resumeElement = document.getElementById('tailored-resume-content');
+      const resumeElement = document.getElementById('tweaked-resume-content');
       if (!resumeElement) throw new Error('Resume content not found');
 
       const opt = {
         margin: 5,
-        filename: `${tailoredData.name.replace(/\s+/g, '_')}_Resume.pdf`,
+        filename: `${tweakedData.name.replace(/\s+/g, '_')}_Resume.pdf`,
         image: { type: 'jpeg' as const, quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
@@ -113,22 +113,22 @@ export const TailoredResumeView = ({
       )}
 
       {/* Side-by-Side Comparison */}
-      <Tabs defaultValue="tailored" className="w-full">
+      <Tabs defaultValue="tweaked" className="w-full">
         <div className="flex justify-between items-center mb-4">
           <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="tailored">Tailored Resume</TabsTrigger>
+            <TabsTrigger value="tweaked">Tweaked Resume</TabsTrigger>
             <TabsTrigger value="original">Original Resume</TabsTrigger>
           </TabsList>
           <Button onClick={handleDownloadPDF} disabled={downloading}>
             <Download className="w-4 h-4 mr-2" />
-            {downloading ? "Generating PDF..." : "Download Tailored PDF"}
+            {downloading ? "Generating PDF..." : "Download Tweaked PDF"}
           </Button>
         </div>
 
-        <TabsContent value="tailored" className="mt-6">
+        <TabsContent value="tweaked" className="mt-6">
           <ResumeTemplate 
-            data={tailoredData} 
-            id="tailored-resume-content"
+            data={tweakedData} 
+            id="tweaked-resume-content"
           />
         </TabsContent>
 

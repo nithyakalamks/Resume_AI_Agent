@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, Download, Trash2 } from "lucide-react";
-import { TailoredResumeView } from "@/components/TailoredResumeView";
+import { TweakedResumeView } from "@/components/TweakedResumeView";
 import html2pdf from "html2pdf.js";
 
 interface JobHistoryProps {
@@ -29,7 +29,7 @@ export const JobHistory = ({ userId }: JobHistoryProps) => {
       const coverElement = document.getElementById('history-cover-letter-content');
       if (!coverElement) throw new Error('Cover letter content not found');
 
-      const userName = selectedVersion.tailored_data?.name || 'User';
+      const userName = selectedVersion.tweaked_data?.name || 'User';
       const opt = {
         margin: 10,
         filename: `${userName.replace(/\s+/g, '_')}_Cover_Letter.pdf`,
@@ -59,7 +59,7 @@ export const JobHistory = ({ userId }: JobHistoryProps) => {
   const fetchHistory = async () => {
     setLoading(true);
     const { data, error } = await supabase
-      .from("tailored_resumes")
+      .from("tweaked_resumes")
       .select(`
         *,
         job_descriptions (description, company_name, role_name),
@@ -83,7 +83,7 @@ export const JobHistory = ({ userId }: JobHistoryProps) => {
     setDeleting(id);
     try {
       const { error } = await supabase
-        .from("tailored_resumes")
+        .from("tweaked_resumes")
         .delete()
         .eq("id", id);
 
@@ -127,9 +127,9 @@ export const JobHistory = ({ userId }: JobHistoryProps) => {
           </p>
         </Card>
 
-        <TailoredResumeView
+        <TweakedResumeView
           originalData={originalData}
-          tailoredData={selectedVersion.tailored_data}
+          tweakedData={selectedVersion.tweaked_data}
           changesSummary={selectedVersion.changes_summary || []}
         />
 

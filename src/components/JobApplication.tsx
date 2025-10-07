@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Sparkles, Download } from "lucide-react";
-import { TailoredResumeView } from "@/components/TailoredResumeView";
+import { TweakedResumeView } from "@/components/TweakedResumeView";
 import html2pdf from "html2pdf.js";
 
 interface JobApplicationProps {
@@ -19,15 +19,15 @@ export const JobApplication = ({ userId, currentResumeId }: JobApplicationProps)
   const [companyName, setCompanyName] = useState("");
   const [roleName, setRoleName] = useState("");
   const [jobDescription, setJobDescription] = useState("");
-  const [tailoring, setTailoring] = useState(false);
+  const [tweaking, setTweaking] = useState(false);
   const [originalData, setOriginalData] = useState<any>(null);
-  const [tailoredData, setTailoredData] = useState<any>(null);
+  const [tweakedData, setTweakedData] = useState<any>(null);
   const [changesSummary, setChangesSummary] = useState<string[]>([]);
   const [coverLetter, setCoverLetter] = useState("");
   const [downloadingCover, setDownloadingCover] = useState(false);
   const { toast } = useToast();
 
-  const handleTailor = async () => {
+  const handleTweak = async () => {
     if (!currentResumeId) {
       toast({
         title: "No resume found",
@@ -46,7 +46,7 @@ export const JobApplication = ({ userId, currentResumeId }: JobApplicationProps)
       return;
     }
 
-    setTailoring(true);
+    setTweaking(true);
     try {
       const { data: resumeData } = await supabase
         .from("resumes")
@@ -57,7 +57,7 @@ export const JobApplication = ({ userId, currentResumeId }: JobApplicationProps)
       if (!resumeData) throw new Error("Resume not found");
 
       const { data: functionData, error: functionError } = await supabase.functions.invoke(
-        "tailor-resume",
+        "tweak-resume",
         {
           body: {
             resumeId: currentResumeId,
@@ -71,21 +71,21 @@ export const JobApplication = ({ userId, currentResumeId }: JobApplicationProps)
       if (functionError) throw functionError;
 
       setOriginalData(resumeData.parsed_data);
-      setTailoredData(functionData.tailored_data);
+      setTweakedData(functionData.tweaked_data);
       setChangesSummary(functionData.changes_summary || []);
       setCoverLetter(functionData.cover_letter || "");
 
       toast({
-        title: "Resume tailored successfully",
+        title: "Resume tweaked successfully",
       });
     } catch (error: any) {
       toast({
-        title: "Tailoring failed",
+        title: "Tweaking failed",
         description: error.message,
         variant: "destructive",
       });
     } finally {
-      setTailoring(false);
+      setTweaking(false);
     }
   };
 
@@ -97,7 +97,7 @@ export const JobApplication = ({ userId, currentResumeId }: JobApplicationProps)
 
       const opt = {
         margin: 10,
-        filename: `${tailoredData.name.replace(/\s+/g, '_')}_Cover_Letter.pdf`,
+        filename: `${tweakedData.name.replace(/\s+/g, '_')}_Cover_Letter.pdf`,
         image: { type: 'jpeg' as const, quality: 0.98 },
         html2canvas: { scale: 2 },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
@@ -132,7 +132,7 @@ export const JobApplication = ({ userId, currentResumeId }: JobApplicationProps)
       <Card className="p-6">
         <h2 className="text-2xl font-bold mb-4">Apply to a New Job</h2>
         <p className="text-muted-foreground mb-4">
-          Enter job details and get a tailored resume with cover letter
+          Enter job details and get a tweaked resume with cover letter
         </p>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -168,20 +168,20 @@ export const JobApplication = ({ userId, currentResumeId }: JobApplicationProps)
         </div>
 
         <Button
-          onClick={handleTailor}
-          disabled={tailoring || !companyName.trim() || !roleName.trim() || !jobDescription.trim()}
+          onClick={handleTweak}
+          disabled={tweaking || !companyName.trim() || !roleName.trim() || !jobDescription.trim()}
           className="w-full"
         >
           <Sparkles className="w-4 h-4 mr-2" />
-          {tailoring ? "Tailoring Resume..." : "Tailor Resume"}
+          {tweaking ? "Tweaking Resume..." : "Tweak Resume"}
         </Button>
       </Card>
 
-      {tailoredData && (
+      {tweakedData && (
         <div className="space-y-6">
-          <TailoredResumeView
+          <TweakedResumeView
             originalData={originalData}
-            tailoredData={tailoredData}
+            tweakedData={tweakedData}
             changesSummary={changesSummary}
           />
 
