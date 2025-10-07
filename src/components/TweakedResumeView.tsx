@@ -116,14 +116,59 @@ export const TweakedResumeView = ({
         };
       }
       
-      console.log("✅ Setting current tweaked data:", {
+      console.log("✅ Validated data ready to save:", {
         name: updatedData.name,
         email: updatedData.email,
         skillsCount: updatedData.skills?.length || 0,
         experienceCount: updatedData.experience?.length || 0
       });
-      
-      // Update state and force re-render
+    }
+    
+    // Capture the cover letter value to save BEFORE any state updates
+    const coverLetterToSave = updatedCoverLetter !== undefined 
+      ? updatedCoverLetter 
+      : currentCoverLetter;
+
+    // Save to database FIRST if we have a tweakedResumeId
+    if (tweakedResumeId && updatedData) {
+      console.log('💾 Saving to database with tweakedResumeId:', tweakedResumeId);
+      try {
+        const { error } = await supabase
+          .from('tweaked_resumes')
+          .update({
+            tweaked_data: updatedData,
+            cover_letter: coverLetterToSave,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', tweakedResumeId);
+
+        if (error) {
+          console.error('❌ Failed to save chat updates:', error);
+          toast({
+            title: "Warning",
+            description: `Changes applied but failed to save: ${error.message}`,
+            variant: "destructive"
+          });
+          return; // Don't update state if save failed
+        }
+        
+        console.log('✅ Successfully saved chat updates to database');
+      } catch (error: any) {
+        console.error('❌ Error saving chat updates:', error);
+        toast({
+          title: "Warning",
+          description: `Changes applied but failed to save: ${error.message || 'Unknown error'}`,
+          variant: "destructive"
+        });
+        return; // Don't update state if save failed
+      }
+    } else {
+      console.log('⚠️ No tweakedResumeId - skipping database save');
+    }
+
+    // Only update state AFTER successful database save
+    if (updatedData) {
+      console.log("✅ Setting current tweaked data after successful save");
       setCurrentTweakedData(updatedData);
       setRenderKey(prev => prev + 1);
       
@@ -146,39 +191,11 @@ export const TweakedResumeView = ({
       setTimeout(() => setChangedSections([]), 3000);
     }
 
-    // Save to database if we have a tweakedResumeId
-    if (tweakedResumeId && updatedData) {
-      console.log('💾 Saving to database with tweakedResumeId:', tweakedResumeId);
-      try {
-        const { error } = await supabase
-          .from('tweaked_resumes')
-          .update({
-            tweaked_data: updatedData,
-            cover_letter: updatedCoverLetter || currentCoverLetter,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', tweakedResumeId);
-
-        if (error) {
-          console.error('❌ Failed to save chat updates:', error);
-          toast({
-            title: "Warning",
-            description: "Changes applied but failed to save. Please try again.",
-            variant: "destructive"
-          });
-        } else {
-          console.log('✅ Successfully saved chat updates to database');
-          toast({
-            title: "Saved",
-            description: "Changes saved successfully!",
-          });
-        }
-      } catch (error) {
-        console.error('❌ Error saving chat updates:', error);
-      }
-    } else {
-      console.log('⚠️ No tweakedResumeId - skipping database save');
-    }
+    // Show success toast only after everything is done
+    toast({
+      title: "Resume updated successfully",
+      description: "Changes are highlighted in the preview.",
+    });
   };
 
   const handleDownloadPDF = async () => {
