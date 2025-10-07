@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { LogOut, LayoutDashboard, FileText, History } from "lucide-react";
 import { cn } from "@/lib/utils";
+import logo from "@/assets/logo.png";
 
 interface DashboardNavProps {
   onSignOut: () => void;
@@ -20,8 +21,12 @@ export const DashboardNav = ({ onSignOut }: DashboardNavProps) => {
     <header className="sticky top-0 z-50 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-8">
-          <Link to="/dashboard" className="text-2xl font-bold text-primary">
-            Tweaker
+          <Link to="/dashboard" className="flex items-center gap-2 group">
+            <img 
+              src={logo} 
+              alt="Tweaker Logo" 
+              className="h-10 md:h-12 w-auto animate-fade-in-up transition-transform duration-300 group-hover:scale-105"
+            />
           </Link>
           <nav className="hidden md:flex items-center gap-2">
             {navItems.map((item) => {

@@ -9,9 +9,9 @@ interface JobFitScoreProps {
 
 export const JobFitScore = ({ score, onViewAnalysis }: JobFitScoreProps) => {
   const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-green-500";
-    if (score >= 60) return "text-yellow-500";
-    return "text-red-500";
+    if (score >= 80) return "text-accent";
+    if (score >= 60) return "text-primary";
+    return "text-destructive";
   };
 
   const getScoreLabel = (score: number) => {
@@ -21,7 +21,7 @@ export const JobFitScore = ({ score, onViewAnalysis }: JobFitScoreProps) => {
   };
 
   return (
-    <Card className="p-6">
+    <Card className="p-6 animate-fade-in-up border-primary/20 shadow-md hover:shadow-lg transition-all duration-300">
       <div className="flex items-center gap-6">
         <div className="relative flex items-center justify-center">
           <svg className="w-28 h-28 transform -rotate-90">
