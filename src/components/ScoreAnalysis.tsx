@@ -1,11 +1,20 @@
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { TrendingUp, CheckCircle2 } from "lucide-react";
+import { TrendingUp, CheckCircle2, Target, Sparkles } from "lucide-react";
+
+interface Skill {
+  name: string;
+  importance?: string;
+}
 
 interface ScoreAnalysisProps {
   originalScore?: number;
   customizedScore: number;
-  skillMatches?: any;
+  skillMatches?: {
+    matching?: Skill[];
+    missing?: Skill[];
+    addedSkills?: string[];
+  };
 }
 
 export const ScoreAnalysis = ({ 
@@ -15,20 +24,103 @@ export const ScoreAnalysis = ({
 }: ScoreAnalysisProps) => {
   const improvement = customizedScore - originalScore;
   
+  // Calculate skill-based scores
+  const totalSkills = (skillMatches?.matching?.length || 0) + (skillMatches?.missing?.length || 0);
+  const matchingSkillsCount = skillMatches?.matching?.length || 0;
+  const addedSkillsCount = skillMatches?.addedSkills?.length || 0;
+  
+  // Calculate actual scores based on skill matching
+  const calculatedOriginalScore = totalSkills > 0 
+    ? Math.round((matchingSkillsCount / totalSkills) * 100)
+    : originalScore;
+  
+  const calculatedCustomizedScore = totalSkills > 0
+    ? Math.min(100, Math.round(((matchingSkillsCount + addedSkillsCount) / totalSkills) * 100))
+    : customizedScore;
+  
+  const actualImprovement = calculatedCustomizedScore - calculatedOriginalScore;
+  
+  // Color coding helper
+  const getScoreColor = (score: number) => {
+    if (score >= 71) return "text-success";
+    if (score >= 41) return "text-warning";
+    return "text-destructive";
+  };
+  
+  const getScoreLabel = (score: number) => {
+    if (score >= 71) return { label: "Strong Match", emoji: "🟢", description: "Your resume is a great fit!" };
+    if (score >= 41) return { label: "Moderate Match", emoji: "🟡", description: "Good foundation with room to improve" };
+    return { label: "Low Match", emoji: "🔴", description: "Significant improvements recommended" };
+  };
+  
+  // Dynamic score breakdown based on actual data
+  const skillsMatchPercent = totalSkills > 0 
+    ? Math.round((matchingSkillsCount / totalSkills) * 100)
+    : 60;
+  
+  const skillsMatchAfter = totalSkills > 0
+    ? Math.min(100, Math.round(((matchingSkillsCount + addedSkillsCount) / totalSkills) * 100))
+    : 95;
+  
   const scoreBreakdown = [
-    { label: "Skills Match", original: 60, customized: 95, weight: "35%" },
-    { label: "Experience Relevance", original: 70, customized: 88, weight: "30%" },
-    { label: "Keywords Optimization", original: 55, customized: 92, weight: "20%" },
-    { label: "Format & Structure", original: 80, customized: 90, weight: "15%" },
+    { 
+      label: "Skills Match", 
+      original: skillsMatchPercent, 
+      customized: skillsMatchAfter, 
+      weight: "40%" 
+    },
+    { 
+      label: "Experience Relevance", 
+      original: Math.max(65, calculatedOriginalScore - 5), 
+      customized: Math.min(90, calculatedCustomizedScore - 5), 
+      weight: "30%" 
+    },
+    { 
+      label: "Keywords Optimization", 
+      original: Math.max(50, calculatedOriginalScore - 15), 
+      customized: Math.min(95, calculatedCustomizedScore), 
+      weight: "20%" 
+    },
+    { 
+      label: "Format & Structure", 
+      original: 80, 
+      customized: 90, 
+      weight: "10%" 
+    },
   ];
+  
+  const originalScoreInfo = getScoreLabel(calculatedOriginalScore);
+  const customizedScoreInfo = getScoreLabel(calculatedCustomizedScore);
 
   return (
     <div className="space-y-6">
+      {/* Motivational Header */}
+      <Card className="p-6 bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5 border-primary/20">
+        <div className="flex items-center gap-3">
+          <div className="p-3 rounded-full bg-primary/10">
+            <Target className="w-6 h-6 text-primary" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold">Job Fit Analysis</h3>
+            <p className="text-sm text-muted-foreground">
+              See how Tweaker boosted your match score from {calculatedOriginalScore} to {calculatedCustomizedScore}
+            </p>
+          </div>
+        </div>
+      </Card>
+
       {/* Score Comparison */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="p-6">
+        {/* Before Tweaking */}
+        <Card className="p-6 relative overflow-hidden">
+          <div className="absolute top-4 right-4">
+            <span className="text-2xl">{originalScoreInfo.emoji}</span>
+          </div>
           <div className="text-center space-y-4">
-            <p className="text-sm text-muted-foreground font-medium">Original Resume</p>
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Before Tweaking</p>
+              <p className="text-sm font-semibold text-muted-foreground">{originalScoreInfo.label}</p>
+            </div>
             <div className="relative inline-flex items-center justify-center">
               <svg className="w-32 h-32 transform -rotate-90">
                 <circle
@@ -48,29 +140,39 @@ export const ScoreAnalysis = ({
                   strokeWidth="10"
                   fill="none"
                   strokeDasharray={`${2 * Math.PI * 56}`}
-                  strokeDashoffset={`${2 * Math.PI * 56 * (1 - originalScore / 100)}`}
-                  className="text-muted-foreground"
+                  strokeDashoffset={`${2 * Math.PI * 56 * (1 - calculatedOriginalScore / 100)}`}
+                  className={getScoreColor(calculatedOriginalScore)}
                   strokeLinecap="round"
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-4xl font-bold text-muted-foreground">
-                  {originalScore}
+                <span className={`text-4xl font-bold ${getScoreColor(calculatedOriginalScore)}`}>
+                  {calculatedOriginalScore}
                 </span>
                 <span className="text-sm text-muted-foreground">/100</span>
               </div>
             </div>
+            <p className="text-xs text-muted-foreground">{originalScoreInfo.description}</p>
           </div>
         </Card>
 
-        <Card className="p-6 border-2 border-primary/20 bg-primary/5">
+        {/* After Tweaking */}
+        <Card className="p-6 relative overflow-hidden border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5">
+          <div className="absolute top-4 right-4">
+            <span className="text-2xl">{customizedScoreInfo.emoji}</span>
+          </div>
           <div className="text-center space-y-4">
-            <div className="flex items-center justify-center gap-2">
-              <p className="text-sm text-primary font-medium">Customized Resume</p>
-              <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-green-500/10 text-green-600">
-                <TrendingUp className="w-3 h-3" />
-                <span className="text-xs font-semibold">+{improvement}</span>
+            <div className="space-y-1">
+              <div className="flex items-center justify-center gap-2">
+                <p className="text-xs text-primary font-medium uppercase tracking-wider">After Tweaking</p>
+                {actualImprovement > 0 && (
+                  <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-success/10">
+                    <TrendingUp className="w-3 h-3 text-success" />
+                    <span className="text-xs font-bold text-success">+{actualImprovement}</span>
+                  </div>
+                )}
               </div>
+              <p className="text-sm font-semibold text-primary">{customizedScoreInfo.label}</p>
             </div>
             <div className="relative inline-flex items-center justify-center">
               <svg className="w-32 h-32 transform -rotate-90">
@@ -91,18 +193,19 @@ export const ScoreAnalysis = ({
                   strokeWidth="10"
                   fill="none"
                   strokeDasharray={`${2 * Math.PI * 56}`}
-                  strokeDashoffset={`${2 * Math.PI * 56 * (1 - customizedScore / 100)}`}
-                  className="text-primary"
+                  strokeDashoffset={`${2 * Math.PI * 56 * (1 - calculatedCustomizedScore / 100)}`}
+                  className={getScoreColor(calculatedCustomizedScore)}
                   strokeLinecap="round"
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-4xl font-bold text-primary">
-                  {customizedScore}
+                <span className={`text-4xl font-bold ${getScoreColor(calculatedCustomizedScore)}`}>
+                  {calculatedCustomizedScore}
                 </span>
                 <span className="text-sm text-muted-foreground">/100</span>
               </div>
             </div>
+            <p className="text-xs text-primary font-medium">{customizedScoreInfo.description}</p>
           </div>
         </Card>
       </div>
@@ -139,33 +242,47 @@ export const ScoreAnalysis = ({
       </Card>
 
       {/* Key Improvements */}
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Key Improvements</h3>
+      <Card className="p-6 bg-gradient-to-br from-success/5 to-accent/5 border-success/20">
+        <div className="flex items-center gap-2 mb-4">
+          <Sparkles className="w-5 h-5 text-success" />
+          <h3 className="text-lg font-semibold">What Changed?</h3>
+        </div>
         <div className="space-y-3">
-          <div className="flex items-start gap-3">
-            <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
-            <div>
-              <p className="font-medium text-sm">Enhanced Skills Section</p>
-              <p className="text-sm text-muted-foreground">
-                Added relevant technical skills and reorganized for better visibility
-              </p>
+          {addedSkillsCount > 0 && (
+            <div className="flex items-start gap-3">
+              <CheckCircle2 className="w-5 h-5 text-success shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium text-sm">Added {addedSkillsCount} Key {addedSkillsCount === 1 ? 'Skill' : 'Skills'}</p>
+                <p className="text-sm text-muted-foreground">
+                  Integrated missing skills that match the job requirements
+                </p>
+              </div>
             </div>
-          </div>
+          )}
           <div className="flex items-start gap-3">
-            <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
+            <CheckCircle2 className="w-5 h-5 text-success shrink-0 mt-0.5" />
             <div>
               <p className="font-medium text-sm">Optimized Experience Descriptions</p>
               <p className="text-sm text-muted-foreground">
-                Rewritten bullet points to highlight relevant achievements
+                Rewritten bullet points to highlight relevant achievements and keywords
               </p>
             </div>
           </div>
           <div className="flex items-start gap-3">
-            <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
+            <CheckCircle2 className="w-5 h-5 text-success shrink-0 mt-0.5" />
             <div>
               <p className="font-medium text-sm">Strategic Keyword Integration</p>
               <p className="text-sm text-muted-foreground">
-                Incorporated job-specific keywords throughout the resume
+                Incorporated job-specific terminology throughout your resume
+              </p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <CheckCircle2 className="w-5 h-5 text-success shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium text-sm">Enhanced Professional Summary</p>
+              <p className="text-sm text-muted-foreground">
+                Tailored your summary to align perfectly with the role requirements
               </p>
             </div>
           </div>
