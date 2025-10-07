@@ -92,7 +92,7 @@ export const TweakedResumeView = ({
 
   return (
     <Tabs defaultValue="customized" className="w-full">
-      <TabsList className="grid w-full max-w-3xl grid-cols-4">
+      <TabsList className="grid w-full grid-cols-4 mb-8 max-w-4xl mx-auto">
         <TabsTrigger value="original">Original Resume</TabsTrigger>
         <TabsTrigger value="customized">Customized Resume</TabsTrigger>
         <TabsTrigger value="cover">Cover Letter</TabsTrigger>

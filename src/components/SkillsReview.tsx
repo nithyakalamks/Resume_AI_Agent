@@ -5,6 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, AlertCircle, Sparkles } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
 interface Skill {
   skill: string;
@@ -42,12 +43,19 @@ export const SkillsReview = ({
   };
 
   const getImportanceBadge = (importance: string) => {
-    const colors = {
-      required: "destructive",
-      preferred: "default",
-      "nice-to-have": "secondary",
-    } as const;
-    return <Badge variant={colors[importance as keyof typeof colors]}>{importance}</Badge>;
+    const variants = {
+      required: { variant: "destructive" as const, className: "bg-orange-500 hover:bg-orange-600 text-white" },
+      preferred: { variant: "default" as const, className: "" },
+      "nice-to-have": { variant: "secondary" as const, className: "" },
+    };
+
+    const config = variants[importance as keyof typeof variants] || variants["nice-to-have"];
+
+    return (
+      <Badge variant={config.variant} className={config.className}>
+        {importance}
+      </Badge>
+    );
   };
 
   return (
@@ -67,13 +75,13 @@ export const SkillsReview = ({
 
         {/* Matching Skills */}
         <div>
-          <h4 className="font-semibold mb-3 flex items-center gap-2 text-green-600">
+          <h4 className="font-semibold mb-3 flex items-center gap-2 text-emerald-600">
             <CheckCircle2 className="w-5 h-5" />
             Skills You Already Have ({matchingSkills.length})
           </h4>
           <div className="flex flex-wrap gap-2">
             {matchingSkills.map((skill) => (
-              <Badge key={skill} variant="outline" className="border-green-600 text-green-600">
+              <Badge key={skill} variant="secondary" className="bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-700">
                 {skill}
               </Badge>
             ))}
@@ -95,12 +103,18 @@ export const SkillsReview = ({
             {missingSkills.map((item) => (
               <div
                 key={item.skill}
-                className="flex items-start gap-3 p-3 rounded-lg border hover:bg-accent transition-colors"
+                onClick={() => toggleSkill(item.skill)}
+                className={cn(
+                  "flex items-start gap-3 p-4 rounded-lg border bg-card transition-all cursor-pointer",
+                  "hover:border-primary/50 hover:shadow-md hover:bg-accent/10",
+                  selectedSkills.has(item.skill) && "border-primary bg-primary/5 shadow-sm"
+                )}
               >
                 <Checkbox
                   id={item.skill}
                   checked={selectedSkills.has(item.skill)}
                   onCheckedChange={() => toggleSkill(item.skill)}
+                  className="mt-0.5"
                 />
                 <div className="flex-1 space-y-2">
                   <div className="flex items-center gap-2 flex-wrap">

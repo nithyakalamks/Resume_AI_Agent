@@ -31,8 +31,14 @@ All colors MUST be HSL.
 
     --accent-secondary: 85 67% 72%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 30 89% 56%;
     --destructive-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    --success: 100 61% 61%;
+    --success-foreground: 200 40% 15%;
 
     --border: 193 25% 88%;
     --input: 193 25% 88%;
@@ -84,8 +90,14 @@ All colors MUST be HSL.
 
     --accent-secondary: 85 67% 65%;
 
-    --destructive: 0 63% 50%;
-    --destructive-foreground: 193 30% 95%;
+    --destructive: 30 89% 56%;
+    --destructive-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    --success: 100 61% 55%;
+    --success-foreground: 0 0% 100%;
 
     --border: 200 30% 20%;
     --input: 200 30% 20%;

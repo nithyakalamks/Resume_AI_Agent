@@ -6,7 +6,8 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Sparkles } from "lucide-react";
+import { DecorativeGear } from "@/components/ui/decorative-gear";
+import logo from "@/assets/logo.png";
 
 export const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -75,15 +76,27 @@ export const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted flex items-center justify-center p-4">
-      <Card className="w-full max-w-md p-8">
-        <div className="flex items-center justify-center gap-2 mb-8">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-            <Sparkles className="w-6 h-6 text-primary-foreground" />
+    <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-secondary/30 to-background p-4 overflow-hidden">
+      {/* Decorative gears */}
+      <DecorativeGear size="lg" className="absolute top-20 right-10 opacity-5" />
+      <DecorativeGear size="md" className="absolute bottom-32 left-16 opacity-5" animate={false} />
+      <DecorativeGear size="sm" className="absolute top-1/3 left-1/4 opacity-5" />
+      
+      <Card className="w-full max-w-md p-8 relative z-10 backdrop-blur-sm bg-card/95">
+        <div className="flex flex-col items-center gap-4 mb-8">
+          <img 
+            src={logo} 
+            alt="Tweaker Logo" 
+            className="h-16 w-auto animate-fade-in-up"
+          />
+          <div className="text-center space-y-1">
+            <h1 className="text-3xl font-bold font-display bg-gradient-to-r from-primary via-[hsl(169,48%,53%)] to-accent bg-clip-text text-transparent">
+              Tweaker
+            </h1>
+            <p className="text-muted-foreground text-sm">
+              Tweak Your Way to Success
+            </p>
           </div>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            Tweaker
-          </h1>
         </div>
 
         <Tabs defaultValue="signin" className="w-full">
@@ -116,6 +129,7 @@ export const Auth = () => {
               </div>
               <Button
                 type="submit"
+                variant="gradient"
                 className="w-full"
                 disabled={isLoading}
               >
