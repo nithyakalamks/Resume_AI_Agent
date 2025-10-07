@@ -27,6 +27,25 @@ export const JobHistory = ({ userId, selectedId }: JobHistoryProps) => {
   const [deleting, setDeleting] = useState<string | null>(null);
   const { toast } = useToast();
 
+  // Helper functions for score display
+  const getScoreColor = (score: number) => {
+    if (score >= 71) return "text-success";
+    if (score >= 41) return "text-warning";
+    return "text-destructive";
+  };
+
+  const getScoreStrokeColor = (score: number) => {
+    if (score >= 71) return "stroke-green-500";
+    if (score >= 41) return "stroke-yellow-500";
+    return "stroke-red-500";
+  };
+
+  const getMessage = (score: number) => {
+    if (score >= 71) return "Excellent match! Your customized resume is optimized for this role.";
+    if (score >= 41) return "Good match! Your resume shows strong alignment with key requirements.";
+    return "Room for improvement. Consider highlighting more relevant skills and experience.";
+  };
+
   const handleDownloadResume = async () => {
     if (!selectedVersion?.tweaked_data) return;
     
@@ -219,26 +238,24 @@ export const JobHistory = ({ userId, selectedId }: JobHistoryProps) => {
                   cx="40"
                   cy="40"
                   r="35"
-                  stroke="currentColor"
                   strokeWidth="6"
                   fill="none"
-                  className="text-muted/20"
+                  className="stroke-muted"
                 />
                 <circle
                   cx="40"
                   cy="40"
                   r="35"
-                  stroke="currentColor"
                   strokeWidth="6"
                   fill="none"
                   strokeDasharray={`${2 * Math.PI * 35}`}
                   strokeDashoffset={`${2 * Math.PI * 35 * (1 - jobFitScore / 100)}`}
-                  className="text-green-500"
+                  className={getScoreStrokeColor(jobFitScore)}
                   strokeLinecap="round"
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-xl font-bold text-green-500">
+                <span className={`text-xl font-bold ${getScoreColor(jobFitScore)}`}>
                   {jobFitScore}
                 </span>
                 <span className="text-xs text-muted-foreground">/100</span>
@@ -248,7 +265,7 @@ export const JobHistory = ({ userId, selectedId }: JobHistoryProps) => {
             <div className="flex-1 space-y-2">
               <h3 className="text-xl font-semibold">Job Fit Score: {jobFitScore}/100</h3>
               <p className="text-muted-foreground">
-                Excellent match! Your customized resume is optimized for this role.
+                {getMessage(jobFitScore)}
               </p>
             </div>
           </div>

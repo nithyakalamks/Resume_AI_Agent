@@ -56,6 +56,12 @@ export const ScoreAnalysis = ({
     if (score >= 41) return "text-warning";
     return "text-destructive";
   };
+
+  const getScoreStrokeColor = (score: number) => {
+    if (score >= 71) return "stroke-green-500";
+    if (score >= 41) return "stroke-yellow-500";
+    return "stroke-red-500";
+  };
   
   const getScoreLabel = (score: number) => {
     if (score >= 71) return { label: "Strong Match", emoji: "🟢", description: "Excellent match! Your resume strongly aligns with this role." };
@@ -148,21 +154,19 @@ export const ScoreAnalysis = ({
                   cx="64"
                   cy="64"
                   r="56"
-                  stroke="currentColor"
                   strokeWidth="10"
                   fill="none"
-                  className="text-muted/20"
+                  className="stroke-muted"
                 />
                 <circle
                   cx="64"
                   cy="64"
                   r="56"
-                  stroke="currentColor"
                   strokeWidth="10"
                   fill="none"
                   strokeDasharray={`${2 * Math.PI * 56}`}
                   strokeDashoffset={`${2 * Math.PI * 56 * (1 - originalScore / 100)}`}
-                  className={getScoreColor(originalScore)}
+                  className={getScoreStrokeColor(originalScore)}
                   strokeLinecap="round"
                 />
               </svg>
@@ -201,21 +205,19 @@ export const ScoreAnalysis = ({
                   cx="64"
                   cy="64"
                   r="56"
-                  stroke="currentColor"
                   strokeWidth="10"
                   fill="none"
-                  className="text-muted/20"
+                  className="stroke-muted"
                 />
                 <circle
                   cx="64"
                   cy="64"
                   r="56"
-                  stroke="currentColor"
                   strokeWidth="10"
                   fill="none"
                   strokeDasharray={`${2 * Math.PI * 56}`}
                   strokeDashoffset={`${2 * Math.PI * 56 * (1 - customizedScore / 100)}`}
-                  className={getScoreColor(customizedScore)}
+                  className={getScoreStrokeColor(customizedScore)}
                   strokeLinecap="round"
                 />
               </svg>

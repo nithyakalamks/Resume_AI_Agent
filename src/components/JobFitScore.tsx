@@ -14,6 +14,12 @@ export const JobFitScore = ({ score, onViewAnalysis }: JobFitScoreProps) => {
     return "text-destructive";
   };
 
+  const getScoreStrokeColor = (score: number) => {
+    if (score >= 71) return "stroke-green-500";
+    if (score >= 41) return "stroke-yellow-500";
+    return "stroke-red-500";
+  };
+
   const getScoreLabel = (score: number) => {
     if (score >= 71) return "Strong match";
     if (score >= 41) return "Moderate match";
@@ -21,9 +27,9 @@ export const JobFitScore = ({ score, onViewAnalysis }: JobFitScoreProps) => {
   };
 
   const getMessage = (score: number) => {
-    if (score >= 71) return "Excellent match! Your resume strongly aligns with this role.";
-    if (score >= 41) return "Good progress! Some relevant skills present, but gaps remain.";
-    return "Needs improvement. Consider adding more relevant skills and experience.";
+    if (score >= 71) return "Excellent match! Your customized resume is optimized for this role.";
+    if (score >= 41) return "Good match! Your resume shows strong alignment with key requirements.";
+    return "Room for improvement. Consider highlighting more relevant skills and experience.";
   };
 
   return (
@@ -35,21 +41,19 @@ export const JobFitScore = ({ score, onViewAnalysis }: JobFitScoreProps) => {
               cx="56"
               cy="56"
               r="50"
-              stroke="currentColor"
               strokeWidth="8"
               fill="none"
-              className="text-muted/20"
+              className="stroke-muted"
             />
             <circle
               cx="56"
               cy="56"
               r="50"
-              stroke="currentColor"
               strokeWidth="8"
               fill="none"
               strokeDasharray={`${2 * Math.PI * 50}`}
               strokeDashoffset={`${2 * Math.PI * 50 * (1 - score / 100)}`}
-              className={getScoreColor(score)}
+              className={getScoreStrokeColor(score)}
               strokeLinecap="round"
             />
           </svg>

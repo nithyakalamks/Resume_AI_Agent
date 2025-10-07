@@ -1,7 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Sparkles, CheckCircle2, Loader2 } from "lucide-react";
-import logo from "@/assets/logo.png";
+import { CheckCircle2, Loader2 } from "lucide-react";
 
 interface ResumeGenerationProgressProps {
   companyName: string;
@@ -13,8 +12,8 @@ const STAGES = [
   "Writing a new summary...",
   "Tweaking your skills...",
   "Calculating job fit score...",
-  "Optimizing resume content...",
   "Generating cover letter...",
+  "Optimizing resume content..."
 ];
 
 export const ResumeGenerationProgress = ({
@@ -25,7 +24,7 @@ export const ResumeGenerationProgress = ({
   const progressPercentage = Math.min(20 + currentStage * 16, 100);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/30 via-accent/20 to-primary/30 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-primary/30 via-accent/20 to-primary/30 flex items-start justify-center p-4 pt-14">
       <Card className="w-full max-w-2xl">
         <CardHeader className="text-center space-y-4 pb-6">
           <div className="space-y-2">
