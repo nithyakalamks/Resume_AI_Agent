@@ -88,37 +88,55 @@ serve(async (req) => {
 
     console.log('Starting AI tailoring process...');
 
-    const systemPrompt = `You are an expert resume optimizer. Given a candidate's resume and a job description. Tweak the resume to match the job description:
+    const systemPrompt = `You are an expert resume optimizer. Given a candidate's resume and a job description, make MINOR STRATEGIC TWEAKS to align the resume with the job.
 
-CRITICAL RULES:
-1. NEVER add new skills, experiences, or qualifications not in the original resume
-2. ONLY work with existing data - reorder, emphasize, and highlight what's already there
-3. Match existing skills to job requirements and assign relevance scores
-4. Keep original confidence scores AND categories for all skills
-5. PRESERVE ALL EDUCATION AND CERTIFICATIONS EXACTLY AS PROVIDED - DO NOT MODIFY OR OMIT THEM
+CRITICAL RULES - WHAT YOU CAN DO:
+1. REORDER skills, projects, and experience bullets to highlight relevance
+2. REMOVE skills that have zero relevance to the job description
+3. RECATEGORIZE skills into more relevant categories if needed
+4. ENHANCE the language of project descriptions and experience bullets to better highlight relevant skills and achievements
+5. REWRITE the summary to emphasize matching qualifications
+6. PRESERVE ALL EDUCATION AND CERTIFICATIONS EXACTLY AS PROVIDED
+
+CRITICAL RULES - WHAT YOU CANNOT DO:
+1. NEVER add new skills, experiences, projects, or qualifications
+2. NEVER add new bullet points to experiences
+3. NEVER add new projects
+4. NEVER modify education or certifications
+5. NEVER change dates, company names, job titles, or degree names
+6. NEVER invent achievements or responsibilities
 
 YOUR TASK:
 1. Analyze job description to extract required skills, qualifications, and keywords
 2. For each skill in the resume:
-   - Calculate relevance score (0.0-1.0) based on how well it matches job requirements
-   - Keep the original confidence score unchanged
-   - PRESERVE the original category field
-   - Add a "relevance" field to each skill
-3. Reorder skills: Most relevant to job (high relevance * confidence) first
-4. For each experience entry:
-   - Reorder bullet points to put most relevant achievements first based on job requirements
-   - Calculate overall relevance score for the experience (0.0-1.0)
-   - Add "relevance" field to each experience
-6. For each project:
    - Calculate relevance score (0.0-1.0) based on job requirements
+   - Keep original confidence score unchanged
+   - Recategorize if it better highlights relevance (e.g., move "Python" from "Languages" to "Data Science Tools" if applying for data role)
+   - REMOVE skills with relevance < 0.3 (too irrelevant)
+   - Add "relevance" field to each kept skill
+3. Reorder skills: Most relevant (high relevance * confidence) first
+4. For each experience entry:
+   - ENHANCE bullet point language to highlight relevant skills (keep same meaning and facts)
+   - Reorder bullets to put most relevant first
+   - Calculate overall relevance score (0.0-1.0)
    - Add "relevance" field
-7. Reorder projects: Most relevant to job requirements first
-8. Rewrite summary to emphasize skills and experience that match the job description
-9. CRITICAL: PRESERVE ALL EDUCATION ENTRIES EXACTLY AS PROVIDED - COPY THEM VERBATIM
-10. CRITICAL: PRESERVE ALL CERTIFICATIONS EXACTLY AS PROVIDED - COPY THEM VERBATIM
-11. Track specific changes made for display to the user
+5. For each project:
+   - ENHANCE description to highlight relevant technologies and achievements
+   - Calculate relevance score (0.0-1.0)
+   - Add "relevance" field
+6. Reorder projects: Most relevant first
+7. Rewrite summary to emphasize matching skills and experience
+8. PRESERVE ALL EDUCATION ENTRIES EXACTLY - COPY VERBATIM
+9. PRESERVE ALL CERTIFICATIONS EXACTLY - COPY VERBATIM
+10. Track specific changes for user visibility
 
-MANDATORY: Education and Certifications sections MUST be included in the output with ALL original entries. Do not skip, modify, or omit any education or certification entries.`;
+ENHANCEMENT GUIDELINES:
+- Use stronger action verbs when relevant
+- Quantify achievements where possible (keep existing numbers)
+- Emphasize technologies and skills mentioned in job description
+- Keep the same facts and accomplishments - just present them better
+
+MANDATORY: Education and Certifications MUST be included unchanged. All modifications must be minor improvements to presentation, not fabrication.`;
 
     const userPrompt = `Resume Data:
 ${JSON.stringify(resume.parsed_data, null, 2)}
