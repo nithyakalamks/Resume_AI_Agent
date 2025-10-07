@@ -71,30 +71,6 @@ export const JobApplication = ({ userId, currentResumeId }: JobApplicationProps)
       setSkillMatches(functionData.skill_matches || []);
       setCoverLetter(functionData.cover_letter || "");
 
-      // Insert job description first to get its ID
-      const { data: jobDescData, error: jobDescError } = await supabase
-        .from("job_descriptions")
-        .insert({
-          user_id: userId,
-          resume_id: currentResumeId,
-          description: jobDescription,
-        })
-        .select()
-        .single();
-
-      if (jobDescError) throw jobDescError;
-
-      // Insert tailored resume with job_description_id
-      const { error: insertError } = await supabase.from("tailored_resumes").insert({
-        user_id: userId,
-        resume_id: currentResumeId,
-        job_description_id: jobDescData.id,
-        tailored_data: functionData.tailored_data,
-        cover_letter: functionData.cover_letter,
-      });
-
-      if (insertError) throw insertError;
-
       toast({
         title: "Resume tailored successfully",
       });

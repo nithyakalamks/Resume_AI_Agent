@@ -86,14 +86,14 @@ serve(async (req) => {
 
     console.log('Starting AI tailoring process...');
 
-    const systemPrompt = `You are an expert resume optimizer. Given a candidate's resume and a job description:
+    const systemPrompt = `You are an expert resume optimizer. Given a candidate's resume and a job description. Tweak the resume to match the job description:
 
 CRITICAL RULES:
 1. NEVER add new skills, experiences, or qualifications not in the original resume
 2. ONLY work with existing data - reorder, emphasize, and highlight what's already there
 3. Match existing skills to job requirements and assign relevance scores
 4. Keep original confidence scores AND categories for all skills
-5. PRESERVE all education and certifications exactly as provided
+5. PRESERVE ALL EDUCATION AND CERTIFICATIONS EXACTLY AS PROVIDED - DO NOT MODIFY OR OMIT THEM
 
 YOUR TASK:
 1. Analyze job description to extract required skills, qualifications, and keywords
@@ -107,17 +107,16 @@ YOUR TASK:
    - Reorder bullet points to put most relevant achievements first based on job requirements
    - Calculate overall relevance score for the experience (0.0-1.0)
    - Add "relevance" field to each experience
-5. Reorder experiences: Most relevant first (considering both relevance and recency)
 6. For each project:
    - Calculate relevance score (0.0-1.0) based on job requirements
    - Add "relevance" field
 7. Reorder projects: Most relevant to job requirements first
 8. Rewrite summary to emphasize skills and experience that match the job description
-9. PRESERVE all education entries exactly as provided in the original resume
-10. PRESERVE all certifications exactly as provided in the original resume
+9. CRITICAL: PRESERVE ALL EDUCATION ENTRIES EXACTLY AS PROVIDED - COPY THEM VERBATIM
+10. CRITICAL: PRESERVE ALL CERTIFICATIONS EXACTLY AS PROVIDED - COPY THEM VERBATIM
 11. Track specific changes made for display to the user
 
-Remember: You can ONLY reorder, emphasize, and calculate relevance. Do NOT invent new content. PRESERVE education and certifications completely.`;
+MANDATORY: Education and Certifications sections MUST be included in the output with ALL original entries. Do not skip, modify, or omit any education or certification entries.`;
 
     const userPrompt = `Resume Data:
 ${JSON.stringify(resume.parsed_data, null, 2)}
@@ -144,7 +143,7 @@ Please tailor this resume to match the job description. Reorder experiences to p
             type: "function",
             function: {
               name: "tailor_resume",
-              description: "Return tailored resume data with reordered content and relevance scores",
+              description: "Return resume data with only skills reordered by relevance and relevance scores added",
               parameters: {
                 type: "object",
                 properties: {
@@ -195,7 +194,7 @@ Please tailor this resume to match the job description. Reorder experiences to p
                       },
                       education: { 
                         type: "array",
-                        description: "MUST preserve ALL education entries exactly as provided in original resume"
+                        description: "MUST preserve ALL education entries exactly as provided in original resume. If original has education entries, they MUST be included in the output verbatim."
                       },
                       projects: {
                         type: "array",
@@ -212,7 +211,7 @@ Please tailor this resume to match the job description. Reorder experiences to p
                       },
                       certifications: { 
                         type: "array",
-                        description: "MUST preserve ALL certifications exactly as provided in original resume"
+                        description: "MUST preserve ALL certifications exactly as provided in original resume. If original has certification entries, they MUST be included in the output verbatim."
                       }
                     }
                   },
@@ -257,11 +256,28 @@ Please tailor this resume to match the job description. Reorder experiences to p
     const tailoredResult = JSON.parse(toolCall.function.arguments);
 
     // Generate cover letter using AI
-    const coverLetterPrompt = `Based on the following resume and job description, write a professional cover letter (3-4 paragraphs) that:
-1. Opens with enthusiasm for the specific role
+    const coverLetterPrompt = `Based on the following resume and job description, write a professional cover letter 400-500 words that:
+1. Opens with enthusiasm for the specific role (2-3 lines).
 2. Highlights 2-3 most relevant qualifications and experiences
 3. Explains why the candidate is a great fit
-4. Closes with a call to action
+4. Closes with a call to action (2-3 lines).
+
+Format of cover letter:
+
+Dear [Company] Recruitment Team,
+
+[Body paragraphs - 400-500 words total]
+
+Sincerely,
+[Candidate Name]
+
+IMPORTANT FORMATTING RULES:
+1. Use the candidate's actual name: ${resume.parsed_data.name}
+2. Do NOT include any placeholder text like [Your Name], [Your Address], [Date], etc.
+3. Do NOT include address, phone, email, or date at the top
+5. Use "Dear [Company] Recruitment Team," as the greeting (extract company name from job description)
+6. Write 400-500 words in the body
+7. End with "Sincerely, [Candidate Name]"
 
 Resume Summary: ${resume.parsed_data.summary}
 Key Skills: ${resume.parsed_data.skills.map((s: any) => s.skill).join(', ')}
@@ -279,7 +295,10 @@ ${jobDescription}`;
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
         messages: [
-          { role: 'system', content: 'You are a professional cover letter writer. Write compelling, personalized cover letters.' },
+          { 
+            role: 'system', 
+            content: 'You are a professional cover letter writer. Write compelling, personalized cover letters. Follow the exact formatting instructions provided - do not include placeholder text, addresses, or dates. Use only the candidate\'s actual name as provided.' 
+          },
           { role: 'user', content: coverLetterPrompt }
         ],
       }),

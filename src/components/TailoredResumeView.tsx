@@ -83,11 +83,12 @@ export const TailoredResumeView = ({
       if (!resumeElement) throw new Error('Resume content not found');
 
       const opt = {
-        margin: 10,
+        margin: 5,
         filename: `${tailoredData.name.replace(/\s+/g, '_')}_Resume.pdf`,
         image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
       };
 
       await html2pdf().set(opt).from(resumeElement).save();
@@ -113,49 +114,53 @@ export const TailoredResumeView = ({
   return (
     <div className="space-y-8">
       {/* Changes Summary */}
-      <Card className="p-6 border-2 border-primary/20 bg-primary/5">
-        <div className="flex items-start gap-3 mb-4">
-          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-            <CheckCircle2 className="w-5 h-5 text-primary" />
-          </div>
-          <div>
-            <h3 className="text-xl font-semibold mb-2">Key Changes Made</h3>
-            <ul className="space-y-2">
-              {changesSummary.map((change, idx) => (
-                <li key={idx} className="flex items-start gap-2 text-sm">
-                  <ArrowRight className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                  <span>{change}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </Card>
-
-      {/* Skill Matches */}
-      <Card className="p-6">
-        <div className="flex items-start gap-3 mb-6">
-          <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
-            <TrendingUp className="w-5 h-5 text-accent" />
-          </div>
-          <div className="flex-1">
-            <h3 className="text-xl font-semibold mb-4">Top Skill Matches</h3>
-            <div className="space-y-3">
-              {skillMatches.map((match, idx) => (
-                <div key={idx} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                  <Badge className={getRelevanceBadgeColor(match.relevance)}>
-                    {(match.relevance * 100).toFixed(0)}%
-                  </Badge>
-                  <div className="flex-1">
-                    <p className="font-medium">{match.skill}</p>
-                    <p className="text-sm text-muted-foreground mt-1">{match.reason}</p>
-                  </div>
-                </div>
-              ))}
+      {changesSummary && changesSummary.length > 0 && (
+        <Card className="p-6 border-2 border-primary/20 bg-primary/5">
+          <div className="flex items-start gap-3 mb-4">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <CheckCircle2 className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold mb-2">Key Changes Made</h3>
+              <ul className="space-y-2">
+                {changesSummary.map((change, idx) => (
+                  <li key={idx} className="flex items-start gap-2 text-sm">
+                    <ArrowRight className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                    <span>{change}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
-        </div>
-      </Card>
+        </Card>
+      )}
+
+      {/* Skill Matches */}
+      {skillMatches && skillMatches.length > 0 && (
+        <Card className="p-6">
+          <div className="flex items-start gap-3 mb-6">
+            <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
+              <TrendingUp className="w-5 h-5 text-accent" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-xl font-semibold mb-4">Top Skill Matches</h3>
+              <div className="space-y-3">
+                {skillMatches.map((match, idx) => (
+                  <div key={idx} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                    <Badge className={getRelevanceBadgeColor(match.relevance)}>
+                      {(match.relevance * 100).toFixed(0)}%
+                    </Badge>
+                    <div className="flex-1">
+                      <p className="font-medium">{match.skill}</p>
+                      <p className="text-sm text-muted-foreground mt-1">{match.reason}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* Side-by-Side Comparison */}
       <Tabs defaultValue="tailored" className="w-full">
@@ -171,9 +176,9 @@ export const TailoredResumeView = ({
         </div>
 
         <TabsContent value="tailored" className="mt-6">
-          <Card id="tailored-resume-content" className="p-8">
+          <div id="tailored-resume-content">
             <ResumeContent data={tailoredData} formatDate={formatDate} showRelevance />
-          </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="original" className="mt-6">

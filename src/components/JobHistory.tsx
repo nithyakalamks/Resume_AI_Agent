@@ -134,7 +134,7 @@ export const JobHistory = ({ userId }: JobHistoryProps) => {
       .select(`
         *,
         job_descriptions (description),
-        resumes (parsed_data)
+        resumes (*)
       `)
       .eq("user_id", userId)
       .order("created_at", { ascending: false });
