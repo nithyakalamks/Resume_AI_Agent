@@ -168,22 +168,39 @@ export const ChatAssistant = ({ tweakedResumeId, resumeData, coverLetter, onUpda
 
       // If there are updates, apply them
       if (data.updatedData || data.updatedCoverLetter) {
-        console.log('🤖 ChatAssistant received updates:', {
+        console.log("📥 Received update from AI:", {
           hasUpdatedData: !!data.updatedData,
           hasUpdatedCoverLetter: !!data.updatedCoverLetter,
-          changedSections: data.changedSections,
-          updatedDataSkills: data.updatedData?.skills?.map((s: any) => s.skill),
-          updatedDataSkillsCount: data.updatedData?.skills?.length
-        });
-        
-        console.log('🔄 Calling onUpdate with:', {
-          updatedData: data.updatedData,
-          updatedCoverLetter: data.updatedCoverLetter,
+          updatedDataKeys: data.updatedData ? Object.keys(data.updatedData) : [],
           changedSections: data.changedSections
         });
+
+        // Validate and merge updatedData if present
+        let validatedData = data.updatedData;
+        if (data.updatedData) {
+          const requiredFields = ['name', 'email', 'phone'];
+          const missingFields = requiredFields.filter(field => !data.updatedData[field]);
+          
+          if (missingFields.length > 0) {
+            console.warn('⚠️ Missing required fields in updatedData:', missingFields);
+            // Merge with current resume data to fill missing fields
+            validatedData = {
+              ...resumeData,
+              ...data.updatedData
+            };
+            console.log('✅ Merged with current resume data');
+          }
+          
+          console.log("📤 Calling onUpdate with validated data:", {
+            name: validatedData.name,
+            email: validatedData.email,
+            skillsCount: validatedData.skills?.length || 0,
+            experienceCount: validatedData.experience?.length || 0
+          });
+        }
         
         onUpdate(
-          data.updatedData || resumeData,
+          validatedData || resumeData,
           data.updatedCoverLetter || coverLetter,
           data.changedSections
         );

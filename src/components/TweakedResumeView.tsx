@@ -79,6 +79,7 @@ export const TweakedResumeView = ({
   const [currentTweakedData, setCurrentTweakedData] = useState(tweakedData);
   const [currentCoverLetter, setCurrentCoverLetter] = useState(coverLetter);
   const [changedSections, setChangedSections] = useState<string[]>([]);
+  const [renderKey, setRenderKey] = useState(0); // Force re-renders
 
   // Calculate total required skills from matching + missing skills
   const totalRequiredSkills = (skillMatches?.length || 0) + (missingSkills?.length || 0);
@@ -94,32 +95,59 @@ export const TweakedResumeView = ({
   }, [currentTweakedData]);
 
   const handleChatUpdate = async (updatedData: any, updatedCoverLetter?: string, sections?: string[]) => {
-    console.log('🔄 handleChatUpdate called with:', {
-      updatedData: updatedData,
-      updatedCoverLetter: updatedCoverLetter,
-      sections: sections,
-      tweakedResumeId: tweakedResumeId
+    console.log("📥 TweakedResumeView received update:", {
+      hasUpdatedData: !!updatedData,
+      updatedDataName: updatedData?.name,
+      hasUpdatedCoverLetter: updatedCoverLetter !== undefined,
+      changedSections: sections,
+      updatedDataKeys: updatedData ? Object.keys(updatedData) : []
     });
     
-    // Update local state
-    setCurrentTweakedData(updatedData);
-    if (updatedCoverLetter) {
+    // Validate the updated data has required fields
+    if (updatedData) {
+      const requiredFields = ['name', 'email', 'phone'];
+      const hasAllFields = requiredFields.every(field => updatedData[field]);
+      
+      if (!hasAllFields) {
+        console.warn('⚠️ Updated data missing required fields, merging with current data');
+        updatedData = {
+          ...currentTweakedData,
+          ...updatedData
+        };
+      }
+      
+      console.log("✅ Setting current tweaked data:", {
+        name: updatedData.name,
+        email: updatedData.email,
+        skillsCount: updatedData.skills?.length || 0,
+        experienceCount: updatedData.experience?.length || 0
+      });
+      
+      // Update state and force re-render
+      setCurrentTweakedData(updatedData);
+      setRenderKey(prev => prev + 1);
+      
+      // Notify parent component
+      if (onDataUpdate) {
+        console.log('📤 Notifying parent component of update');
+        onDataUpdate(updatedData, updatedCoverLetter);
+      }
+    }
+    
+    if (updatedCoverLetter !== undefined) {
+      console.log("✅ Setting current cover letter");
       setCurrentCoverLetter(updatedCoverLetter);
     }
+    
     if (sections) {
+      console.log("✅ Setting changed sections:", sections);
       setChangedSections(sections);
       // Clear highlights after 3 seconds
       setTimeout(() => setChangedSections([]), 3000);
     }
 
-    // Notify parent component of the update
-    if (onDataUpdate) {
-      console.log('📤 Notifying parent component of update');
-      onDataUpdate(updatedData, updatedCoverLetter);
-    }
-
     // Save to database if we have a tweakedResumeId
-    if (tweakedResumeId) {
+    if (tweakedResumeId && updatedData) {
       console.log('💾 Saving to database with tweakedResumeId:', tweakedResumeId);
       try {
         const { error } = await supabase
@@ -140,6 +168,10 @@ export const TweakedResumeView = ({
           });
         } else {
           console.log('✅ Successfully saved chat updates to database');
+          toast({
+            title: "Saved",
+            description: "Changes saved successfully!",
+          });
         }
       } catch (error) {
         console.error('❌ Error saving chat updates:', error);
@@ -201,7 +233,7 @@ export const TweakedResumeView = ({
       <TabsContent value="customized" className="mt-6">
         <Card className={`p-8 bg-gradient-to-br from-primary/10 via-accent/20 to-primary/10 transition-all duration-500 ${changedSections.length > 0 ? 'ring-2 ring-accent shadow-lg' : ''}`}>
           <ResumeTemplate 
-            key={JSON.stringify(currentTweakedData)}
+            key={`tweaked-${renderKey}`}
             data={currentTweakedData} 
             id="tweaked-resume-content"
           />

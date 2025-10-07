@@ -91,11 +91,33 @@ If just providing suggestions without changes, respond with plain text.`;
       }
     }
 
-    console.log('Final result:', {
+    // Merge updatedData with original resumeData to ensure all required fields are present
+    if (result.updatedData && resumeData) {
+      console.log('🔄 Merging updated data with original resume data');
+      result.updatedData = {
+        ...resumeData,
+        ...result.updatedData,
+        // Ensure nested arrays are properly merged
+        skills: result.updatedData.skills || resumeData.skills || [],
+        experience: result.updatedData.experience || resumeData.experience || [],
+        education: result.updatedData.education || resumeData.education || [],
+        projects: result.updatedData.projects || resumeData.projects || [],
+        certifications: result.updatedData.certifications || resumeData.certifications || [],
+      };
+      console.log('✅ Merged data structure:', {
+        hasName: !!result.updatedData.name,
+        hasEmail: !!result.updatedData.email,
+        skillsCount: result.updatedData.skills?.length || 0,
+        experienceCount: result.updatedData.experience?.length || 0,
+      });
+    }
+
+    console.log('📤 Final result being sent to frontend:', {
       hasUpdatedData: !!result.updatedData,
       hasUpdatedCoverLetter: !!result.updatedCoverLetter,
       hasChangedSections: !!result.changedSections,
-      resultKeys: Object.keys(result)
+      resultKeys: Object.keys(result),
+      updatedDataKeys: result.updatedData ? Object.keys(result.updatedData) : []
     });
 
     return new Response(JSON.stringify(result), {
