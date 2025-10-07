@@ -191,12 +191,11 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
     try {
       const { data, error } = await supabase.functions.invoke("tweak-resume", {
         body: {
-          resumeData,
+          resumeId,
           jobDescription,
           companyName,
           roleName,
-          skillsToAdd: selectedSkills,
-          skillMatches: skillsData,
+          addedSkills: selectedSkills,
         },
       });
 
