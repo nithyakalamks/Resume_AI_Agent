@@ -91,6 +91,7 @@ export type Database = {
           html_preview: string | null
           id: string
           job_description_id: string | null
+          missing_skills: Json | null
           original_score: number | null
           pdf_path: string | null
           resume_id: string | null
@@ -106,6 +107,7 @@ export type Database = {
           html_preview?: string | null
           id?: string
           job_description_id?: string | null
+          missing_skills?: Json | null
           original_score?: number | null
           pdf_path?: string | null
           resume_id?: string | null
@@ -121,6 +123,7 @@ export type Database = {
           html_preview?: string | null
           id?: string
           job_description_id?: string | null
+          missing_skills?: Json | null
           original_score?: number | null
           pdf_path?: string | null
           resume_id?: string | null
