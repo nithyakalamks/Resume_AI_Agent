@@ -3,8 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Eye, Pencil, Download } from "lucide-react";
+import { Eye, Pencil, Download, FileText } from "lucide-react";
 import { ResumeTemplate } from "@/components/ResumeTemplate";
+import { FileUploadZone } from "@/components/ui/file-upload-zone";
+import { UploadProgress } from "@/components/ui/upload-progress";
+import { SuccessBanner } from "@/components/ui/success-banner";
 import html2pdf from "html2pdf.js";
 
 interface ResumeManagerProps {
@@ -15,9 +18,11 @@ interface ResumeManagerProps {
 export const ResumeManager = ({ userId, onResumeChange }: ResumeManagerProps) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadStage, setUploadStage] = useState<"uploading" | "parsing" | "complete">("uploading");
   const [currentResume, setCurrentResume] = useState<any>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const { toast } = useToast();
 
   const handleDownloadPDF = async () => {
@@ -90,6 +95,9 @@ export const ResumeManager = ({ userId, onResumeChange }: ResumeManagerProps) =>
     if (!selectedFile) return;
 
     setUploading(true);
+    setUploadStage("uploading");
+    setShowSuccess(false);
+    
     try {
       const fileExt = selectedFile.name.split(".").pop();
       const filePath = `${userId}/${Date.now()}.${fileExt}`;
@@ -99,6 +107,8 @@ export const ResumeManager = ({ userId, onResumeChange }: ResumeManagerProps) =>
         .upload(filePath, selectedFile);
 
       if (uploadError) throw uploadError;
+
+      setUploadStage("parsing");
 
       const { data: functionData, error: functionError } = await supabase.functions.invoke(
         "parse-resume",
@@ -118,98 +128,111 @@ export const ResumeManager = ({ userId, onResumeChange }: ResumeManagerProps) =>
 
       if (insertError) throw insertError;
 
-      toast({
-        title: "Resume uploaded successfully",
-      });
-
-      setSelectedFile(null);
-      fetchCurrentResume();
+      setUploadStage("complete");
+      setShowSuccess(true);
+      
+      setTimeout(() => {
+        setSelectedFile(null);
+        setShowSuccess(false);
+        fetchCurrentResume();
+      }, 2000);
     } catch (error: any) {
       toast({
         title: "Upload failed",
         description: error.message,
         variant: "destructive",
       });
+      setSelectedFile(null);
     } finally {
       setUploading(false);
     }
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0];
-      if (file.type === "application/pdf") {
-        setSelectedFile(file);
-      } else {
-        toast({
-          title: "Invalid file type",
-          description: "Please upload a PDF file",
-          variant: "destructive",
-        });
-      }
-    }
+  const handleClearFile = () => {
+    setSelectedFile(null);
+    setShowSuccess(false);
   };
 
   return (
     <div className="space-y-6">
       {!currentResume ? (
-        <Card className="p-8">
-          <h2 className="text-2xl font-bold mb-4">Upload Your Resume</h2>
-          <p className="text-muted-foreground mb-6">
-            Upload your resume once and tweak it for any job application
-          </p>
-
-          <div
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-            className="border-2 border-dashed border-border rounded-lg p-12 text-center hover:border-primary transition-colors cursor-pointer"
-          >
-            <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-lg mb-2">Drag and drop your resume here</p>
-            <p className="text-sm text-muted-foreground mb-4">or</p>
-            <label className="inline-block">
-              <Button variant="outline" asChild>
-                <span>Choose File</span>
-              </Button>
-              <input
-                type="file"
-                accept=".pdf"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-            </label>
-          </div>
-
-          {selectedFile && (
-            <div className="mt-4">
-              <p className="text-sm text-muted-foreground mb-2">
-                Selected: {selectedFile.name}
-              </p>
-              <Button onClick={handleUpload} disabled={uploading} className="w-full">
-                {uploading ? "Uploading..." : "Upload Resume"}
-              </Button>
-            </div>
-          )}
-        </Card>
-      ) : (
-        <div className="space-y-4">
-          <Card className="p-6">
-            <div className="flex justify-between items-start">
-              <div>
-                <h2 className="text-2xl font-bold mb-2">Your Resume</h2>
+        <div className="space-y-6">
+          <Card className="p-8 bg-gradient-to-br from-card to-muted/20">
+            <div className="max-w-2xl mx-auto space-y-6">
+              <div className="text-center space-y-3">
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+                  <FileText className="w-8 h-8 text-primary" />
+                </div>
+                <h2 className="text-3xl font-bold text-foreground">Upload Your Resume</h2>
                 <p className="text-muted-foreground">
-                  {currentResume.original_filename}
+                  Upload your resume once and tweak it for any job application
                 </p>
-                <p className="text-sm text-muted-foreground">
+              </div>
+
+              {!uploading ? (
+                <>
+                  <FileUploadZone
+                    onFileSelect={setSelectedFile}
+                    selectedFile={selectedFile}
+                    onClearFile={handleClearFile}
+                    disabled={uploading}
+                  />
+
+                  {selectedFile && (
+                    <Button 
+                      onClick={handleUpload} 
+                      disabled={uploading} 
+                      className="w-full h-12 text-base"
+                      size="lg"
+                    >
+                      Upload Resume
+                    </Button>
+                  )}
+                </>
+              ) : (
+                <UploadProgress 
+                  stage={uploadStage} 
+                  fileName={selectedFile?.name}
+                />
+              )}
+            </div>
+          </Card>
+
+          {showSuccess && (
+            <SuccessBanner
+              title="Resume Uploaded Successfully!"
+              description="Your resume is now ready to be tailored for job applications"
+            />
+          )}
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {showSuccess && (
+            <SuccessBanner
+              title="Resume Updated Successfully!"
+              description="Your resume has been updated and is ready for job applications"
+            />
+          )}
+          
+          <Card className="p-6 bg-gradient-to-br from-card to-accent/5">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+              <div className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <FileText className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-foreground">Your Resume</h2>
+                    <p className="text-sm text-muted-foreground">
+                      {currentResume.original_filename}
+                    </p>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground pl-15">
                   Uploaded {new Date(currentResume.created_at).toLocaleDateString()}
                 </p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button
                   variant="outline"
                   onClick={() => setShowPreview(!showPreview)}
@@ -223,7 +246,7 @@ export const ResumeManager = ({ userId, onResumeChange }: ResumeManagerProps) =>
                   disabled={downloading || !currentResume?.parsed_data}
                 >
                   <Download className="w-4 h-4 mr-2" />
-                  {downloading ? "Generating..." : "Download PDF"}
+                  {downloading ? "Generating..." : "Download"}
                 </Button>
                 <label>
                   <Button variant="outline" asChild>
@@ -243,15 +266,32 @@ export const ResumeManager = ({ userId, onResumeChange }: ResumeManagerProps) =>
             </div>
           </Card>
 
-          {selectedFile && (
-            <Card className="p-6">
-              <p className="text-sm text-muted-foreground mb-2">
-                New file selected: {selectedFile.name}
-              </p>
-              <Button onClick={handleUpload} disabled={uploading}>
-                {uploading ? "Uploading..." : "Upload New Resume"}
-              </Button>
+          {selectedFile && !uploading && (
+            <Card className="p-6 border-2 border-primary/20">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <FileText className="w-5 h-5 text-primary" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">
+                      New file selected
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {selectedFile.name}
+                    </p>
+                  </div>
+                </div>
+                <Button onClick={handleUpload} disabled={uploading}>
+                  Upload New Resume
+                </Button>
+              </div>
             </Card>
+          )}
+
+          {uploading && (
+            <UploadProgress 
+              stage={uploadStage} 
+              fileName={selectedFile?.name}
+            />
           )}
 
           {showPreview && currentResume.parsed_data && (
