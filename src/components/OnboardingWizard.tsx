@@ -13,6 +13,7 @@ import { SuccessBanner } from "@/components/ui/success-banner";
 import { TweakedResumeView } from "@/components/TweakedResumeView";
 import { SkillsReview } from "@/components/SkillsReview";
 import { ResumeTemplate } from "@/components/ResumeTemplate";
+import { ResumeGenerationProgress } from "@/components/ui/resume-generation-progress";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Sparkles, Download } from "lucide-react";
 import html2pdf from "html2pdf.js";
@@ -55,6 +56,7 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
   const [changesSummary, setChangesSummary] = useState<any>(null);
   const [coverLetter, setCoverLetter] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generationStage, setGenerationStage] = useState(0);
   const [isDownloading, setIsDownloading] = useState(false);
 
   // Auto-focus company name when step 2 is shown
@@ -190,8 +192,14 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
     if (!resumeId || !skillsData) return;
 
     setIsGenerating(true);
+    setGenerationStage(0);
 
     try {
+      // Simulate stage progression
+      const stageInterval = setInterval(() => {
+        setGenerationStage((prev) => Math.min(prev + 1, 4));
+      }, 1500);
+
       const { data, error } = await supabase.functions.invoke("tweak-resume", {
         body: {
           resumeId,
@@ -201,6 +209,9 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
           addedSkills: selectedSkills,
         },
       });
+
+      clearInterval(stageInterval);
+      setGenerationStage(5);
 
       if (error) throw error;
 
@@ -226,6 +237,7 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
       });
     } finally {
       setIsGenerating(false);
+      setGenerationStage(0);
     }
   };
 
@@ -448,7 +460,7 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
         )}
 
         {/* Step 2b: Skills Review */}
-        {currentStep === 2 && skillsData && (
+        {currentStep === 2 && skillsData && !isGenerating && (
           <div className="mt-2">
             <SkillsReview
               jobSkills={skillsData.job_skills || []}
@@ -462,6 +474,15 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
               loading={isGenerating}
             />
           </div>
+        )}
+
+        {/* Step 2c: Generation Progress */}
+        {currentStep === 2 && isGenerating && (
+          <ResumeGenerationProgress
+            companyName={companyName}
+            roleName={roleName}
+            currentStage={generationStage}
+          />
         )}
 
         {/* Step 3: Results */}

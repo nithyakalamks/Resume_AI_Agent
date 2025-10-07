@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { DashboardHero } from "@/components/DashboardHero";
 import { RecentTweaks } from "@/components/RecentTweaks";
 import { SkillsReview } from "@/components/SkillsReview";
+import { ResumeGenerationProgress } from "@/components/ui/resume-generation-progress";
 
 interface DashboardHomeProps {
   userId: string;
@@ -16,6 +17,7 @@ export const DashboardHome = ({ userId }: DashboardHomeProps) => {
   const [hasResume, setHasResume] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [tweaking, setTweaking] = useState(false);
+  const [generationStage, setGenerationStage] = useState(0);
   const [showSkillsReview, setShowSkillsReview] = useState(false);
   const [skillComparison, setSkillComparison] = useState<any>(null);
   const [jobInfo, setJobInfo] = useState({ companyName: "", roleName: "", jobDescription: "" });
@@ -89,7 +91,13 @@ export const DashboardHome = ({ userId }: DashboardHomeProps) => {
 
   const handleConfirmSkills = async (selectedSkills: string[]) => {
     setTweaking(true);
+    setGenerationStage(0);
     try {
+      // Simulate stage progression
+      const stageInterval = setInterval(() => {
+        setGenerationStage((prev) => Math.min(prev + 1, 4));
+      }, 1500);
+
       const { data: functionData, error: functionError } = await supabase.functions.invoke(
         "tweak-resume",
         {
@@ -102,6 +110,9 @@ export const DashboardHome = ({ userId }: DashboardHomeProps) => {
           },
         }
       );
+
+      clearInterval(stageInterval);
+      setGenerationStage(5);
 
       if (functionError) throw functionError;
 
@@ -128,6 +139,7 @@ export const DashboardHome = ({ userId }: DashboardHomeProps) => {
       });
     } finally {
       setTweaking(false);
+      setGenerationStage(0);
     }
   };
 
@@ -136,6 +148,16 @@ export const DashboardHome = ({ userId }: DashboardHomeProps) => {
     setSkillComparison(null);
   };
 
+
+  if (tweaking) {
+    return (
+      <ResumeGenerationProgress
+        companyName={jobInfo.companyName}
+        roleName={jobInfo.roleName}
+        currentStage={generationStage}
+      />
+    );
+  }
 
   if (showSkillsReview && skillComparison) {
     return (
