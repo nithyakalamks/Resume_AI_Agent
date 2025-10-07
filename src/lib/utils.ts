@@ -30,7 +30,7 @@ export function calculateJobFitScore(
   
   // Apply relevance weighting (boost for high-quality matches)
   const averageRelevance = weightedScore / matchingSkills.length;
-  const relevanceBonus = (averageRelevance - 0.7) * 10; // Up to +3% for high-quality matches
+  const relevanceBonus = (averageRelevance - 0.7) * 5; // Up to +1.5% for high-quality matches
   
   const finalScore = Math.min(
     Math.round(matchPercentage + Math.max(0, relevanceBonus)),

@@ -393,8 +393,8 @@ INSTRUCTIONS:
         averageRelevance = weightedScore / skillMatches.length;
       }
       
-      // Apply a small relevance bonus (max 10 points) to reward high-quality matches
-      const relevanceBonus = Math.min(Math.max(0, (averageRelevance - 0.5) * 20), 10);
+      // Apply a small relevance bonus (max 5 points) to reward high-quality matches
+      const relevanceBonus = Math.min(Math.max(0, (averageRelevance - 0.5) * 10), 5);
       
       // Base score is primarily the match percentage, with small relevance bonus
       const finalScore = Math.min(
@@ -408,8 +408,17 @@ INSTRUCTIONS:
     const totalRequiredSkills = tweakedResult.total_required_skills || 
                                 (tweakedResult.skill_matches.length + (tweakedResult.missing_skills?.length || 0));
 
+    console.log('Score calculation inputs:', {
+      totalRequiredSkills,
+      matchingSkillsCount: tweakedResult.skill_matches.length,
+      missingSkillsCount: tweakedResult.missing_skills?.length || 0,
+      addedSkillsCount: addedSkills.length,
+    });
+
     const originalScore = calculateScore(tweakedResult.skill_matches, totalRequiredSkills, 0);
     const customizedScore = calculateScore(tweakedResult.skill_matches, totalRequiredSkills, addedSkills.length);
+
+    console.log('Calculated scores:', { originalScore, customizedScore });
 
     // Store the tweaked resume with added skills metadata
     const { data: tweakedResume, error: tweakedError } = await supabaseClient
@@ -448,6 +457,7 @@ INSTRUCTIONS:
         changes_summary: tweakedResult.changes_summary,
         skill_matches: tweakedResult.skill_matches,
         missing_skills: tweakedResult.missing_skills,
+        total_required_skills: totalRequiredSkills,
         cover_letter: coverLetter,
         original_score: originalScore,
         customized_score: customizedScore,

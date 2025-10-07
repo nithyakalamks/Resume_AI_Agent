@@ -71,6 +71,9 @@ export const TweakedResumeView = ({
   const { toast } = useToast();
   const [downloading, setDownloading] = useState(false);
 
+  // Calculate total required skills from matching + missing skills
+  const totalRequiredSkills = (skillMatches?.length || 0) + (missingSkills?.length || 0);
+
   const handleDownloadPDF = async () => {
     setDownloading(true);
     try {
@@ -150,6 +153,7 @@ export const TweakedResumeView = ({
             missing: missingSkills || [],
             addedSkills: tweakedData?.added_skills || []
           }}
+          totalRequiredSkills={totalRequiredSkills}
         />
       </TabsContent>
     </Tabs>

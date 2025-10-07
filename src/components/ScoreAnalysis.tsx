@@ -15,12 +15,14 @@ interface ScoreAnalysisProps {
     missing?: Skill[];
     addedSkills?: string[];
   };
+  totalRequiredSkills?: number;
 }
 
 export const ScoreAnalysis = ({ 
   originalScore = 65, 
   customizedScore,
-  skillMatches 
+  skillMatches,
+  totalRequiredSkills 
 }: ScoreAnalysisProps) => {
   const improvement = customizedScore - originalScore;
   
@@ -29,10 +31,8 @@ export const ScoreAnalysis = ({
   const missingSkillsCount = skillMatches?.missing?.length || 0;
   const addedSkillsCount = skillMatches?.addedSkills?.length || 0;
   
-  // If missing skills data is not available, estimate based on score
-  const totalSkills = missingSkillsCount > 0 
-    ? matchingSkillsCount + missingSkillsCount
-    : Math.max(matchingSkillsCount, Math.round(matchingSkillsCount / (customizedScore / 100)));
+  // Use totalRequiredSkills from the edge function response, or calculate from data
+  const totalSkills = totalRequiredSkills || (matchingSkillsCount + missingSkillsCount);
   
   const totalMatchedAfter = matchingSkillsCount + addedSkillsCount;
   
