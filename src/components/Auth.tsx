@@ -8,12 +8,13 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { DecorativeGear } from "@/components/ui/decorative-gear";
 import logo from "@/assets/logo.png";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 
 export const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const defaultTab = searchParams.get("tab") === "signup" ? "signup" : "signin";
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -32,6 +33,7 @@ export const Auth = () => {
 
       if (error) throw error;
 
+      navigate("/dashboard");
       toast({
         title: "Account created!",
         description: "Welcome to Tweaker. You can now upload your resume.",
@@ -63,6 +65,7 @@ export const Auth = () => {
 
       if (error) throw error;
 
+      navigate("/dashboard");
       toast({
         title: "Welcome back!",
         description: "Signed in successfully.",
