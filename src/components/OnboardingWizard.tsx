@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,7 @@ const STEPS = [
 export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) => {
   const [currentStep, setCurrentStep] = useState(1);
   const { toast } = useToast();
+  const companyNameRef = useRef<HTMLInputElement>(null);
 
   // Step 1: Resume Upload
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -52,6 +53,13 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
   const [coverLetter, setCoverLetter] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+
+  // Auto-focus company name when step 2 is shown
+  useEffect(() => {
+    if (currentStep === 2 && companyNameRef.current) {
+      companyNameRef.current.focus();
+    }
+  }, [currentStep]);
 
   // Step 1: Handle Resume Upload
   const handleFileSelect = (file: File | null) => {
@@ -351,6 +359,7 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
                 <div className="space-y-2">
                   <Label htmlFor="company">Company Name</Label>
                   <Input
+                    ref={companyNameRef}
                     id="company"
                     placeholder="e.g., Google"
                     value={companyName}
