@@ -6,7 +6,7 @@ interface ResumePageProps {
 
 export const ResumePage = ({ userId }: ResumePageProps) => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/15 via-background to-accent/15">
+    <div className="min-h-screen bg-gradient-to-br from-background via-primary/20 to-accent/20">
       <div className="container mx-auto px-4 py-8 space-y-6">
         <div>
           <h1 className="text-3xl font-bold font-display">My Resume</h1>
