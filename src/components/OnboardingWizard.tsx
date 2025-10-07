@@ -156,10 +156,12 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
       setSkillsData(data);
       
       // Auto-select recommended skills
-      const recommended = data.skills_to_add
-        .filter((s: any) => s.priority === "high" || s.priority === "medium")
-        .map((s: any) => s.skill);
-      setSelectedSkills(recommended);
+      if (data.skills_to_add && Array.isArray(data.skills_to_add)) {
+        const recommended = data.skills_to_add
+          .filter((s: any) => s.priority === "high" || s.priority === "medium")
+          .map((s: any) => s.skill);
+        setSelectedSkills(recommended);
+      }
     } catch (error: any) {
       console.error("Analysis error:", error);
       toast({
