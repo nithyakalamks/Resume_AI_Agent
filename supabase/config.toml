@@ -5,3 +5,6 @@ verify_jwt = true
 
 [functions.tweak-resume]
 verify_jwt = true
+
+[functions.compare-skills]
+verify_jwt = true

@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { resumeId, companyName, roleName, jobDescription } = await req.json();
+    const { resumeId, companyName, roleName, jobDescription, addedSkills = [] } = await req.json();
     
     if (!resumeId || !companyName || !roleName || !jobDescription) {
       throw new Error('Resume ID, company name, role name, and job description are required');
@@ -144,12 +144,21 @@ ${JSON.stringify(resume.parsed_data, null, 2)}
 Job Description:
 ${jobDescription}
 
+${addedSkills.length > 0 ? `\nADDITIONAL SKILLS TO INCLUDE:
+The user has indicated they have these skills that should be added to the resume:
+${addedSkills.join(', ')}
+
+IMPORTANT: Add these skills to the appropriate categories in the skills section with:
+- confidence: 0.85 (indicating user-verified but not explicitly mentioned in original resume)
+- relevance: 0.9 (since they're relevant to the job)
+- category: Choose the most appropriate category based on the skill type\n` : ''}
+
 CRITICAL REMINDER:
 - You MUST include ALL education entries from the resume data above in your response
 - You MUST include ALL certifications from the resume data above in your response
 - Copy these sections EXACTLY as they appear in the resume data
 - If education or certifications arrays are present in the resume, they MUST NOT be empty in your output
-
+${addedSkills.length > 0 ? '- ADD the additional skills listed above to the appropriate skill categories\n' : ''}
 Please tweak this resume to match the job description while preserving education and certifications exactly as shown above.`;
 
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -352,16 +361,22 @@ INSTRUCTIONS:
 
     console.log('Storing tweaked resume in database...');
 
-    // Store the tweaked resume
+    // Store the tweaked resume with added skills metadata
     const { data: tweakedResume, error: tweakedError } = await supabaseClient
       .from('tweaked_resumes')
       .insert({
         user_id: user.id,
         resume_id: resumeId,
         job_description_id: jobDescRecord.id,
-        tweaked_data: tweakedResult.tweaked_data,
+        tweaked_data: {
+          ...tweakedResult.tweaked_data,
+          added_skills: addedSkills, // Store which skills were manually added
+        },
         cover_letter: coverLetter,
-        changes_summary: tweakedResult.changes_summary,
+        changes_summary: [
+          ...tweakedResult.changes_summary,
+          ...(addedSkills.length > 0 ? [`Added ${addedSkills.length} user-verified skill${addedSkills.length > 1 ? 's' : ''}: ${addedSkills.join(', ')}`] : [])
+        ],
         skill_matches: tweakedResult.skill_matches,
       })
       .select()

@@ -6,8 +6,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Sparkles, Download } from "lucide-react";
+import { Sparkles, Download, Search } from "lucide-react";
 import { TweakedResumeView } from "@/components/TweakedResumeView";
+import { SkillsReview } from "@/components/SkillsReview";
 import html2pdf from "html2pdf.js";
 
 interface JobApplicationProps {
@@ -19,7 +20,10 @@ export const JobApplication = ({ userId, currentResumeId }: JobApplicationProps)
   const [companyName, setCompanyName] = useState("");
   const [roleName, setRoleName] = useState("");
   const [jobDescription, setJobDescription] = useState("");
+  const [analyzing, setAnalyzing] = useState(false);
   const [tweaking, setTweaking] = useState(false);
+  const [showSkillsReview, setShowSkillsReview] = useState(false);
+  const [skillComparison, setSkillComparison] = useState<any>(null);
   const [originalData, setOriginalData] = useState<any>(null);
   const [tweakedData, setTweakedData] = useState<any>(null);
   const [changesSummary, setChangesSummary] = useState<string[]>([]);
@@ -27,7 +31,7 @@ export const JobApplication = ({ userId, currentResumeId }: JobApplicationProps)
   const [downloadingCover, setDownloadingCover] = useState(false);
   const { toast } = useToast();
 
-  const handleTweak = async () => {
+  const handleAnalyzeSkills = async () => {
     if (!currentResumeId) {
       toast({
         title: "No resume found",
@@ -46,7 +50,7 @@ export const JobApplication = ({ userId, currentResumeId }: JobApplicationProps)
       return;
     }
 
-    setTweaking(true);
+    setAnalyzing(true);
     try {
       const { data: resumeData } = await supabase
         .from("resumes")
@@ -56,6 +60,40 @@ export const JobApplication = ({ userId, currentResumeId }: JobApplicationProps)
 
       if (!resumeData) throw new Error("Resume not found");
 
+      const { data: comparisonData, error: comparisonError } = await supabase.functions.invoke(
+        "compare-skills",
+        {
+          body: {
+            resumeData: resumeData.parsed_data,
+            jobDescription,
+          },
+        }
+      );
+
+      if (comparisonError) throw comparisonError;
+
+      setOriginalData(resumeData.parsed_data);
+      setSkillComparison(comparisonData);
+      setShowSkillsReview(true);
+
+      toast({
+        title: "Skills analyzed successfully",
+        description: `Found ${comparisonData.missing_skills.length} missing skills`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Analysis failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
+  const handleConfirmSkills = async (selectedSkills: string[]) => {
+    setTweaking(true);
+    try {
       const { data: functionData, error: functionError } = await supabase.functions.invoke(
         "tweak-resume",
         {
@@ -64,19 +102,23 @@ export const JobApplication = ({ userId, currentResumeId }: JobApplicationProps)
             companyName,
             roleName,
             jobDescription,
+            addedSkills: selectedSkills,
           },
         }
       );
 
       if (functionError) throw functionError;
 
-      setOriginalData(resumeData.parsed_data);
       setTweakedData(functionData.tweaked_data);
       setChangesSummary(functionData.changes_summary || []);
       setCoverLetter(functionData.cover_letter || "");
+      setShowSkillsReview(false);
 
       toast({
         title: "Resume tweaked successfully",
+        description: selectedSkills.length > 0 
+          ? `Added ${selectedSkills.length} skill${selectedSkills.length > 1 ? 's' : ''} to your resume`
+          : undefined,
       });
     } catch (error: any) {
       toast({
@@ -87,6 +129,11 @@ export const JobApplication = ({ userId, currentResumeId }: JobApplicationProps)
     } finally {
       setTweaking(false);
     }
+  };
+
+  const handleCancelSkillsReview = () => {
+    setShowSkillsReview(false);
+    setSkillComparison(null);
   };
 
   const handleDownloadCoverLetter = async () => {
@@ -129,53 +176,66 @@ export const JobApplication = ({ userId, currentResumeId }: JobApplicationProps)
 
   return (
     <div className="space-y-6">
-      <Card className="p-6">
-        <h2 className="text-2xl font-bold mb-4">Apply to a New Job</h2>
-        <p className="text-muted-foreground mb-4">
-          Enter job details and get a tweaked resume with cover letter
-        </p>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div className="space-y-2">
-            <Label htmlFor="companyName">Company Name</Label>
-            <Input
-              id="companyName"
-              value={companyName}
-              onChange={(e) => setCompanyName(e.target.value)}
-              placeholder="e.g., Google, Microsoft"
+      {!showSkillsReview && (
+        <Card className="p-6">
+          <h2 className="text-2xl font-bold mb-4">Apply to a New Job</h2>
+          <p className="text-muted-foreground mb-4">
+            Enter job details and we'll analyze skill gaps before tweaking your resume
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div className="space-y-2">
+              <Label htmlFor="companyName">Company Name</Label>
+              <Input
+                id="companyName"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                placeholder="e.g., Google, Microsoft"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="roleName">Role Name</Label>
+              <Input
+                id="roleName"
+                value={roleName}
+                onChange={(e) => setRoleName(e.target.value)}
+                placeholder="e.g., Senior Software Engineer"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2 mb-4">
+            <Label htmlFor="jobDescription">Job Description</Label>
+            <Textarea
+              id="jobDescription"
+              value={jobDescription}
+              onChange={(e) => setJobDescription(e.target.value)}
+              placeholder="Paste the full job description here..."
+              className="min-h-[200px]"
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="roleName">Role Name</Label>
-            <Input
-              id="roleName"
-              value={roleName}
-              onChange={(e) => setRoleName(e.target.value)}
-              placeholder="e.g., Senior Software Engineer"
-            />
-          </div>
-        </div>
 
-        <div className="space-y-2 mb-4">
-          <Label htmlFor="jobDescription">Job Description</Label>
-          <Textarea
-            id="jobDescription"
-            value={jobDescription}
-            onChange={(e) => setJobDescription(e.target.value)}
-            placeholder="Paste the full job description here..."
-            className="min-h-[200px]"
-          />
-        </div>
+          <Button
+            onClick={handleAnalyzeSkills}
+            disabled={analyzing || !companyName.trim() || !roleName.trim() || !jobDescription.trim()}
+            className="w-full"
+          >
+            <Search className="w-4 h-4 mr-2" />
+            {analyzing ? "Analyzing Skills..." : "Analyze Skills & Continue"}
+          </Button>
+        </Card>
+      )}
 
-        <Button
-          onClick={handleTweak}
-          disabled={tweaking || !companyName.trim() || !roleName.trim() || !jobDescription.trim()}
-          className="w-full"
-        >
-          <Sparkles className="w-4 h-4 mr-2" />
-          {tweaking ? "Tweaking Resume..." : "Tweak Resume"}
-        </Button>
-      </Card>
+      {showSkillsReview && skillComparison && (
+        <SkillsReview
+          jobSkills={skillComparison.job_skills}
+          matchingSkills={skillComparison.matching_skills}
+          missingSkills={skillComparison.missing_skills}
+          onConfirm={handleConfirmSkills}
+          onCancel={handleCancelSkillsReview}
+          loading={tweaking}
+        />
+      )}
 
       {tweakedData && (
         <div className="space-y-6">
