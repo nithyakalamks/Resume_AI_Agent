@@ -60,7 +60,7 @@ const Dashboard = () => {
     toast({
       title: "Signed out successfully",
     });
-    navigate("/auth?tab=signin");
+    navigate("/");
   };
 
   if (loading) {
