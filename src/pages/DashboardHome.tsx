@@ -228,7 +228,7 @@ export const DashboardHome = ({ userId }: DashboardHomeProps) => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-primary/20 to-accent/20">
+      <div className="min-h-screen bg-gradient-to-br from-primary/15 via-background to-accent/15">
       <div className="container mx-auto px-4 py-8 space-y-8">
         <DashboardHero 
           hasResume={hasResume}
