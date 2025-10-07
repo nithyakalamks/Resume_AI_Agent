@@ -14,6 +14,7 @@ import { SkillsReview } from "@/components/SkillsReview";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Sparkles, Download } from "lucide-react";
 import html2pdf from "html2pdf.js";
+import { SAMPLE_JOB_DESCRIPTION } from "@/lib/sample-job-description";
 
 interface OnboardingWizardProps {
   userId: string;
@@ -265,14 +266,20 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-primary/30 via-accent/20 to-primary/30 relative overflow-hidden">
+      {/* Circular gradient orbs */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-br from-primary/50 via-[hsl(169,48%,53%)]/40 to-transparent rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-1/4 right-1/4 w-[32rem] h-[32rem] bg-gradient-to-tl from-accent/50 via-[hsl(169,48%,53%)]/40 to-transparent rounded-full blur-3xl animate-pulse delay-1000" />
+      <div className="absolute top-1/2 left-1/2 w-32 h-32 bg-gradient-to-br from-primary/5 to-accent/5 rounded-full blur-2xl -translate-x-1/2 -translate-y-1/2 shadow-[0_0_40px_rgba(var(--primary),0.2)]" />
+      <div className="absolute bottom-0 right-0 w-48 h-48 bg-gradient-to-tl from-accent/8 to-primary/6 rounded-full blur-2xl translate-y-1/2 translate-x-1/2 shadow-[0_0_40px_rgba(var(--accent),0.2)]" />
+      
+      <div className="container mx-auto px-4 pt-2 relative z-10">
         {/* Progress Stepper */}
         <ProgressStepper steps={STEPS} currentStep={currentStep} />
 
         {/* Step 1: Upload Resume */}
         {currentStep === 1 && (
-          <Card className="mt-8">
+          <Card className="mt-2">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-primary" />
@@ -282,7 +289,7 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
                 Upload your base resume in PDF format. We'll extract all the important details.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4">
               {uploadStage === "idle" && (
                 <>
                   <FileUploadZone
@@ -332,7 +339,7 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
 
         {/* Step 2: Job Description */}
         {currentStep === 2 && !skillsData && (
-          <Card className="mt-8">
+          <Card className="mt-2">
             <CardHeader>
               <CardTitle>Tell us about the job you're applying for</CardTitle>
               <CardDescription>
@@ -362,13 +369,25 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Job Description</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="description">Job Description</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setJobDescription(SAMPLE_JOB_DESCRIPTION)}
+                    disabled={isAnalyzing}
+                    className="text-xs"
+                  >
+                    Sample JD
+                  </Button>
+                </div>
                 <Textarea
                   id="description"
                   placeholder="Paste the full job description here..."
                   value={jobDescription}
                   onChange={(e) => setJobDescription(e.target.value)}
-                  rows={12}
+                  rows={6}
                   className="font-mono text-sm"
                 />
               </div>

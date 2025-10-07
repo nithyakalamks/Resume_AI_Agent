@@ -67,20 +67,21 @@ export const FileUploadZone = ({
   };
 
   return (
-    <div className="space-y-4">
-      <div
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        className={cn(
-          "relative border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300",
-          isDragging
-            ? "border-primary bg-primary/5 scale-[1.02]"
-            : "border-border hover:border-primary/50",
-          disabled && "opacity-50 cursor-not-allowed",
-          !disabled && "cursor-pointer"
-        )}
-      >
+    <div className="space-y-2">
+      {!selectedFile && (
+        <div
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className={cn(
+            "relative border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300",
+            isDragging
+              ? "border-primary bg-primary/5 scale-[1.02]"
+              : "border-border hover:border-primary/50",
+            disabled && "opacity-50 cursor-not-allowed",
+            !disabled && "cursor-pointer"
+          )}
+        >
         <input
           type="file"
           accept={accept}
@@ -122,7 +123,8 @@ export const FileUploadZone = ({
             Supported format: PDF (max {maxSize}MB)
           </p>
         </div>
-      </div>
+        </div>
+      )}
 
       {error && (
         <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">

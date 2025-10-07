@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Sparkles, Download, Search } from "lucide-react";
 import { TweakedResumeView } from "@/components/TweakedResumeView";
 import { SkillsReview } from "@/components/SkillsReview";
+import { ResumeTemplate } from "@/components/ResumeTemplate";
 import html2pdf from "html2pdf.js";
 
 interface JobApplicationProps {
@@ -29,6 +30,7 @@ export const JobApplication = ({ userId, currentResumeId }: JobApplicationProps)
   const [changesSummary, setChangesSummary] = useState<string[]>([]);
   const [coverLetter, setCoverLetter] = useState("");
   const [downloadingCover, setDownloadingCover] = useState(false);
+  const [downloadingResume, setDownloadingResume] = useState(false);
   const { toast } = useToast();
 
   const handleAnalyzeSkills = async () => {
@@ -136,17 +138,59 @@ export const JobApplication = ({ userId, currentResumeId }: JobApplicationProps)
     setSkillComparison(null);
   };
 
+  const handleDownloadResume = async () => {
+    if (!tweakedData) return;
+    
+    setDownloadingResume(true);
+    try {
+      const resumeElement = document.getElementById('hidden-resume-content');
+      if (!resumeElement) throw new Error('Resume content not found');
+
+      const userName = tweakedData?.name || 'User';
+      const opt = {
+        margin: 5,
+        filename: `${userName.replace(/\s+/g, '_')}_Resume.pdf`,
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      };
+
+      await html2pdf().set(opt).from(resumeElement).save();
+      toast({ title: "Resume downloaded successfully" });
+    } catch (error: any) {
+      console.error('Download error:', error);
+      toast({
+        title: "Download failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setDownloadingResume(false);
+    }
+  };
+
   const handleDownloadCoverLetter = async () => {
+    if (!coverLetter) {
+      toast({
+        title: "No cover letter available",
+        description: "Cover letter not found for this application",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setDownloadingCover(true);
     try {
-      const coverElement = document.getElementById('cover-letter-content');
+      const coverElement = document.getElementById('hidden-cover-letter-content');
       if (!coverElement) throw new Error('Cover letter content not found');
 
+      const userName = tweakedData?.name || 'User';
       const opt = {
         margin: 10,
-        filename: `${tweakedData.name.replace(/\s+/g, '_')}_Cover_Letter.pdf`,
+        filename: `${userName.replace(/\s+/g, '_')}_Cover_Letter.pdf`,
         image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: { scale: 2 },
+        html2canvas: { scale: 2, useCORS: true },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
       };
 
@@ -239,26 +283,108 @@ export const JobApplication = ({ userId, currentResumeId }: JobApplicationProps)
 
       {tweakedData && (
         <div className="space-y-6">
+          {/* Title Section */}
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold">Tweaker has done its magic!</h1>
+            <p className="text-muted-foreground">
+              Tweaked for {roleName} at {companyName}
+            </p>
+          </div>
+
+          {/* Download Buttons Banner */}
+          <Card className="p-6 bg-primary/5 border-primary/20">
+            <div className="space-y-4">
+              <div className="flex flex-wrap gap-3">
+                <Button onClick={handleDownloadResume} disabled={downloadingResume}>
+                  <Download className="w-4 h-4 mr-2" />
+                  {downloadingResume ? "Generating PDF..." : "Download Resume"}
+                </Button>
+                {coverLetter && (
+                  <Button variant="outline" onClick={handleDownloadCoverLetter} disabled={downloadingCover}>
+                    <Download className="w-4 h-4 mr-2" />
+                    {downloadingCover ? "Generating PDF..." : "Download Cover Letter"}
+                  </Button>
+                )}
+              </div>
+            </div>
+          </Card>
+
+          {/* Job Fit Score */}
+          <Card className="p-4">
+            <div className="flex items-center gap-6">
+              <div className="relative flex items-center justify-center">
+                <svg className="w-20 h-20 transform -rotate-90">
+                  <circle
+                    cx="40"
+                    cy="40"
+                    r="35"
+                    stroke="currentColor"
+                    strokeWidth="6"
+                    fill="none"
+                    className="text-muted/20"
+                  />
+                  <circle
+                    cx="40"
+                    cy="40"
+                    r="35"
+                    stroke="currentColor"
+                    strokeWidth="6"
+                    fill="none"
+                    strokeDasharray={`${2 * Math.PI * 35}`}
+                    strokeDashoffset={`${2 * Math.PI * 35 * (1 - 91 / 100)}`}
+                    className="text-green-500"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-xl font-bold text-green-500">
+                    91
+                  </span>
+                  <span className="text-xs text-muted-foreground">/100</span>
+                </div>
+              </div>
+
+              <div className="flex-1 space-y-2">
+                <h3 className="text-xl font-semibold">Job Fit Score: 91/100</h3>
+                <p className="text-muted-foreground">
+                  Excellent match! Your customized resume is optimized for this role.
+                </p>
+              </div>
+            </div>
+          </Card>
+
+          {/* Tabs for Resume, Cover Letter, and Analysis */}
           <TweakedResumeView
             originalData={originalData}
             tweakedData={tweakedData}
             changesSummary={changesSummary}
+            coverLetter={coverLetter}
           />
 
-          {coverLetter && (
-            <Card className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-semibold">Generated Cover Letter</h3>
-                <Button onClick={handleDownloadCoverLetter} disabled={downloadingCover}>
-                  <Download className="w-4 h-4 mr-2" />
-                  {downloadingCover ? "Generating PDF..." : "Download Cover Letter"}
-                </Button>
+          {/* Hidden elements for PDF generation - always rendered */}
+          <div className="absolute -top-[9999px] left-0 w-full">
+            {/* Hidden resume content for PDF generation */}
+            <div id="hidden-resume-content" className="bg-white">
+              <div className="p-8">
+                <ResumeTemplate 
+                  data={tweakedData} 
+                />
               </div>
-              <div id="cover-letter-content" className="prose prose-sm max-w-none">
-                <pre className="whitespace-pre-wrap text-sm">{coverLetter}</pre>
+            </div>
+
+            {/* Hidden cover letter content for PDF generation */}
+            {coverLetter && (
+              <div id="hidden-cover-letter-content" className="bg-white">
+                <div className="p-8 max-w-4xl mx-auto">
+                  <div className="prose prose-sm max-w-none">
+                    <div className="whitespace-pre-wrap text-sm font-sans leading-relaxed text-black">
+                      {coverLetter}
+                    </div>
+                  </div>
+                </div>
               </div>
-            </Card>
-          )}
+            )}
+          </div>
         </div>
       )}
     </div>
