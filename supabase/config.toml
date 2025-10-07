@@ -8,3 +8,6 @@ verify_jwt = true
 
 [functions.compare-skills]
 verify_jwt = true
+
+[functions.chat-assistant]
+verify_jwt = true

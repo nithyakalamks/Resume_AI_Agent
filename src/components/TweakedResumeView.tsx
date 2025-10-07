@@ -7,6 +7,7 @@ import { useState } from "react";
 import html2pdf from "html2pdf.js";
 import { ResumeTemplate } from "@/components/ResumeTemplate";
 import { ScoreAnalysis } from "@/components/ScoreAnalysis";
+import { ChatAssistant } from "@/components/ChatAssistant";
 
 interface Skill {
   skill: string;
@@ -70,9 +71,24 @@ export const TweakedResumeView = ({
 }: TweakedResumeViewProps) => {
   const { toast } = useToast();
   const [downloading, setDownloading] = useState(false);
+  const [currentTweakedData, setCurrentTweakedData] = useState(tweakedData);
+  const [currentCoverLetter, setCurrentCoverLetter] = useState(coverLetter);
+  const [changedSections, setChangedSections] = useState<string[]>([]);
 
   // Calculate total required skills from matching + missing skills
   const totalRequiredSkills = (skillMatches?.length || 0) + (missingSkills?.length || 0);
+
+  const handleChatUpdate = (updatedData: any, updatedCoverLetter?: string, sections?: string[]) => {
+    setCurrentTweakedData(updatedData);
+    if (updatedCoverLetter) {
+      setCurrentCoverLetter(updatedCoverLetter);
+    }
+    if (sections) {
+      setChangedSections(sections);
+      // Clear highlights after 3 seconds
+      setTimeout(() => setChangedSections([]), 3000);
+    }
+  };
 
   const handleDownloadPDF = async () => {
     setDownloading(true);
@@ -104,13 +120,15 @@ export const TweakedResumeView = ({
   };
 
   return (
-    <Tabs defaultValue="customized" className="w-full">
-      <TabsList className="grid w-full grid-cols-4 mb-8 max-w-4xl mx-auto">
-        <TabsTrigger value="original">Original Resume</TabsTrigger>
-        <TabsTrigger value="customized">Customized Resume</TabsTrigger>
-        <TabsTrigger value="cover">Cover Letter</TabsTrigger>
-        <TabsTrigger value="analysis">Score Analysis</TabsTrigger>
-      </TabsList>
+    <div className="flex gap-6 w-full">
+      <div className="flex-1">
+        <Tabs defaultValue="customized" className="w-full">
+          <TabsList className="grid w-full grid-cols-4 mb-8">
+            <TabsTrigger value="original">Original Resume</TabsTrigger>
+            <TabsTrigger value="customized">Customized Resume</TabsTrigger>
+            <TabsTrigger value="cover">Cover Letter</TabsTrigger>
+            <TabsTrigger value="analysis">Score Analysis</TabsTrigger>
+          </TabsList>
 
       <TabsContent value="original" className="mt-6">
         <Card className="p-8 bg-gradient-to-br from-primary/10 via-accent/20 to-primary/10">
@@ -122,19 +140,19 @@ export const TweakedResumeView = ({
       </TabsContent>
 
       <TabsContent value="customized" className="mt-6">
-        <Card className="p-8 bg-gradient-to-br from-primary/10 via-accent/20 to-primary/10">
+        <Card className={`p-8 bg-gradient-to-br from-primary/10 via-accent/20 to-primary/10 transition-all duration-500 ${changedSections.length > 0 ? 'ring-2 ring-accent shadow-lg' : ''}`}>
           <ResumeTemplate 
-            data={tweakedData} 
+            data={currentTweakedData} 
             id="tweaked-resume-content"
           />
         </Card>
       </TabsContent>
 
       <TabsContent value="cover" className="mt-6">
-        <Card className="p-8">
+        <Card className={`p-8 transition-all duration-500 ${changedSections.includes('coverLetter') ? 'ring-2 ring-accent shadow-lg' : ''}`}>
           <div className="prose prose-sm max-w-none">
-            {coverLetter ? (
-              <pre id="cover-letter-content" className="whitespace-pre-wrap text-sm font-sans">{coverLetter}</pre>
+            {currentCoverLetter ? (
+              <pre id="cover-letter-content" className="whitespace-pre-wrap text-sm font-sans">{currentCoverLetter}</pre>
             ) : (
               <p className="text-muted-foreground text-center py-8">
                 No cover letter available
@@ -151,12 +169,22 @@ export const TweakedResumeView = ({
           skillMatches={{
             matching: skillMatches || [],
             missing: missingSkills || [],
-            addedSkills: tweakedData?.added_skills || []
+            addedSkills: currentTweakedData?.added_skills || []
           }}
           totalRequiredSkills={totalRequiredSkills}
         />
       </TabsContent>
-    </Tabs>
+        </Tabs>
+      </div>
+
+      <div className="w-96 h-[800px]">
+        <ChatAssistant 
+          resumeData={currentTweakedData}
+          coverLetter={currentCoverLetter}
+          onUpdate={handleChatUpdate}
+        />
+      </div>
+    </div>
   );
 };
 
