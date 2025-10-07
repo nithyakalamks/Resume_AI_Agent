@@ -19,21 +19,20 @@ serve(async (req) => {
       throw new Error('File path is required');
     }
 
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('Missing authorization header');
+    }
+
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
       {
         global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
+          headers: { Authorization: authHeader },
         },
       }
     );
-
-    // Get the user
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
-    if (userError || !user) {
-      throw new Error('Unauthorized');
-    }
 
     // Download the file from storage
     const { data: fileData, error: downloadError } = await supabaseClient
@@ -252,28 +251,10 @@ serve(async (req) => {
       throw new Error(`Failed to parse resume content: ${aiError instanceof Error ? aiError.message : 'Unknown error'}`);
     }
 
-    // Store the parsed data in the database
-    const { data: resumeRecord, error: insertError } = await supabaseClient
-      .from('resumes')
-      .insert({
-        user_id: user.id,
-        file_path: filePath,
-        original_filename: filePath.split('/').pop() || 'resume.pdf',
-        parsed_data: parsedData,
-      })
-      .select()
-      .single();
-
-    if (insertError) {
-      console.error('Insert error:', insertError);
-      throw new Error('Failed to save parsed data');
-    }
-
     return new Response(
       JSON.stringify({ 
         success: true, 
-        parsed_data: parsedData,
-        resume_id: resumeRecord.id 
+        parsed_data: parsedData
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
