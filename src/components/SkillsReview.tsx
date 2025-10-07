@@ -91,7 +91,7 @@ export const SkillsReview = ({
           <p className="text-sm text-muted-foreground mb-4">
             Select any skills below that you actually have but weren't detected in your resume
           </p>
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {missingSkills.map((item) => (
               <div
                 key={item.skill}
@@ -118,21 +118,6 @@ export const SkillsReview = ({
                     </p>
                   )}
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <Separator />
-
-        {/* All Job Requirements */}
-        <div>
-          <h4 className="font-semibold mb-3">All Skills Required for This Job</h4>
-          <div className="space-y-2">
-            {jobSkills.map((item) => (
-              <div key={item.skill} className="flex items-center gap-2 text-sm">
-                <span>{item.skill}</span>
-                {getImportanceBadge(item.importance)}
               </div>
             ))}
           </div>
