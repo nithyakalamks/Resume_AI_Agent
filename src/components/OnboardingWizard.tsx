@@ -155,10 +155,10 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
 
       setSkillsData(data);
       
-      // Auto-select recommended skills
-      if (data.skills_to_add && Array.isArray(data.skills_to_add)) {
-        const recommended = data.skills_to_add
-          .filter((s: any) => s.priority === "high" || s.priority === "medium")
+      // Auto-select recommended skills (required and preferred importance)
+      if (data.missing_skills && Array.isArray(data.missing_skills)) {
+        const recommended = data.missing_skills
+          .filter((s: any) => s.importance === "required" || s.importance === "preferred")
           .map((s: any) => s.skill);
         setSelectedSkills(recommended);
       }
@@ -398,7 +398,7 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
             <SkillsReview
               jobSkills={skillsData.job_skills || []}
               matchingSkills={skillsData.matching_skills || []}
-              missingSkills={skillsData.skills_to_add || []}
+              missingSkills={skillsData.missing_skills || []}
               onConfirm={(skills) => {
                 setSelectedSkills(skills);
                 handleConfirmSkills();
