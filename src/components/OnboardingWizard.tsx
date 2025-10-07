@@ -23,7 +23,7 @@ interface OnboardingWizardProps {
 const STEPS = [
   { id: 1, title: "Upload Resume", description: "Add your base resume" },
   { id: 2, title: "Add Job Details", description: "Paste job description" },
-  { id: 3, title: "Review Results", description: "Get your tailored resume" },
+  { id: 3, title: "Review Results", description: "Get your tweaked resume" },
 ];
 
 export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) => {
@@ -223,7 +223,7 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
       setCoverLetter(data.cover_letter);
       setCurrentStep(3);
 
-      toast({ title: "Resume tailored successfully!" });
+      toast({ title: "Resume tweaked successfully!" });
     } catch (error: any) {
       console.error("Generation error:", error);
       toast({
@@ -315,7 +315,7 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
                 <>
                   <SuccessBanner
                     title="Resume uploaded and parsed successfully!"
-                    description="Your resume has been analyzed and is ready to be tailored."
+                    description="Your resume has been analyzed and is ready to be tweaked."
                   />
                   <Button
                     onClick={handleContinueToJobDetails}
@@ -336,7 +336,7 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
             <CardHeader>
               <CardTitle>Tell us about the job you're applying for</CardTitle>
               <CardDescription>
-                Paste the job description and we'll tailor your resume to match it perfectly.
+                Paste the job description and we'll tweak your resume to match it perfectly.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -385,7 +385,7 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
                     Analyzing...
                   </>
                 ) : (
-                  "Analyze & Generate Tailored Resume"
+                  "Analyze & Generate Tweaked Resume"
                 )}
               </Button>
             </CardContent>
@@ -416,7 +416,7 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-primary" />
-                  Your Tailored Resume is Ready!
+                  Your Tweaked Resume is Ready!
                 </CardTitle>
                 <CardDescription>
                   Review your customized resume and cover letter below. Download them when you're ready.
@@ -463,7 +463,7 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
             <Card className="bg-primary/5 border-primary/20">
               <CardContent className="pt-6">
                 <p className="text-center mb-4">
-                  Great job! You've completed your first tailored resume. Ready to explore more features?
+                  Great job! You've completed your first tweaked resume. Ready to explore more features?
                 </p>
                 <Button onClick={onComplete} className="w-full" size="lg">
                   Go to Dashboard

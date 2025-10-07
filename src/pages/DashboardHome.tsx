@@ -3,7 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { DashboardHero } from "@/components/DashboardHero";
 import { RecentTweaks } from "@/components/RecentTweaks";
-import { DashboardStats } from "@/components/DashboardStats";
 import { SkillsReview } from "@/components/SkillsReview";
 import { TweakedResumeView } from "@/components/TweakedResumeView";
 import { Card } from "@/components/ui/card";
@@ -121,14 +120,14 @@ export const DashboardHome = ({ userId }: DashboardHomeProps) => {
       setShowSkillsReview(false);
 
       toast({
-        title: "Resume tailored successfully",
+        title: "Resume tweaked successfully",
         description: selectedSkills.length > 0 
           ? `Added ${selectedSkills.length} skill${selectedSkills.length > 1 ? 's' : ''}`
           : "Resume optimized for the job",
       });
     } catch (error: any) {
       toast({
-        title: "Tailoring failed",
+        title: "Tweaking failed",
         description: error.message,
         variant: "destructive",
       });
@@ -217,7 +216,7 @@ export const DashboardHome = ({ userId }: DashboardHomeProps) => {
 
         <div className="flex justify-center">
           <Button onClick={handleCreateAnother} size="lg">
-            Create Another Tailored Resume
+            Create Another Tweaked Resume
           </Button>
         </div>
       </div>
@@ -226,7 +225,6 @@ export const DashboardHome = ({ userId }: DashboardHomeProps) => {
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
-      <DashboardStats userId={userId} />
       <DashboardHero 
         hasResume={hasResume}
         onStartTweaking={handleStartTweaking}

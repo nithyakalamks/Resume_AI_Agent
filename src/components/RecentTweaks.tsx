@@ -73,7 +73,7 @@ export const RecentTweaks = ({ userId }: RecentTweaksProps) => {
         <Briefcase className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
         <h3 className="text-xl font-semibold mb-2">No applications yet</h3>
         <p className="text-muted-foreground">
-          Start by creating your first tailored resume above
+          Start by creating your first tweaked resume above
         </p>
       </Card>
     );

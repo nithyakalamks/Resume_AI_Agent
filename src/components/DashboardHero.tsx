@@ -38,10 +38,10 @@ export const DashboardHero = ({ hasResume, onStartTweaking, loading }: Dashboard
         <div className="text-center space-y-3">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary">
             <Sparkles className="w-4 h-4" />
-            <span className="text-sm font-medium">AI-Powered Resume Tailoring</span>
+            <span className="text-sm font-medium">AI-Powered Resume Tweaking</span>
           </div>
           <h1 className="text-3xl md:text-4xl font-bold">
-            Tailor Your Resume for Any Job
+            Tweak Your Resume for Any Job
           </h1>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Get a customized resume and cover letter in minutes, perfectly matched to the job description
@@ -51,7 +51,7 @@ export const DashboardHero = ({ hasResume, onStartTweaking, loading }: Dashboard
         {!hasResume ? (
           <div className="text-center py-6">
             <p className="text-muted-foreground mb-4">
-              Upload your resume first to start creating tailored versions
+              Upload your resume first to start creating tweaked versions
             </p>
             <Button variant="outline" asChild>
               <a href="/dashboard/resume">
@@ -104,7 +104,7 @@ export const DashboardHero = ({ hasResume, onStartTweaking, loading }: Dashboard
               className="w-full"
             >
               <Sparkles className="w-4 h-4 mr-2" />
-              {loading ? "Analyzing..." : "Generate Tailored Resume"}
+              {loading ? "Analyzing..." : "Generate Tweaked Resume"}
             </Button>
           </div>
         )}

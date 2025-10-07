@@ -201,7 +201,7 @@ export const ResumeManager = ({ userId, onResumeChange }: ResumeManagerProps) =>
           {showSuccess && (
             <SuccessBanner
               title="Resume Uploaded Successfully!"
-              description="Your resume is now ready to be tailored for job applications"
+              description="Your resume is now ready to be tweaked for job applications"
             />
           )}
         </div>

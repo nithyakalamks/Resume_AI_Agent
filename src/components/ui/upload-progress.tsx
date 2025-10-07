@@ -73,7 +73,7 @@ export const UploadProgress = ({ stage, fileName, tips = processingTips }: Uploa
         {stage === "complete" && (
           <div className="p-4 rounded-lg bg-accent/5 border border-accent/20 w-full">
             <p className="text-sm text-center text-foreground">
-              Your resume is ready to be tailored for any job!
+              Your resume is ready to be tweaked for any job!
             </p>
           </div>
         )}
