@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Sparkles, Download } from "lucide-react";
 import { TailoredResumeView } from "@/components/TailoredResumeView";
@@ -14,6 +16,8 @@ interface JobApplicationProps {
 }
 
 export const JobApplication = ({ userId, currentResumeId }: JobApplicationProps) => {
+  const [companyName, setCompanyName] = useState("");
+  const [roleName, setRoleName] = useState("");
   const [jobDescription, setJobDescription] = useState("");
   const [tailoring, setTailoring] = useState(false);
   const [originalData, setOriginalData] = useState<any>(null);
@@ -34,10 +38,10 @@ export const JobApplication = ({ userId, currentResumeId }: JobApplicationProps)
       return;
     }
 
-    if (!jobDescription.trim()) {
+    if (!companyName.trim() || !roleName.trim() || !jobDescription.trim()) {
       toast({
-        title: "Job description required",
-        description: "Please enter a job description",
+        title: "Required fields missing",
+        description: "Please fill in company name, role name, and job description",
         variant: "destructive",
       });
       return;
@@ -58,6 +62,8 @@ export const JobApplication = ({ userId, currentResumeId }: JobApplicationProps)
         {
           body: {
             resumeId: currentResumeId,
+            companyName,
+            roleName,
             jobDescription,
           },
         }
@@ -128,19 +134,44 @@ export const JobApplication = ({ userId, currentResumeId }: JobApplicationProps)
       <Card className="p-6">
         <h2 className="text-2xl font-bold mb-4">Apply to a New Job</h2>
         <p className="text-muted-foreground mb-4">
-          Paste the job description and get a tailored resume with cover letter
+          Enter job details and get a tailored resume with cover letter
         </p>
         
-        <Textarea
-          value={jobDescription}
-          onChange={(e) => setJobDescription(e.target.value)}
-          placeholder="Paste the job description here..."
-          className="min-h-[200px] mb-4"
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div className="space-y-2">
+            <Label htmlFor="companyName">Company Name</Label>
+            <Input
+              id="companyName"
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+              placeholder="e.g., Google, Microsoft"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="roleName">Role Name</Label>
+            <Input
+              id="roleName"
+              value={roleName}
+              onChange={(e) => setRoleName(e.target.value)}
+              placeholder="e.g., Senior Software Engineer"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2 mb-4">
+          <Label htmlFor="jobDescription">Job Description</Label>
+          <Textarea
+            id="jobDescription"
+            value={jobDescription}
+            onChange={(e) => setJobDescription(e.target.value)}
+            placeholder="Paste the full job description here..."
+            className="min-h-[200px]"
+          />
+        </div>
 
         <Button
           onClick={handleTailor}
-          disabled={tailoring || !jobDescription.trim()}
+          disabled={tailoring || !companyName.trim() || !roleName.trim() || !jobDescription.trim()}
           className="w-full"
         >
           <Sparkles className="w-4 h-4 mr-2" />

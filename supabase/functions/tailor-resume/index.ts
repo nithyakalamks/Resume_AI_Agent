@@ -12,10 +12,10 @@ serve(async (req) => {
   }
 
   try {
-    const { resumeId, jobDescription } = await req.json();
+    const { resumeId, companyName, roleName, jobDescription } = await req.json();
     
-    if (!resumeId || !jobDescription) {
-      throw new Error('Resume ID and job description are required');
+    if (!resumeId || !companyName || !roleName || !jobDescription) {
+      throw new Error('Resume ID, company name, role name, and job description are required');
     }
 
     const authHeader = req.headers.get('Authorization');
@@ -68,6 +68,8 @@ serve(async (req) => {
         user_id: user.id,
         resume_id: resumeId,
         description: jobDescription,
+        company_name: companyName,
+        role_name: roleName,
       })
       .select()
       .single();

@@ -16,24 +16,30 @@ export type Database = {
     Tables: {
       job_descriptions: {
         Row: {
+          company_name: string | null
           created_at: string | null
           description: string
           id: string
           resume_id: string | null
+          role_name: string | null
           user_id: string | null
         }
         Insert: {
+          company_name?: string | null
           created_at?: string | null
           description: string
           id?: string
           resume_id?: string | null
+          role_name?: string | null
           user_id?: string | null
         }
         Update: {
+          company_name?: string | null
           created_at?: string | null
           description?: string
           id?: string
           resume_id?: string | null
+          role_name?: string | null
           user_id?: string | null
         }
         Relationships: [

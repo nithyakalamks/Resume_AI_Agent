@@ -21,78 +21,6 @@ export const JobHistory = ({ userId }: JobHistoryProps) => {
   const [deleting, setDeleting] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const extractJobDetails = (description: string) => {
-    if (!description) return { title: 'Unknown Position', company: 'Unknown Company' };
-    
-    let title = 'Unknown Position';
-    let company = 'Unknown Company';
-    
-    const lines = description.split('\n').map(l => l.trim()).filter(l => l);
-    
-    // Common section headers to skip
-    const skipHeaders = ['our purpose', 'overview', 'title and summary', 'job description', 
-                         'about us', 'company description', 'role', 'responsibilities'];
-    
-    // Extract company name - look for company names in the content
-    // Pattern 1: "CompanyName powers/is/provides/offers..."
-    const companyPattern = /^([A-Z][a-zA-Z0-9\s&.,-]{2,40}?)\s+(powers|is|provides|offers|delivers|enables|helps|supports|specializes|focuses)/i;
-    for (const line of lines) {
-      if (skipHeaders.some(header => line.toLowerCase().startsWith(header))) continue;
-      
-      const match = line.match(companyPattern);
-      if (match) {
-        company = match[1].trim();
-        break;
-      }
-    }
-    
-    // If still not found, try to find capitalized company names
-    if (company === 'Unknown Company') {
-      for (const line of lines) {
-        if (skipHeaders.some(header => line.toLowerCase() === header)) continue;
-        if (line.length > 2 && line.length < 50 && /^[A-Z][a-zA-Z\s&.,-]+$/.test(line) && 
-            !line.includes('?') && !line.toLowerCase().includes('seeking')) {
-          company = line;
-          break;
-        }
-      }
-    }
-    
-    // Extract title - look for "Title and Summary" section
-    const titleSummaryMatch = description.match(/Title and Summary[\s\n]+([^\n]+)/i);
-    if (titleSummaryMatch) {
-      title = titleSummaryMatch[1].trim();
-    } else {
-      // Try other patterns
-      const jobTitlePatterns = [
-        /(?:Position|Role|Job Title|Posting Title):\s*([^\n]+)/i,
-        /\b((?:Senior|Junior|Lead|Principal|Staff|Manager|Director|VP|Chief|Head of)\s+[A-Z][a-zA-Z\s]+(?:Engineer|Developer|Analyst|Manager|Designer|Architect|Consultant|Specialist))/,
-      ];
-      
-      for (const pattern of jobTitlePatterns) {
-        const match = description.match(pattern);
-        if (match) {
-          title = match[1].trim();
-          break;
-        }
-      }
-      
-      // If still not found, look through lines for likely job titles
-      if (title === 'Unknown Position') {
-        for (const line of lines) {
-          if (skipHeaders.some(header => line.toLowerCase() === header)) continue;
-          if (line.length > 10 && line.length < 100 && 
-              /(?:Engineer|Developer|Analyst|Manager|Designer|Architect|Consultant|Specialist|Coordinator|Administrator)/i.test(line)) {
-            title = line;
-            break;
-          }
-        }
-      }
-    }
-    
-    return { title, company };
-  };
-
   const handleDownloadCoverLetter = async () => {
     if (!selectedVersion?.cover_letter) return;
     
@@ -134,7 +62,7 @@ export const JobHistory = ({ userId }: JobHistoryProps) => {
       .from("tailored_resumes")
       .select(`
         *,
-        job_descriptions (description),
+        job_descriptions (description, company_name, role_name),
         resumes (*)
       `)
       .eq("user_id", userId)
@@ -236,13 +164,15 @@ export const JobHistory = ({ userId }: JobHistoryProps) => {
         </Card>
       ) : (
         history.map((item) => {
-          const jobDetails = extractJobDetails(item.job_descriptions?.description || '');
+          const companyName = item.job_descriptions?.company_name || 'Unknown Company';
+          const roleName = item.job_descriptions?.role_name || 'Unknown Position';
+          
           return (
             <Card key={item.id} className="p-6">
               <div className="flex justify-between items-start">
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold mb-1">{jobDetails.title}</h3>
-                  <p className="text-sm text-muted-foreground mb-2">{jobDetails.company}</p>
+                  <h3 className="text-lg font-semibold mb-1">{roleName}</h3>
+                  <p className="text-sm text-muted-foreground mb-2">{companyName}</p>
                   <div className="flex items-center gap-2">
                     <Badge variant="outline">
                       {new Date(item.created_at).toLocaleDateString()}
