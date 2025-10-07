@@ -101,6 +101,7 @@ export const DashboardHero = ({ hasResume, onStartTweaking, loading }: Dashboard
               onClick={handleSubmit}
               disabled={!isFormValid || loading}
               size="lg"
+              variant="gradient"
               className="w-full"
             >
               <Sparkles className="w-4 h-4 mr-2" />
