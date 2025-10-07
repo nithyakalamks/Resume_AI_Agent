@@ -27,32 +27,30 @@ export const DashboardHero = ({ hasResume, onStartTweaking, loading }: Dashboard
   };
 
   return (
-    <Card className={cn(
-      "relative overflow-hidden border-2",
-      hasResume ? "bg-gradient-to-br from-primary/5 via-accent/5 to-background" : "bg-muted/50"
-    )}>
+    <Card
+      className={cn(
+        "relative overflow-hidden border-2",
+        hasResume ? "bg-gradient-to-br from-primary/5 via-accent/5 to-background" : "bg-muted/50",
+      )}
+    >
       <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
       <div className="absolute bottom-0 left-0 w-64 h-64 bg-accent/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
-      
+
       <div className="relative p-8 space-y-6">
         <div className="text-center space-y-3">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary">
             <Sparkles className="w-4 h-4" />
             <span className="text-sm font-medium">AI-Powered Resume Tweaking</span>
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold">
-            Tweak Your Resume for Any Job
-          </h1>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+          <h1 className="text-3xl md:text-4xl font-bold">Tweak Your Resume for Any Job</h1>
+          <p className="text-muted-foreground text-md max-w-2xl mx-auto">
             Get a customized resume and cover letter in minutes, perfectly matched to the job description
           </p>
         </div>
 
         {!hasResume ? (
           <div className="text-center py-6">
-            <p className="text-muted-foreground mb-4">
-              Upload your resume first to start creating tweaked versions
-            </p>
+            <p className="text-muted-foreground mb-4">Upload your resume first to start creating tweaked versions</p>
             <Button variant="outline" asChild>
               <a href="/dashboard/resume">
                 <Briefcase className="w-4 h-4 mr-2" />
