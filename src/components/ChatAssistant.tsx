@@ -324,7 +324,7 @@ export const ChatAssistant = ({ tweakedResumeId, resumeData, coverLetter, onUpda
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask Tweakie to improve your resume..."
+            placeholder="Ask Tweakie..."
             disabled={isLoading}
             className="flex-1"
           />
