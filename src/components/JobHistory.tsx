@@ -10,6 +10,7 @@ import { TweakedResumeView } from "@/components/TweakedResumeView";
 import { ResumeTemplate } from "@/components/ResumeTemplate";
 import { ChatAssistant } from "@/components/ChatAssistant";
 import html2pdf from "html2pdf.js";
+import tweakieMascot from "@/assets/tweakie-mascot.png";
 
 interface JobHistoryProps {
   userId: string;
@@ -334,14 +335,25 @@ export const JobHistory = ({ userId, selectedId }: JobHistoryProps) => {
               </p>
             </div>
 
-            <Button 
-              onClick={() => setIsChatOpen(true)}
-              className="bg-gradient-to-br from-primary to-accent"
-              size="lg"
-            >
-              <MessageSquare className="w-5 h-5 mr-2" />
-              Chat with Tweakie
-            </Button>
+            <div className="relative">
+              <Button 
+                onClick={() => setIsChatOpen(true)}
+                className="bg-gradient-to-br from-primary to-accent"
+                size="lg"
+              >
+                <MessageSquare className="w-5 h-5 mr-2" />
+                Chat with Tweakie
+              </Button>
+              
+              {/* Floating Tweakie Mascot */}
+              <div className="absolute -top-12 -right-8 w-24 h-24 animate-bounce pointer-events-none">
+                <img 
+                  src={tweakieMascot} 
+                  alt="Tweakie mascot" 
+                  className="w-full h-full object-contain drop-shadow-lg"
+                />
+              </div>
+            </div>
           </div>
         </Card>
 

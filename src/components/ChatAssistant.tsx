@@ -6,7 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, Send, Sparkles, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import logo from "@/assets/logo.png";
+import tweakieAvatar from "@/assets/tweakie-avatar.png";
 
 interface Message {
   role: 'user' | 'assistant' | 'system';
@@ -257,8 +257,8 @@ export const ChatAssistant = ({ tweakedResumeId, resumeData, coverLetter, onUpda
       <div className="p-4 border-b bg-gradient-to-r from-primary/10 to-accent/10">
         <div className="flex items-center gap-2 justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center">
-              <img src={logo} alt="Tweaker" className="h-10 w-10" />
+            <div className="w-10 h-10 rounded-full flex items-center justify-center animate-pulse">
+              <img src={tweakieAvatar} alt="Tweakie" className="h-10 w-10 rounded-full object-cover" />
             </div>
             <div>
               <h3 className="font-semibold text-sm">Tweakie</h3>
