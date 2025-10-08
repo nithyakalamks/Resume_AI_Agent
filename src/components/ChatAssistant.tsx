@@ -270,7 +270,7 @@ export const ChatAssistant = ({ tweakedResumeId, resumeData, coverLetter, onUpda
               variant="ghost"
               size="icon"
               onClick={onClose}
-              className="h-8 w-8 rounded-full hover:bg-destructive/10"
+              className="h-8 w-8 rounded-full hover:bg-accent/20"
             >
               <X className="h-4 w-4" />
             </Button>
