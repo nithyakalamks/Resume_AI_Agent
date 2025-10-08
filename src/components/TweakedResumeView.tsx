@@ -135,7 +135,7 @@ export const TweakedResumeView = ({
     }
     
     // Capture the cover letter value to save BEFORE any state updates
-    const coverLetterToSave = updatedCoverLetter !== undefined 
+    let coverLetterToSave = updatedCoverLetter !== undefined 
       ? updatedCoverLetter 
       : currentCoverLetter;
 
@@ -163,6 +163,31 @@ export const TweakedResumeView = ({
         }
         
         console.log('✅ Successfully saved chat updates to database');
+        
+        // Fetch fresh data from database to ensure UI is in sync
+        console.log('🔄 Fetching fresh data from database...');
+        const { data: freshData, error: fetchError } = await supabase
+          .from('tweaked_resumes')
+          .select('tweaked_data, cover_letter')
+          .eq('id', tweakedResumeId)
+          .single();
+
+        if (fetchError) {
+          console.error('❌ Failed to fetch fresh data:', fetchError);
+          // Continue with the updatedData we have
+        } else if (freshData) {
+          const freshResumeData = freshData.tweaked_data as unknown as ResumeData;
+          console.log('✅ Fresh data fetched from database:', {
+            name: freshResumeData?.name,
+            educationCount: freshResumeData?.education?.length,
+            firstEducation: freshResumeData?.education?.[0]
+          });
+          // Use fresh data from database instead of local updatedData
+          updatedData = freshResumeData;
+          if (freshData.cover_letter !== undefined) {
+            coverLetterToSave = freshData.cover_letter;
+          }
+        }
       } catch (error: any) {
         console.error('❌ Error saving chat updates:', error);
         toast({
@@ -197,9 +222,10 @@ export const TweakedResumeView = ({
       }
     }
     
-    if (updatedCoverLetter !== undefined) {
+    // Update cover letter with the saved value
+    if (coverLetterToSave !== undefined && coverLetterToSave !== currentCoverLetter) {
       console.log("✅ Setting current cover letter");
-      setCurrentCoverLetter(updatedCoverLetter);
+      setCurrentCoverLetter(coverLetterToSave);
     }
     
     if (sections) {
@@ -268,7 +294,12 @@ export const TweakedResumeView = ({
       <TabsContent value="customized" className="mt-6">
         <Card className={`p-8 bg-gradient-to-br from-primary/10 via-accent/20 to-primary/10 transition-all duration-500 ${changedSections.length > 0 ? 'ring-2 ring-accent shadow-lg' : ''}`}>
           <ResumeTemplate 
-            key={`tweaked-${renderKey}-${JSON.stringify(currentTweakedData?.skills?.[0]?.skill || '')}`}
+            key={`tweaked-${renderKey}-${JSON.stringify({
+              name: currentTweakedData?.name,
+              eduCount: currentTweakedData?.education?.length,
+              eduFirst: currentTweakedData?.education?.[0],
+              skillCount: currentTweakedData?.skills?.length
+            })}`}
             data={currentTweakedData} 
             id="tweaked-resume-content"
           />
