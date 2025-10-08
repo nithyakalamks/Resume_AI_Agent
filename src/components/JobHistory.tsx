@@ -391,13 +391,16 @@ export const JobHistory = ({ userId, selectedId }: JobHistoryProps) => {
         {!isChatOpen && (
           <button
             onClick={() => setIsChatOpen(true)}
-            className="fixed bottom-6 right-6 w-24 h-24 z-40 animate-bounce hover:scale-110 transition-transform cursor-pointer group"
+            className="fixed bottom-6 right-6 w-24 h-24 z-40 hover:scale-110 transition-transform cursor-pointer group"
+            style={{
+              animation: 'bounce 3s ease-in-out infinite'
+            }}
             aria-label="Chat with Tweakie"
           >
             <img 
               src={tweakieMascot} 
               alt="Chat with Tweakie" 
-              className="w-full h-full object-contain drop-shadow-2xl"
+              className="w-full h-full object-cover rounded-full drop-shadow-2xl border-4 border-accent"
             />
             <div className="absolute -top-2 -right-2 bg-gradient-to-br from-primary to-accent text-white text-xs px-2 py-1 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
               Chat with me!
