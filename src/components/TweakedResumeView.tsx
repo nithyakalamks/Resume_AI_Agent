@@ -165,15 +165,16 @@ export const TweakedResumeView = ({
           const freshResumeData = freshData.tweaked_data as unknown as ResumeData;
           console.log('✅ Fresh data fetched from database:', {
             name: freshResumeData?.name,
+            skillsCount: freshResumeData?.skills?.length,
+            firstSkills: freshResumeData?.skills?.slice(0, 5).map((s: any) => s.skill),
             educationCount: freshResumeData?.education?.length,
             firstEducation: freshResumeData?.education?.[0]
           });
           // Use fresh data from database instead of local updatedData
           updatedData = freshResumeData;
-          setRenderKey(Date.now()); // Force immediate re-render
+          
           if (freshData.cover_letter !== undefined) {
             coverLetterToSave = freshData.cover_letter;
-            setCurrentCoverLetter(freshData.cover_letter);
           }
         }
       } catch (error: any) {
@@ -193,7 +194,7 @@ export const TweakedResumeView = ({
       }
     }
 
-    // Only update state AFTER successful database save
+    // Only update state AFTER successful database save and fetch
     if (updatedData) {
       console.log("✅ Setting current tweaked data after successful save:", {
         name: updatedData.name,

@@ -34,6 +34,24 @@ export const ChatAssistant = ({ tweakedResumeId, resumeData, coverLetter, onUpda
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  
+  // Use a ref to always have the latest resume data
+  const latestResumeDataRef = useRef(resumeData);
+  const latestCoverLetterRef = useRef(coverLetter);
+  
+  // Update refs whenever props change
+  useEffect(() => {
+    latestResumeDataRef.current = resumeData;
+    console.log('🔄 ChatAssistant resumeData ref updated:', {
+      name: resumeData?.name,
+      skillsCount: resumeData?.skills?.length,
+      firstSkills: resumeData?.skills?.slice(0, 5).map((s: any) => s.skill)
+    });
+  }, [resumeData]);
+  
+  useEffect(() => {
+    latestCoverLetterRef.current = coverLetter;
+  }, [coverLetter]);
 
   // Load chat history from database
   useEffect(() => {
@@ -120,20 +138,24 @@ export const ChatAssistant = ({ tweakedResumeId, resumeData, coverLetter, onUpda
     setIsLoading(true);
 
     try {
+      // Always use the latest resume data from refs
+      const currentResumeData = latestResumeDataRef.current;
+      const currentCoverLetter = latestCoverLetterRef.current;
+      
       console.log('📤 Sending to chat-assistant:', {
         messagesCount: newMessages.length,
-        resumeDataName: resumeData?.name,
-        resumeDataSkills: resumeData?.skills?.map((s: any) => s.skill),
-        resumeDataSkillsCount: resumeData?.skills?.length,
-        coverLetter: coverLetter ? 'Present' : 'Missing',
+        resumeDataName: currentResumeData?.name,
+        resumeDataSkills: currentResumeData?.skills?.map((s: any) => s.skill),
+        resumeDataSkillsCount: currentResumeData?.skills?.length,
+        coverLetter: currentCoverLetter ? 'Present' : 'Missing',
         lastMessage: newMessages[newMessages.length - 1]?.content
       });
       
       const { data, error } = await supabase.functions.invoke('chat-assistant', {
         body: {
           messages: newMessages,
-          resumeData,
-          coverLetter
+          resumeData: currentResumeData,
+          coverLetter: currentCoverLetter
         }
       });
 
@@ -186,7 +208,7 @@ export const ChatAssistant = ({ tweakedResumeId, resumeData, coverLetter, onUpda
             console.warn('⚠️ Missing required fields in updatedData:', missingFields);
             // Merge with current resume data to fill missing fields
             validatedData = {
-              ...resumeData,
+              ...currentResumeData,
               ...data.updatedData
             };
             console.log('✅ Merged with current resume data');
@@ -201,12 +223,12 @@ export const ChatAssistant = ({ tweakedResumeId, resumeData, coverLetter, onUpda
         }
         
         onUpdate(
-          validatedData || resumeData,
-          data.updatedCoverLetter || coverLetter,
+          validatedData || currentResumeData,
+          data.updatedCoverLetter || currentCoverLetter,
           data.changedSections
         );
         
-        // Add system message
+        // Add system message with success indicator
         const systemMsg: Message = {
           role: 'system',
           content: '✅ Resume updated successfully. Changes are highlighted in the preview.',
@@ -216,11 +238,6 @@ export const ChatAssistant = ({ tweakedResumeId, resumeData, coverLetter, onUpda
         
         // Save system message to database
         await saveMessageToDB('system', systemMsg.content);
-        
-        toast({
-          title: "Changes applied",
-          description: "Your resume has been updated. Check the highlighted sections.",
-        });
       } else {
         console.log('⚠️ No updates detected in response:', {
           hasUpdatedData: !!data.updatedData,
