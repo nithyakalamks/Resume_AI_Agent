@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, Send, Sparkles } from "lucide-react";
+import { Loader2, Send, Sparkles, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import logo from "@/assets/logo.png";
@@ -19,9 +19,10 @@ interface ChatAssistantProps {
   resumeData: any;
   coverLetter?: string;
   onUpdate: (updatedData: any, updatedCoverLetter?: string, changedSections?: string[]) => void;
+  onClose?: () => void;
 }
 
-export const ChatAssistant = ({ tweakedResumeId, resumeData, coverLetter, onUpdate }: ChatAssistantProps) => {
+export const ChatAssistant = ({ tweakedResumeId, resumeData, coverLetter, onUpdate, onClose }: ChatAssistantProps) => {
   const getWelcomeMessage = (): Message[] => [{
     role: 'assistant',
     content: "👋 Hi! I'm Tweaker's AI assistant. I can help you refine your resume and cover letter. Try asking me to:\n\n• Make your summary more impactful\n• Add leadership language\n• Emphasize specific skills\n• Improve bullet points\n\nWhat would you like to improve?",
@@ -254,14 +255,26 @@ export const ChatAssistant = ({ tweakedResumeId, resumeData, coverLetter, onUpda
   return (
     <Card className="h-full flex flex-col bg-gradient-to-br from-primary/5 via-accent/10 to-primary/5">
       <div className="p-4 border-b bg-gradient-to-r from-primary/10 to-accent/10">
-        <div className="flex items-center gap-2">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center">
-            <img src={logo} alt="Tweaker" className="h-10 w-10" />
+        <div className="flex items-center gap-2 justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center">
+              <img src={logo} alt="Tweaker" className="h-10 w-10" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-sm">Chat with Tweaker</h3>
+              <p className="text-xs text-muted-foreground">AI-powered resume assistant</p>
+            </div>
           </div>
-          <div>
-            <h3 className="font-semibold text-sm">Chat with Tweaker</h3>
-            <p className="text-xs text-muted-foreground">AI-powered resume assistant</p>
-          </div>
+          {onClose && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="h-8 w-8 rounded-full hover:bg-destructive/10"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </div>
 
