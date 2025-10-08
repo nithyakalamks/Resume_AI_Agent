@@ -358,16 +358,31 @@ Recent Experience: ${resume.parsed_data.experience?.[0]?.title} at ${resume.pars
 JOB DESCRIPTION:
 ${jobDescription}
 
-INSTRUCTIONS:
-1. Write 400-500 words
-2. Start with: "Dear [Company Name from job description] Recruitment Team,"
-3. Write 3-4 body paragraphs highlighting relevant qualifications
-4. End with: "Sincerely," followed by the candidate's name: ${resume.parsed_data.name}
-5. CRITICAL: Do NOT use ANY placeholders like [Your Name], [Your Address], [Date], [Your Phone Number], [Your Email], etc.
-6. Do NOT include addresses, phone numbers, emails, or dates anywhere in the letter
-7. Use ONLY the actual candidate name provided: ${resume.parsed_data.name}
-8. Extract the company name from the job description and use it in the greeting
-9. Make it personal and specific to this job and candidate`;
+CRITICAL CONSTRAINTS:
+⚠️ MAXIMUM 400 WORDS - This is NON-NEGOTIABLE. Count every word.
+⚠️ MINIMUM 300 WORDS - Keep it substantial but concise.
+⚠️ Write EXACTLY 3 paragraphs (greeting + 3 body paragraphs + closing)
+
+FORMATTING RULES:
+1. Start with: "Dear [Company Name] Recruitment Team," (extract company name from job description)
+2. Do NOT use ANY placeholders like [Your Name], [Your Address], [Date], [Your Phone Number], [Your Email]
+3. Do NOT include addresses, phone numbers, emails, or dates
+4. Use ONLY the actual candidate name: ${resume.parsed_data.name}
+5. End with: "Sincerely,\n${resume.parsed_data.name}"
+
+PARAGRAPH STRUCTURE (Be concise - max 400 words total):
+1. Opening paragraph (40-60 words): Brief introduction stating the position and ONE key qualification
+2. Body paragraph 1 (90-120 words): Highlight 2-3 most relevant skills/experiences matching the job
+3. Body paragraph 2 (90-120 words): Express interest in the company and demonstrate cultural fit
+4. Closing (30-50 words): Brief thank you and call to action
+
+WRITING STYLE:
+- Be direct and concise - every sentence must add value
+- Avoid flowery language and redundancy
+- Use specific examples from the candidate's background
+- Match keywords from the job description
+- Keep sentences short and impactful
+`;
 
     const coverLetterResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -380,7 +395,7 @@ INSTRUCTIONS:
         messages: [
           { 
             role: 'system', 
-            content: 'You are a professional cover letter writer. Write compelling, personalized cover letters. Follow the exact formatting instructions provided - do not include placeholder text, addresses, or dates. Use only the candidate\'s actual name as provided.' 
+            content: 'You are a professional cover letter writer who specializes in concise, impactful letters. CRITICAL: You MUST stay within 300-400 words maximum. Count every word carefully. Follow ALL formatting instructions exactly - no placeholders, no addresses, no dates. Write direct, value-driven sentences. Every word must count.' 
           },
           { role: 'user', content: coverLetterPrompt }
         ],

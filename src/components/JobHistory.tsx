@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,6 @@ interface JobHistoryProps {
 }
 
 export const JobHistory = ({ userId, selectedId }: JobHistoryProps) => {
-  const location = useLocation();
   const navigate = useNavigate();
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -365,11 +364,9 @@ export const JobHistory = ({ userId, selectedId }: JobHistoryProps) => {
           {/* Hidden resume content for PDF generation */}
           {selectedVersion.tweaked_data && (
             <div id="hidden-resume-content" className="bg-white">
-              <div className="p-8">
-                <ResumeTemplate 
-                  data={selectedVersion.tweaked_data} 
-                />
-              </div>
+              <ResumeTemplate 
+                data={selectedVersion.tweaked_data} 
+              />
             </div>
           )}
 

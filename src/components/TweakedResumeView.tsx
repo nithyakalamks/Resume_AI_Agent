@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, CheckCircle2, Download, MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
-import html2pdf from "html2pdf.js";
 import { ResumeTemplate } from "@/components/ResumeTemplate";
 import { ScoreAnalysis } from "@/components/ScoreAnalysis";
 import { ChatAssistant } from "@/components/ChatAssistant";
@@ -241,35 +240,6 @@ export const TweakedResumeView = ({
       title: "Resume updated successfully",
       description: "Changes are highlighted in the preview.",
     });
-  };
-
-  const handleDownloadPDF = async () => {
-    setDownloading(true);
-    try {
-      const resumeElement = document.getElementById('tweaked-resume-content');
-      if (!resumeElement) throw new Error('Resume content not found');
-
-      const opt = {
-        margin: 5,
-        filename: `${tweakedData.name.replace(/\s+/g, '_')}_Resume.pdf`,
-        image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-      };
-
-      await html2pdf().set(opt).from(resumeElement).save();
-      toast({ title: "Resume downloaded successfully" });
-    } catch (error: any) {
-      console.error('Download error:', error);
-      toast({
-        title: "Download failed",
-        description: error.message,
-        variant: "destructive"
-      });
-    } finally {
-      setDownloading(false);
-    }
   };
 
   return (
