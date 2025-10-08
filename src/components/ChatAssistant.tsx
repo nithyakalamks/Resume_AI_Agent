@@ -270,7 +270,7 @@ export const ChatAssistant = ({ tweakedResumeId, resumeData, coverLetter, onUpda
               variant="ghost"
               size="icon"
               onClick={onClose}
-              className="h-8 w-8 rounded-full hover:bg-accent/20"
+              className="h-8 w-8 rounded-full hover:bg-accent hover:text-accent-foreground"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -324,7 +324,7 @@ export const ChatAssistant = ({ tweakedResumeId, resumeData, coverLetter, onUpda
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask Tweaker to improve your resume..."
+            placeholder="Ask Tweakie to improve your resume..."
             disabled={isLoading}
             className="flex-1"
           />
