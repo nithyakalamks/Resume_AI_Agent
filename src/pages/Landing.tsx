@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import logo from "@/assets/logo.png";
+import tweakieMascot from "@/assets/tweakie-mascot.png";
+import { toast } from "sonner";
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -336,6 +338,22 @@ const Landing = () => {
           </div>
         </div>
       </footer>
+
+      {/* Tweakie Mascot */}
+      <button
+        onClick={() => toast.info("Login to experience me!")}
+        className="fixed bottom-6 right-6 w-24 h-24 z-40 hover:scale-110 transition-transform cursor-pointer group animate-gentle-bounce"
+        aria-label="Chat with Tweakie"
+      >
+        <img 
+          src={tweakieMascot}
+          alt="Tweakie mascot" 
+          className="w-full h-full object-contain rounded-full border-4 border-accent drop-shadow-2xl"
+        />
+        <div className="absolute -top-12 right-0 bg-card border border-border rounded-lg px-3 py-2 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+          <p className="text-sm font-medium text-foreground">Chat with me!</p>
+        </div>
+      </button>
     </div>
   );
 };
