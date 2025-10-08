@@ -132,6 +132,7 @@ export type Database = {
           resume_id: string | null
           skill_matches: Json | null
           tweaked_data: Json
+          updated_at: string | null
           user_id: string | null
         }
         Insert: {
@@ -148,6 +149,7 @@ export type Database = {
           resume_id?: string | null
           skill_matches?: Json | null
           tweaked_data: Json
+          updated_at?: string | null
           user_id?: string | null
         }
         Update: {
@@ -164,6 +166,7 @@ export type Database = {
           resume_id?: string | null
           skill_matches?: Json | null
           tweaked_data?: Json
+          updated_at?: string | null
           user_id?: string | null
         }
         Relationships: [
