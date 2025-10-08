@@ -25,6 +25,10 @@ interface Education {
   degree: string;
   field?: string;
   graduation_date?: string;
+  start_date?: string;
+  end_date?: string;
+  gpa?: string;
+  location?: string;
 }
 
 interface Project {
@@ -174,8 +178,15 @@ export const ResumeTemplate = ({ data, id }: ResumeTemplateProps) => {
                     {edu.field && <span>, {edu.field}</span>}
                     <span> - {edu.institution}</span>
                   </div>
-                  {edu.graduation_date && (
-                    <span className="text-sm whitespace-nowrap">{formatDate(edu.graduation_date)}</span>
+                  {(edu.start_date || edu.end_date || edu.graduation_date) && (
+                    <span className="text-sm whitespace-nowrap">
+                      {edu.start_date && edu.end_date 
+                        ? `${formatDate(edu.start_date)} - ${formatDate(edu.end_date)}`
+                        : edu.graduation_date 
+                          ? formatDate(edu.graduation_date)
+                          : formatDate(edu.start_date || edu.end_date)
+                      }
+                    </span>
                   )}
                 </div>
               ))}
