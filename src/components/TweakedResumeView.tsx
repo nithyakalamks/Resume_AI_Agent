@@ -131,16 +131,24 @@ export const TweakedResumeView = ({
     let coverLetterToSave = updatedCoverLetter !== undefined ? updatedCoverLetter : currentCoverLetter;
 
     // Save to database FIRST if we have a tweakedResumeId
-    if (tweakedResumeId && updatedData) {
+    if (tweakedResumeId && (updatedData || updatedCoverLetter !== undefined)) {
       console.log('💾 Saving to database with tweakedResumeId:', tweakedResumeId);
       try {
+        const updatePayload: any = {
+          updated_at: new Date().toISOString()
+        };
+
+        if (updatedData) {
+          updatePayload.tweaked_data = updatedData;
+        }
+
+        if (coverLetterToSave !== undefined) {
+          updatePayload.cover_letter = coverLetterToSave;
+        }
+
         const {
           error
-        } = await supabase.from('tweaked_resumes').update({
-          tweaked_data: updatedData,
-          cover_letter: coverLetterToSave,
-          updated_at: new Date().toISOString()
-        }).eq('id', tweakedResumeId);
+        } = await supabase.from('tweaked_resumes').update(updatePayload).eq('id', tweakedResumeId);
         if (error) {
           console.error('❌ Failed to save chat updates:', error);
           toast({
@@ -186,6 +194,10 @@ export const TweakedResumeView = ({
       }
     } else {
       console.log('⚠️ No tweakedResumeId - skipping database save');
+      // Still update local state for cover letter if provided
+      if (updatedCoverLetter !== undefined) {
+        setCurrentCoverLetter(updatedCoverLetter);
+      }
     }
 
     // Only update state AFTER successful database save
