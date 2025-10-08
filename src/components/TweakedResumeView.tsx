@@ -172,6 +172,7 @@ export const TweakedResumeView = ({
           updatedData = freshResumeData;
           if (freshData.cover_letter !== undefined) {
             coverLetterToSave = freshData.cover_letter;
+            setCurrentCoverLetter(freshData.cover_letter);
           }
         }
       } catch (error: any) {
