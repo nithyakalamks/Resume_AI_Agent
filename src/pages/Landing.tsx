@@ -236,7 +236,7 @@ const Landing = () => {
               {
                 icon: Brain,
                 emoji: "🧠",
-                title: "AI-Powered Resume Tailoring",
+                title: "AI-Powered Resume Tweaking",
                 description: "Matches your skills to the job in seconds. No more guessing what keywords to add."
               },
               {
