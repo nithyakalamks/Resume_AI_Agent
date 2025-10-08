@@ -364,14 +364,15 @@ CRITICAL CONSTRAINTS:
 ⚠️ Write EXACTLY 3 paragraphs (greeting + 3 body paragraphs + closing)
 
 FORMATTING RULES:
-1. Start with: "Dear [Company Name] Recruitment Team," (extract company name from job description)
-2. Do NOT use ANY placeholders like [Your Name], [Your Address], [Date], [Your Phone Number], [Your Email]
-3. Do NOT include addresses, phone numbers, emails, or dates
-4. Use ONLY the actual candidate name: ${resume.parsed_data.name}
-5. End with: "Sincerely,\n${resume.parsed_data.name}"
+1. Start with: "Dear ${companyName} Recruitment Team,"
+2. Reference the role as: "${roleName}"
+3. Do NOT use ANY placeholders like [Your Name], [Your Address], [Date], [Your Phone Number], [Your Email]
+4. Do NOT include addresses, phone numbers, emails, or dates
+5. Use ONLY the actual candidate name: ${resume.parsed_data.name}
+6. End with: "Sincerely,\n${resume.parsed_data.name}"
 
 PARAGRAPH STRUCTURE (Be concise - max 400 words total):
-1. Opening paragraph (40-60 words): Brief introduction stating the position and ONE key qualification
+1. Opening paragraph (40-60 words): Brief introduction stating you are applying for the ${roleName} position at ${companyName} and ONE key qualification
 2. Body paragraph 1 (90-120 words): Highlight 2-3 most relevant skills/experiences matching the job
 3. Body paragraph 2 (90-120 words): Express interest in the company and demonstrate cultural fit
 4. Closing (30-50 words): Brief thank you and call to action
