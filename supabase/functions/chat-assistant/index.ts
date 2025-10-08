@@ -24,60 +24,83 @@ serve(async (req) => {
 Current resume data: ${JSON.stringify(resumeData, null, 2)}
 Current cover letter: ${coverLetter || 'Not available'}
 
-CRITICAL RULES:
-1. When a user asks you to make ANY change (add, remove, modify, update, improve, etc.), you MUST return a JSON response with the COMPLETE updated resume data
-2. NEVER just say "I've made the change" - you MUST actually return the modified data structure
-3. Return the ENTIRE resume object with ALL fields, not just the changed parts
-4. Preserve all existing data that wasn't changed
+🚨 MANDATORY RULES - FAILURE TO FOLLOW WILL BREAK THE APPLICATION:
 
-RESPONSE FORMAT:
+1. **MANDATORY**: When a user asks you to make ANY change (add, remove, modify, update, improve, delete, etc.), you MUST ALWAYS return a complete JSON response with the ENTIRE updated resume data
+2. **NEVER** respond with plain text like "I've made the change" without the JSON structure
+3. **ALWAYS** return the COMPLETE resume object with ALL fields (name, email, phone, location, linkedin, summary, skills, experience, education, projects, certifications)
+4. **ALWAYS** preserve all existing data that wasn't changed
+5. **MANDATORY**: The response MUST be valid JSON, not markdown with code blocks
 
-For ANY modification request (add skill, remove skill, update summary, improve bullets, etc.):
+⚠️ WARNING: If you don't return updatedData for modification requests, the user's changes will NOT be applied and the application will fail!
+
+📋 RESPONSE FORMAT RULES:
+
+**For ANY modification request** (user says: add, remove, delete, update, change, modify, improve, edit, fix, etc.):
+YOU MUST RETURN THIS EXACT STRUCTURE:
+
 {
   "message": "Brief confirmation of what you changed",
   "updatedData": {
-    "name": "Full Name",
-    "email": "email@example.com",
-    "phone": "phone",
-    "location": "location",
-    "linkedin": "linkedin url",
-    "summary": "professional summary",
+    "name": "${resumeData?.name || 'Full Name'}",
+    "email": "${resumeData?.email || 'email@example.com'}",
+    "phone": "${resumeData?.phone || 'phone'}",
+    "location": "${resumeData?.location || 'location'}",
+    "linkedin": "${resumeData?.linkedin || ''}",
+    "summary": "${resumeData?.summary || 'professional summary'}",
     "skills": [{"skill": "Skill Name", "category": "Category", "confidence": 0.9, "relevance": 0.9}],
-    "experience": [...complete experience array...],
-    "education": [...complete education array...],
-    "projects": [...complete projects array...],
-    "certifications": [...complete certifications array...]
+    "experience": [...all experience entries...],
+    "education": [...all education entries...],
+    "projects": [...all projects...],
+    "certifications": [...all certifications...]
   },
   "changedSections": ["skills"]
 }
 
-For suggestions only (when user asks "what can I improve?" or "any suggestions?"):
+**For suggestions/questions only** (user asks: "what do you think?", "any suggestions?", "how does it look?"):
 {
-  "message": "Your suggestions here without making actual changes"
+  "message": "Your feedback and suggestions here"
 }
 
-EXAMPLES:
+📝 CONCRETE EXAMPLES:
 
 User: "Remove the Documentation skill"
-Response: {
+YOU MUST RESPOND WITH:
+{
   "message": "I've removed 'Documentation' from your skills.",
-  "updatedData": {<COMPLETE resume data with Documentation removed from skills array>},
+  "updatedData": {
+    "name": "${resumeData?.name}",
+    "email": "${resumeData?.email}",
+    "phone": "${resumeData?.phone}",
+    "location": "${resumeData?.location}",
+    "linkedin": "${resumeData?.linkedin}",
+    "summary": "${resumeData?.summary}",
+    "skills": [<all skills EXCEPT Documentation, with proper structure: {"skill": "...", "category": "...", "confidence": 0.9, "relevance": 0.9}>],
+    "experience": ${JSON.stringify(resumeData?.experience || [])},
+    "education": ${JSON.stringify(resumeData?.education || [])},
+    "projects": ${JSON.stringify(resumeData?.projects || [])},
+    "certifications": ${JSON.stringify(resumeData?.certifications || [])}
+  },
   "changedSections": ["skills"]
 }
 
 User: "Add Python to my skills"
-Response: {
+YOU MUST RESPOND WITH:
+{
   "message": "I've added Python to your Programming Languages.",
-  "updatedData": {<COMPLETE resume data with Python added to skills array>},
+  "updatedData": {<COMPLETE resume with Python added to skills array>},
   "changedSections": ["skills"]
 }
 
-User: "What do you think about my resume?"
-Response: {
-  "message": "Your resume looks good! Here are some suggestions: ..."
-}
+🎯 KEY DETECTION WORDS - IF USER MESSAGE CONTAINS ANY OF THESE, YOU MUST RETURN updatedData:
+- add, remove, delete, update, change, modify, improve, edit, fix, enhance, optimize
+- replace, swap, switch, adjust, refine, revise, rewrite, rephrase
+- include, exclude, insert, append, drop, eliminate
 
-REMEMBER: If the user asks you to DO something (add, remove, change, modify, improve, update), you MUST return updatedData with the COMPLETE modified resume structure.`;
+🔍 IMPORTANT: 
+- Always check if the user is asking you to DO something vs just discussing
+- If in doubt whether to return updatedData, ASK the user first
+- NEVER return plain text for modification requests`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -106,6 +129,16 @@ REMEMBER: If the user asks you to DO something (add, remove, change, modify, imp
 
     console.log('AI response:', aiMessage);
 
+    // Detect if this was a modification request
+    const userMessage = messages[messages.length - 1]?.content?.toLowerCase() || '';
+    const modificationKeywords = [
+      'add', 'remove', 'delete', 'update', 'change', 'modify', 'improve', 
+      'edit', 'fix', 'enhance', 'optimize', 'replace', 'swap', 'switch', 
+      'adjust', 'refine', 'revise', 'rewrite', 'rephrase', 'include', 
+      'exclude', 'insert', 'append', 'drop', 'eliminate'
+    ];
+    const isModificationRequest = modificationKeywords.some(keyword => userMessage.includes(keyword));
+
     // Try to parse as JSON for updates, otherwise return as plain message
     let result;
     try {
@@ -127,6 +160,24 @@ REMEMBER: If the user asks you to DO something (add, remove, change, modify, imp
         console.log('❌ Failed to parse JSON from markdown:', parseError);
         result = { message: aiMessage };
       }
+    }
+
+    // Validation: Check if AI should have returned updatedData but didn't
+    if (isModificationRequest && !result.updatedData) {
+      console.error('🚨 CRITICAL: AI failed to return updatedData for modification request!');
+      console.error('User message:', userMessage);
+      console.error('AI response:', aiMessage);
+      console.warn('⚠️ The AI model did not follow instructions. This will prevent UI updates.');
+      
+      // Return an error response to inform the frontend
+      return new Response(JSON.stringify({
+        error: 'The AI assistant did not return the expected data format. Please try rephrasing your request or try again.',
+        message: result.message || aiMessage,
+        debugInfo: 'AI_RESPONSE_FORMAT_ERROR'
+      }), {
+        status: 200, // Don't fail the request, just inform the frontend
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     // Merge updatedData with original resumeData to ensure all required fields are present
