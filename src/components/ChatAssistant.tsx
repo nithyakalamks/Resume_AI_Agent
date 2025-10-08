@@ -253,7 +253,7 @@ export const ChatAssistant = ({ tweakedResumeId, resumeData, coverLetter, onUpda
   };
 
   return (
-    <Card className="h-full flex flex-col bg-gradient-to-br from-primary/5 via-accent/10 to-primary/5">
+    <Card className="h-full flex flex-col bg-white">
       <div className="p-4 border-b bg-gradient-to-r from-primary/10 to-accent/10">
         <div className="flex items-center gap-2 justify-between">
           <div className="flex items-center gap-2">
@@ -278,7 +278,7 @@ export const ChatAssistant = ({ tweakedResumeId, resumeData, coverLetter, onUpda
         </div>
       </div>
 
-      <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+      <ScrollArea className="flex-1 p-4 bg-white" ref={scrollRef}>
         <div className="space-y-4">
           {messages.map((msg, idx) => (
             <div
@@ -313,7 +313,7 @@ export const ChatAssistant = ({ tweakedResumeId, resumeData, coverLetter, onUpda
         </div>
       </ScrollArea>
 
-      <div className="p-4 border-t bg-white/50 backdrop-blur-sm">
+      <div className="p-4 border-t bg-white">
         <form
           onSubmit={(e) => {
             e.preventDefault();
