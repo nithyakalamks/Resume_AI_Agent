@@ -25,7 +25,7 @@ interface ChatAssistantProps {
 export const ChatAssistant = ({ tweakedResumeId, resumeData, coverLetter, onUpdate, onClose }: ChatAssistantProps) => {
   const getWelcomeMessage = (): Message[] => [{
     role: 'assistant',
-    content: "👋 Hi! I'm Tweaker's AI assistant. I can help you refine your resume and cover letter. Try asking me to:\n\n• Make your summary more impactful\n• Add leadership language\n• Emphasize specific skills\n• Improve bullet points\n\nWhat would you like to improve?",
+    content: "👋 Hi! I'm Tweakie. I can suggest you changes that aligns with this job. Try asking me to:\n\n• Make your summary more impactful\n• Add or remove skills\n• Improve bullet points\n\nWhat would you like to improve?",
     timestamp: Date.now()
   }];
   
@@ -261,7 +261,7 @@ export const ChatAssistant = ({ tweakedResumeId, resumeData, coverLetter, onUpda
               <img src={logo} alt="Tweaker" className="h-10 w-10" />
             </div>
             <div>
-              <h3 className="font-semibold text-sm">Chat with Tweaker</h3>
+              <h3 className="font-semibold text-sm">Tweakie</h3>
               <p className="text-xs text-muted-foreground">AI-powered resume assistant</p>
             </div>
           </div>
