@@ -91,14 +91,6 @@ export const TweakedResumeView = ({
     });
   }, [currentTweakedData]);
 
-  // Force re-render when currentTweakedData changes (after state has settled)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setRenderKey(Date.now());
-      console.log('🔄 Forced re-render with new key:', Date.now());
-    }, 100);
-    return () => clearTimeout(timer);
-  }, [currentTweakedData]);
   const handleChatUpdate = async (updatedData: any, updatedCoverLetter?: string, sections?: string[]) => {
     console.log("📥 TweakedResumeView received update:", {
       hasUpdatedData: !!updatedData,
@@ -178,6 +170,7 @@ export const TweakedResumeView = ({
           });
           // Use fresh data from database instead of local updatedData
           updatedData = freshResumeData;
+          setRenderKey(Date.now()); // Force immediate re-render
           if (freshData.cover_letter !== undefined) {
             coverLetterToSave = freshData.cover_letter;
             setCurrentCoverLetter(freshData.cover_letter);
@@ -213,6 +206,7 @@ export const TweakedResumeView = ({
         })).slice(0, 3)
       });
       setCurrentTweakedData(updatedData);
+      setRenderKey(Date.now()); // Force immediate re-render
 
       // Notify parent component
       if (onDataUpdate) {
@@ -256,12 +250,11 @@ export const TweakedResumeView = ({
 
         <TabsContent value="customized" className="mt-6">
           <Card className={`p-8 bg-gradient-to-br from-primary/10 via-accent/20 to-primary/10 transition-all duration-500 ${changedSections.length > 0 ? 'ring-2 ring-accent shadow-lg' : ''}`}>
-            <ResumeTemplate key={`tweaked-${renderKey}-${JSON.stringify({
-            name: currentTweakedData?.name,
-            eduCount: currentTweakedData?.education?.length,
-            eduFirst: currentTweakedData?.education?.[0],
-            skillCount: currentTweakedData?.skills?.length
-          })}`} data={currentTweakedData} id="tweaked-resume-content" />
+            <ResumeTemplate 
+              key={`tweaked-${renderKey}-${currentTweakedData?.skills?.length || 0}`}
+              data={currentTweakedData} 
+              id="tweaked-resume-content" 
+            />
           </Card>
         </TabsContent>
 
