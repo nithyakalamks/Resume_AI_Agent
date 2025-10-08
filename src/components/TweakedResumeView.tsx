@@ -8,14 +8,12 @@ import { ResumeTemplate } from "@/components/ResumeTemplate";
 import { ScoreAnalysis } from "@/components/ScoreAnalysis";
 import { ChatAssistant } from "@/components/ChatAssistant";
 import { supabase } from "@/integrations/supabase/client";
-
 interface Skill {
   skill: string;
   confidence: number;
   relevance?: number;
   category?: string;
 }
-
 interface Experience {
   title: string;
   company: string;
@@ -25,14 +23,12 @@ interface Experience {
   description: string[];
   relevance?: number;
 }
-
 interface Project {
   name: string;
   description: string;
   technologies?: string[];
   relevance?: number;
 }
-
 interface ResumeData {
   name: string;
   email?: string;
@@ -47,7 +43,6 @@ interface ResumeData {
   certifications?: any[];
   added_skills?: string[];
 }
-
 interface TweakedResumeViewProps {
   tweakedResumeId?: string;
   originalData: ResumeData;
@@ -60,11 +55,10 @@ interface TweakedResumeViewProps {
   missingSkills?: any[];
   onDataUpdate?: (updatedData: ResumeData, updatedCoverLetter?: string) => void;
 }
-
-export const TweakedResumeView = ({ 
+export const TweakedResumeView = ({
   tweakedResumeId,
-  originalData, 
-  tweakedData, 
+  originalData,
+  tweakedData,
   changesSummary,
   coverLetter,
   originalScore,
@@ -73,7 +67,9 @@ export const TweakedResumeView = ({
   missingSkills,
   onDataUpdate
 }: TweakedResumeViewProps) => {
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const [downloading, setDownloading] = useState(false);
   const [currentTweakedData, setCurrentTweakedData] = useState(tweakedData);
   const [currentCoverLetter, setCurrentCoverLetter] = useState(coverLetter);
@@ -103,7 +99,6 @@ export const TweakedResumeView = ({
     }, 100);
     return () => clearTimeout(timer);
   }, [currentTweakedData]);
-
   const handleChatUpdate = async (updatedData: any, updatedCoverLetter?: string, sections?: string[]) => {
     console.log("📥 TweakedResumeView received update:", {
       hasUpdatedData: !!updatedData,
@@ -112,12 +107,11 @@ export const TweakedResumeView = ({
       changedSections: sections,
       updatedDataKeys: updatedData ? Object.keys(updatedData) : []
     });
-    
+
     // Validate the updated data has required fields
     if (updatedData) {
       const requiredFields = ['name', 'email', 'phone'];
       const hasAllFields = requiredFields.every(field => updatedData[field]);
-      
       if (!hasAllFields) {
         console.warn('⚠️ Updated data missing required fields, merging with current data');
         updatedData = {
@@ -125,7 +119,6 @@ export const TweakedResumeView = ({
           ...updatedData
         };
       }
-      
       console.log("✅ Validated data ready to save:", {
         name: updatedData.name,
         email: updatedData.email,
@@ -133,25 +126,21 @@ export const TweakedResumeView = ({
         experienceCount: updatedData.experience?.length || 0
       });
     }
-    
+
     // Capture the cover letter value to save BEFORE any state updates
-    let coverLetterToSave = updatedCoverLetter !== undefined 
-      ? updatedCoverLetter 
-      : currentCoverLetter;
+    let coverLetterToSave = updatedCoverLetter !== undefined ? updatedCoverLetter : currentCoverLetter;
 
     // Save to database FIRST if we have a tweakedResumeId
     if (tweakedResumeId && updatedData) {
       console.log('💾 Saving to database with tweakedResumeId:', tweakedResumeId);
       try {
-        const { error } = await supabase
-          .from('tweaked_resumes')
-          .update({
-            tweaked_data: updatedData,
-            cover_letter: coverLetterToSave,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', tweakedResumeId);
-
+        const {
+          error
+        } = await supabase.from('tweaked_resumes').update({
+          tweaked_data: updatedData,
+          cover_letter: coverLetterToSave,
+          updated_at: new Date().toISOString()
+        }).eq('id', tweakedResumeId);
         if (error) {
           console.error('❌ Failed to save chat updates:', error);
           toast({
@@ -161,17 +150,14 @@ export const TweakedResumeView = ({
           });
           return; // Don't update state if save failed
         }
-        
         console.log('✅ Successfully saved chat updates to database');
-        
+
         // Fetch fresh data from database to ensure UI is in sync
         console.log('🔄 Fetching fresh data from database...');
-        const { data: freshData, error: fetchError } = await supabase
-          .from('tweaked_resumes')
-          .select('tweaked_data, cover_letter')
-          .eq('id', tweakedResumeId)
-          .single();
-
+        const {
+          data: freshData,
+          error: fetchError
+        } = await supabase.from('tweaked_resumes').select('tweaked_data, cover_letter').eq('id', tweakedResumeId).single();
         if (fetchError) {
           console.error('❌ Failed to fetch fresh data:', fetchError);
           // Continue with the updatedData we have
@@ -214,20 +200,19 @@ export const TweakedResumeView = ({
         })).slice(0, 3)
       });
       setCurrentTweakedData(updatedData);
-      
+
       // Notify parent component
       if (onDataUpdate) {
         console.log('📤 Notifying parent component of update');
         onDataUpdate(updatedData, updatedCoverLetter);
       }
     }
-    
+
     // Update cover letter with the saved value
     if (coverLetterToSave !== undefined && coverLetterToSave !== currentCoverLetter) {
       console.log("✅ Setting current cover letter");
       setCurrentCoverLetter(coverLetterToSave);
     }
-    
     if (sections) {
       console.log("✅ Setting changed sections:", sections);
       setChangedSections(sections);
@@ -238,12 +223,10 @@ export const TweakedResumeView = ({
     // Show success toast only after everything is done
     toast({
       title: "Resume updated successfully",
-      description: "Changes are highlighted in the preview.",
+      description: "Changes are highlighted in the preview."
     });
   };
-
-  return (
-    <div className="w-full relative">
+  return <div className="w-full relative">
       <Tabs defaultValue="customized" className="w-full">
         <TabsList className="grid w-full grid-cols-4 mb-8">
           <TabsTrigger value="original">Original Resume</TabsTrigger>
@@ -254,80 +237,46 @@ export const TweakedResumeView = ({
 
         <TabsContent value="original" className="mt-6">
           <Card className="p-8 bg-gradient-to-br from-primary/10 via-accent/20 to-primary/10">
-            <ResumeTemplate 
-              data={originalData} 
-              id="original-resume-content"
-            />
+            <ResumeTemplate data={originalData} id="original-resume-content" />
           </Card>
         </TabsContent>
 
         <TabsContent value="customized" className="mt-6">
           <Card className={`p-8 bg-gradient-to-br from-primary/10 via-accent/20 to-primary/10 transition-all duration-500 ${changedSections.length > 0 ? 'ring-2 ring-accent shadow-lg' : ''}`}>
-            <ResumeTemplate 
-              key={`tweaked-${renderKey}-${JSON.stringify({
-                name: currentTweakedData?.name,
-                eduCount: currentTweakedData?.education?.length,
-                eduFirst: currentTweakedData?.education?.[0],
-                skillCount: currentTweakedData?.skills?.length
-              })}`}
-              data={currentTweakedData} 
-              id="tweaked-resume-content"
-            />
+            <ResumeTemplate key={`tweaked-${renderKey}-${JSON.stringify({
+            name: currentTweakedData?.name,
+            eduCount: currentTweakedData?.education?.length,
+            eduFirst: currentTweakedData?.education?.[0],
+            skillCount: currentTweakedData?.skills?.length
+          })}`} data={currentTweakedData} id="tweaked-resume-content" />
           </Card>
         </TabsContent>
 
         <TabsContent value="cover" className="mt-6">
           <Card className={`p-8 transition-all duration-500 ${changedSections.includes('coverLetter') ? 'ring-2 ring-accent shadow-lg' : ''}`}>
             <div className="prose prose-sm max-w-none">
-              {currentCoverLetter ? (
-                <pre id="cover-letter-content" className="whitespace-pre-wrap text-sm font-sans">{currentCoverLetter}</pre>
-              ) : (
-                <p className="text-muted-foreground text-center py-8">
+              {currentCoverLetter ? <pre id="cover-letter-content" className="whitespace-pre-wrap text-sm font-sans">{currentCoverLetter}</pre> : <p className="text-muted-foreground text-center py-8">
                   No cover letter available
-                </p>
-              )}
+                </p>}
             </div>
           </Card>
         </TabsContent>
 
         <TabsContent value="analysis" className="mt-6">
-          <ScoreAnalysis 
-            originalScore={originalScore}
-            customizedScore={customizedScore || 85}
-            skillMatches={{
-              matching: skillMatches || [],
-              missing: missingSkills || [],
-              addedSkills: currentTweakedData?.added_skills || []
-            }}
-            totalRequiredSkills={totalRequiredSkills}
-          />
+          <ScoreAnalysis originalScore={originalScore} customizedScore={customizedScore || 85} skillMatches={{
+          matching: skillMatches || [],
+          missing: missingSkills || [],
+          addedSkills: currentTweakedData?.added_skills || []
+        }} totalRequiredSkills={totalRequiredSkills} />
         </TabsContent>
       </Tabs>
 
       {/* Floating Chat Button - visible when chat is closed */}
-      {!isChatOpen && (
-        <Button
-          onClick={() => setIsChatOpen(true)}
-          className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg bg-gradient-to-br from-primary to-accent hover:shadow-xl transition-all z-50"
-          size="icon"
-        >
-          <MessageSquare className="h-6 w-6" />
-        </Button>
-      )}
+      {!isChatOpen}
 
       {/* Floating Chat Panel - visible when chat is open */}
-      {isChatOpen && (
-        <div className="fixed bottom-6 right-6 w-96 h-[500px] shadow-2xl rounded-lg overflow-hidden z-50">
-          <ChatAssistant
-            tweakedResumeId={tweakedResumeId}
-            resumeData={currentTweakedData}
-            coverLetter={currentCoverLetter}
-            onUpdate={handleChatUpdate}
-            onClose={() => setIsChatOpen(false)}
-          />
-        </div>
-      )}
-    </div>
-  );
+      {isChatOpen && <div className="fixed bottom-6 right-6 w-96 h-[500px] shadow-2xl rounded-lg overflow-hidden z-50">
+          <ChatAssistant tweakedResumeId={tweakedResumeId} resumeData={currentTweakedData} coverLetter={currentCoverLetter} onUpdate={handleChatUpdate} onClose={() => setIsChatOpen(false)} />
+        </div>}
+    </div>;
 };
-
