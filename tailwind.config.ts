@@ -104,6 +104,10 @@ export default {
           "0%, 100%": { backgroundPosition: "0% 50%" },
           "50%": { backgroundPosition: "100% 50%" }
         },
+        "gentle-bounce": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-10px)" }
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -113,6 +117,7 @@ export default {
         "gradient-shift": "gradient-shift 3s ease infinite",
         "gear-rotate": "gear-rotate 20s linear infinite",
         "gradient-border": "gradient-border 3s ease infinite",
+        "gentle-bounce": "gentle-bounce 2s ease-in-out infinite",
       },
     },
   },

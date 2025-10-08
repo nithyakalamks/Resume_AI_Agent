@@ -391,10 +391,7 @@ export const JobHistory = ({ userId, selectedId }: JobHistoryProps) => {
         {!isChatOpen && (
           <button
             onClick={() => setIsChatOpen(true)}
-            className="fixed bottom-6 right-6 w-24 h-24 z-40 hover:scale-110 transition-transform cursor-pointer group"
-            style={{
-              animation: 'bounce 3s ease-in-out infinite'
-            }}
+            className="fixed bottom-6 right-6 w-24 h-24 z-40 hover:scale-110 transition-transform cursor-pointer group animate-gentle-bounce"
             aria-label="Chat with Tweakie"
           >
             <img 
