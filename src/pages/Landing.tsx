@@ -61,7 +61,7 @@ const Landing = () => {
           
           <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
             Stop wasting hours editing the same resume. Upload once, paste any job description, 
-            and Tweaker instantly generates a tailored resume, cover letter, and even applies for you.
+            and Tweaker instantly generates a tweaked resume, cover letter, and even applies for you.
           </p>
           
           <div className="flex flex-wrap items-center justify-center gap-4">
