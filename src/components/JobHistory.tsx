@@ -5,9 +5,10 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, Download, Trash2 } from "lucide-react";
+import { Eye, Download, Trash2, MessageSquare } from "lucide-react";
 import { TweakedResumeView } from "@/components/TweakedResumeView";
 import { ResumeTemplate } from "@/components/ResumeTemplate";
+import { ChatAssistant } from "@/components/ChatAssistant";
 import html2pdf from "html2pdf.js";
 
 interface JobHistoryProps {
@@ -24,6 +25,7 @@ export const JobHistory = ({ userId, selectedId }: JobHistoryProps) => {
   const [downloadingCover, setDownloadingCover] = useState(false);
   const [downloadingResume, setDownloadingResume] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const { toast } = useToast();
 
   // Helper functions for score display
@@ -331,6 +333,15 @@ export const JobHistory = ({ userId, selectedId }: JobHistoryProps) => {
                 {getMessage(jobFitScore)}
               </p>
             </div>
+
+            <Button 
+              onClick={() => setIsChatOpen(true)}
+              className="bg-gradient-to-br from-primary to-accent"
+              size="lg"
+            >
+              <MessageSquare className="w-5 h-5 mr-2" />
+              Chat with Tweakie
+            </Button>
           </div>
         </Card>
 
@@ -383,6 +394,19 @@ export const JobHistory = ({ userId, selectedId }: JobHistoryProps) => {
             </div>
           )}
         </div>
+
+        {/* Floating Chat Assistant */}
+        {isChatOpen && (
+          <div className="fixed bottom-4 right-4 w-[400px] h-[600px] shadow-2xl rounded-lg z-50 overflow-hidden">
+            <ChatAssistant
+              tweakedResumeId={selectedVersion.id}
+              resumeData={selectedVersion.tweaked_data}
+              coverLetter={selectedVersion.cover_letter}
+              onUpdate={handleDataUpdate}
+              onClose={() => setIsChatOpen(false)}
+            />
+          </div>
+        )}
 
       </div>
     );
