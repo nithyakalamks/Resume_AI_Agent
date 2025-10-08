@@ -334,26 +334,6 @@ export const JobHistory = ({ userId, selectedId }: JobHistoryProps) => {
                 {getMessage(jobFitScore)}
               </p>
             </div>
-
-            <div className="relative">
-              <Button 
-                onClick={() => setIsChatOpen(true)}
-                className="bg-gradient-to-br from-primary to-accent"
-                size="lg"
-              >
-                <MessageSquare className="w-5 h-5 mr-2" />
-                Chat with Tweakie
-              </Button>
-              
-              {/* Floating Tweakie Mascot */}
-              <div className="absolute -top-12 -right-8 w-24 h-24 animate-bounce pointer-events-none">
-                <img 
-                  src={tweakieMascot} 
-                  alt="Tweakie mascot" 
-                  className="w-full h-full object-contain drop-shadow-lg"
-                />
-              </div>
-            </div>
           </div>
         </Card>
 
@@ -406,6 +386,24 @@ export const JobHistory = ({ userId, selectedId }: JobHistoryProps) => {
             </div>
           )}
         </div>
+
+        {/* Floating Tweakie Mascot Button */}
+        {!isChatOpen && (
+          <button
+            onClick={() => setIsChatOpen(true)}
+            className="fixed bottom-6 right-6 w-24 h-24 z-40 animate-bounce hover:scale-110 transition-transform cursor-pointer group"
+            aria-label="Chat with Tweakie"
+          >
+            <img 
+              src={tweakieMascot} 
+              alt="Chat with Tweakie" 
+              className="w-full h-full object-contain drop-shadow-2xl"
+            />
+            <div className="absolute -top-2 -right-2 bg-gradient-to-br from-primary to-accent text-white text-xs px-2 py-1 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+              Chat with me!
+            </div>
+          </button>
+        )}
 
         {/* Floating Chat Assistant */}
         {isChatOpen && (
