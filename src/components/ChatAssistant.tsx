@@ -257,7 +257,7 @@ export const ChatAssistant = ({ tweakedResumeId, resumeData, coverLetter, onUpda
       <div className="p-4 border-b bg-gradient-to-r from-primary/10 to-accent/10">
         <div className="flex items-center gap-2 justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center animate-pulse">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center">
               <img src={tweakieAvatar} alt="Tweakie" className="h-10 w-10 rounded-full object-cover" />
             </div>
             <div>
