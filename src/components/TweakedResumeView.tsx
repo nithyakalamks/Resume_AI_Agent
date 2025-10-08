@@ -90,8 +90,18 @@ export const TweakedResumeView = ({
       name: currentTweakedData?.name,
       skills: currentTweakedData?.skills?.map((s: any) => s.skill),
       skillsCount: currentTweakedData?.skills?.length,
+      firstSkill: currentTweakedData?.skills?.[0],
       fullData: currentTweakedData
     });
+  }, [currentTweakedData]);
+
+  // Force re-render when currentTweakedData changes (after state has settled)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setRenderKey(Date.now());
+      console.log('🔄 Forced re-render with new key:', Date.now());
+    }, 100);
+    return () => clearTimeout(timer);
   }, [currentTweakedData]);
 
   const handleChatUpdate = async (updatedData: any, updatedCoverLetter?: string, sections?: string[]) => {
@@ -168,9 +178,17 @@ export const TweakedResumeView = ({
 
     // Only update state AFTER successful database save
     if (updatedData) {
-      console.log("✅ Setting current tweaked data after successful save");
+      console.log("✅ Setting current tweaked data after successful save:", {
+        name: updatedData.name,
+        skillsCount: updatedData.skills?.length,
+        firstSkill: updatedData.skills?.[0],
+        skillsStructure: updatedData.skills?.map((s: any) => ({
+          skill: s.skill,
+          hasCategory: !!s.category,
+          hasConfidence: !!s.confidence
+        })).slice(0, 3)
+      });
       setCurrentTweakedData(updatedData);
-      setRenderKey(prev => prev + 1);
       
       // Notify parent component
       if (onDataUpdate) {
@@ -250,7 +268,7 @@ export const TweakedResumeView = ({
       <TabsContent value="customized" className="mt-6">
         <Card className={`p-8 bg-gradient-to-br from-primary/10 via-accent/20 to-primary/10 transition-all duration-500 ${changedSections.length > 0 ? 'ring-2 ring-accent shadow-lg' : ''}`}>
           <ResumeTemplate 
-            key={`tweaked-${renderKey}`}
+            key={`tweaked-${renderKey}-${JSON.stringify(currentTweakedData?.skills?.[0]?.skill || '')}`}
             data={currentTweakedData} 
             id="tweaked-resume-content"
           />

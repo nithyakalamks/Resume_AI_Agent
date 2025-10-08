@@ -94,11 +94,36 @@ If just providing suggestions without changes, respond with plain text.`;
     // Merge updatedData with original resumeData to ensure all required fields are present
     if (result.updatedData && resumeData) {
       console.log('🔄 Merging updated data with original resume data');
+      
+      // Handle skills: ensure they maintain proper structure with category, confidence, relevance
+      let mergedSkills = result.updatedData.skills || resumeData.skills || [];
+      if (mergedSkills.length > 0) {
+        // Check if skills are simple strings and convert to proper structure
+        if (typeof mergedSkills[0] === 'string') {
+          console.log('⚠️ Skills are strings, converting to proper structure');
+          mergedSkills = mergedSkills.map((skillName: string) => {
+            // Try to find the skill in original resume data to preserve metadata
+            const originalSkill = resumeData.skills?.find((s: any) => s.skill === skillName);
+            return originalSkill || {
+              skill: skillName,
+              category: 'General',
+              confidence: 0.8,
+              relevance: 0.8
+            };
+          });
+        }
+        console.log('✅ Skills structure validated:', {
+          count: mergedSkills.length,
+          firstSkill: mergedSkills[0],
+          hasCategory: !!mergedSkills[0]?.category
+        });
+      }
+      
       result.updatedData = {
         ...resumeData,
         ...result.updatedData,
-        // Ensure nested arrays are properly merged
-        skills: result.updatedData.skills || resumeData.skills || [],
+        // Ensure nested arrays are properly merged with validated structure
+        skills: mergedSkills,
         experience: result.updatedData.experience || resumeData.experience || [],
         education: result.updatedData.education || resumeData.education || [],
         projects: result.updatedData.projects || resumeData.projects || [],
@@ -109,6 +134,7 @@ If just providing suggestions without changes, respond with plain text.`;
         hasEmail: !!result.updatedData.email,
         skillsCount: result.updatedData.skills?.length || 0,
         experienceCount: result.updatedData.experience?.length || 0,
+        firstSkillStructure: result.updatedData.skills?.[0]
       });
     }
 
