@@ -253,7 +253,7 @@ export const TweakedResumeView = ({
         </TabsList>
 
         <TabsContent value="original" className="mt-6">
-          <Card className="bg-gradient-to-br from-primary/10 via-accent/20 to-primary/10">
+          <Card className="p-8 bg-gradient-to-br from-primary/10 via-accent/20 to-primary/10">
             <ResumeTemplate 
               data={originalData} 
               id="original-resume-content"
@@ -262,7 +262,7 @@ export const TweakedResumeView = ({
         </TabsContent>
 
         <TabsContent value="customized" className="mt-6">
-          <Card className={`bg-gradient-to-br from-primary/10 via-accent/20 to-primary/10 transition-all duration-500 ${changedSections.length > 0 ? 'ring-2 ring-accent shadow-lg' : ''}`}>
+          <Card className={`p-8 bg-gradient-to-br from-primary/10 via-accent/20 to-primary/10 transition-all duration-500 ${changedSections.length > 0 ? 'ring-2 ring-accent shadow-lg' : ''}`}>
             <ResumeTemplate 
               key={`tweaked-${renderKey}-${JSON.stringify({
                 name: currentTweakedData?.name,

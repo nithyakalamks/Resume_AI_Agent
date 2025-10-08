@@ -4,11 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Sparkles, Briefcase, Link2, Loader2 } from "lucide-react";
+import { Sparkles, Briefcase } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SAMPLE_JOB_DESCRIPTION } from "@/lib/sample-job-description";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 
 interface DashboardHeroProps {
   hasResume: boolean;
@@ -17,72 +15,11 @@ interface DashboardHeroProps {
 }
 
 export const DashboardHero = ({ hasResume, onStartTweaking, loading }: DashboardHeroProps) => {
-  const { toast } = useToast();
   const [companyName, setCompanyName] = useState("");
   const [roleName, setRoleName] = useState("");
   const [jobDescription, setJobDescription] = useState("");
-  const [jobUrl, setJobUrl] = useState("");
-  const [isScrapingUrl, setIsScrapingUrl] = useState(false);
 
   const isFormValid = companyName.trim() && roleName.trim() && jobDescription.trim();
-  
-  // Detect if input is a URL
-  const isUrl = (text: string) => {
-    try {
-      new URL(text);
-      return true;
-    } catch {
-      return false;
-    }
-  };
-
-  const handleScrapeUrl = async () => {
-    if (!jobUrl.trim()) {
-      toast({
-        title: "URL Required",
-        description: "Please enter a job posting URL",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!isUrl(jobUrl)) {
-      toast({
-        title: "Invalid URL",
-        description: "Please enter a valid URL",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsScrapingUrl(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('scrape-job-description', {
-        body: { url: jobUrl }
-      });
-
-      if (error) throw error;
-
-      if (data.success) {
-        setJobDescription(data.jobDescription);
-        toast({
-          title: "Success!",
-          description: "Job description extracted successfully",
-        });
-      } else {
-        throw new Error(data.error || "Failed to extract job description");
-      }
-    } catch (error: any) {
-      console.error('Error scraping URL:', error);
-      toast({
-        title: "Extraction Failed",
-        description: "We couldn't extract the job description from this link. Please paste it manually below.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsScrapingUrl(false);
-    }
-  };
 
   const handleSubmit = () => {
     if (isFormValid && hasResume) {
@@ -157,81 +94,33 @@ export const DashboardHero = ({ hasResume, onStartTweaking, loading }: Dashboard
               </div>
             </div>
 
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="hero-job-url" className="text-sm font-medium drop-shadow-sm">
-                  Job Posting URL (Optional)
-                </Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="hero-job-url"
-                    value={jobUrl}
-                    onChange={(e) => setJobUrl(e.target.value)}
-                    placeholder="https://example.com/careers/job-posting"
-                    disabled={loading || isScrapingUrl}
-                    className="shadow-md shadow-black/5 border-2 focus:shadow-lg focus:shadow-primary/10 transition-all duration-200"
-                  />
-                  <Button
-                    type="button"
-                    onClick={handleScrapeUrl}
-                    disabled={!jobUrl.trim() || loading || isScrapingUrl}
-                    className="shadow-md hover:shadow-lg transition-all duration-200"
-                  >
-                    {isScrapingUrl ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Extracting...
-                      </>
-                    ) : (
-                      <>
-                        <Link2 className="w-4 h-4 mr-2" />
-                        Extract JD
-                      </>
-                    )}
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Paste a job posting URL and we'll automatically extract the job description
-                </p>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="hero-job-description" className="text-sm font-medium drop-shadow-sm">Job Description</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setJobDescription(SAMPLE_JOB_DESCRIPTION)}
+                  disabled={loading}
+                  className="text-xs shadow-sm hover:shadow-md transition-all duration-200"
+                >
+                  Sample JD
+                </Button>
               </div>
-
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">Or paste manually</span>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="hero-job-description" className="text-sm font-medium drop-shadow-sm">Job Description</Label>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setJobDescription(SAMPLE_JOB_DESCRIPTION)}
-                    disabled={loading || isScrapingUrl}
-                    className="text-xs shadow-sm hover:shadow-md transition-all duration-200"
-                  >
-                    Sample JD
-                  </Button>
-                </div>
-                <Textarea
-                  id="hero-job-description"
-                  value={jobDescription}
-                  onChange={(e) => setJobDescription(e.target.value)}
-                  placeholder="Paste the full job description here..."
-                  className="min-h-[150px] shadow-md shadow-black/5 border-2 focus:shadow-lg focus:shadow-primary/10 transition-all duration-200"
-                  disabled={loading || isScrapingUrl}
-                />
-              </div>
+              <Textarea
+                id="hero-job-description"
+                value={jobDescription}
+                onChange={(e) => setJobDescription(e.target.value)}
+                placeholder="Paste the full job description here..."
+                className="min-h-[150px] shadow-md shadow-black/5 border-2 focus:shadow-lg focus:shadow-primary/10 transition-all duration-200"
+                disabled={loading}
+              />
             </div>
 
             <Button
               onClick={handleSubmit}
-              disabled={!isFormValid || loading || isScrapingUrl}
+              disabled={!isFormValid || loading}
               size="lg"
               variant="gradient"
               className="w-full shadow-xl shadow-primary/25 hover:shadow-2xl hover:shadow-primary/30 transition-all duration-300"
