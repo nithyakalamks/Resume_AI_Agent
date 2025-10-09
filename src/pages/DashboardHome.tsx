@@ -42,7 +42,7 @@ export const DashboardHome = ({ userId }: DashboardHomeProps) => {
         setHasResume(true);
       }
     } catch (error) {
-      console.error("Error fetching resume:", error);
+      // Silent fail
     }
   };
 
@@ -71,13 +71,6 @@ export const DashboardHome = ({ userId }: DashboardHomeProps) => {
 
       if (comparisonError) throw comparisonError;
 
-      console.log('✅ Compare-skills response:', {
-        matchingSkills: comparisonData.matching_skills?.length || 0,
-        missingSkills: comparisonData.missing_skills?.length || 0,
-        jobSkills: comparisonData.job_skills?.length || 0,
-        missingSkillsList: comparisonData.missing_skills?.map((s: any) => s.skill)
-      });
-
       setSkillComparison(comparisonData);
       setShowSkillsReview(true);
 
@@ -97,11 +90,6 @@ export const DashboardHome = ({ userId }: DashboardHomeProps) => {
   };
 
   const handleConfirmSkills = async (selectedSkills: string[]) => {
-    console.log('✅ User selected skills:', {
-      count: selectedSkills.length,
-      skills: selectedSkills
-    });
-    
     setTweaking(true);
     setGenerationStage(0);
     try {
@@ -109,12 +97,6 @@ export const DashboardHome = ({ userId }: DashboardHomeProps) => {
       const stageInterval = setInterval(() => {
         setGenerationStage((prev) => Math.min(prev + 1, 4));
       }, 1500);
-
-      console.log('✅ Sending to tweak-resume:', {
-        addedSkillsCount: selectedSkills.length,
-        originalMissingSkillsCount: skillComparison?.missing_skills?.length || 0,
-        originalMatchingSkillsCount: skillComparison?.matching_skills?.length || 0
-      });
 
       const { data: functionData, error: functionError } = await supabase.functions.invoke(
         "tweak-resume",

@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, Download, Trash2, MessageSquare } from "lucide-react";
+import { Eye, Download, Trash2 } from "lucide-react";
 import { TweakedResumeView } from "@/components/TweakedResumeView";
 import { ResumeTemplate } from "@/components/ResumeTemplate";
 import { ChatAssistant } from "@/components/ChatAssistant";
@@ -69,7 +69,6 @@ export const JobHistory = ({ userId, selectedId }: JobHistoryProps) => {
       await html2pdf().set(opt).from(resumeElement).save();
       toast({ title: "Resume downloaded successfully" });
     } catch (error: any) {
-      console.error('Download error:', error);
       toast({
         title: "Download failed",
         description: error.message,
@@ -107,7 +106,6 @@ export const JobHistory = ({ userId, selectedId }: JobHistoryProps) => {
       await html2pdf().set(opt).from(coverElement).save();
       toast({ title: "Cover letter downloaded successfully" });
     } catch (error: any) {
-      console.error('Download error:', error);
       toast({
         title: "Download failed",
         description: error.message,
@@ -145,7 +143,6 @@ export const JobHistory = ({ userId, selectedId }: JobHistoryProps) => {
   }, [selectedId]);
 
   const fetchLatestTweakedResume = async (tweakedResumeId: string) => {
-    console.log('🔍 Fetching latest tweaked resume for ID:', tweakedResumeId);
     try {
       const { data, error } = await supabase
         .from("tweaked_resumes")
@@ -160,45 +157,21 @@ export const JobHistory = ({ userId, selectedId }: JobHistoryProps) => {
       if (error) throw error;
 
       if (data) {
-        console.log('📥 Fetched latest tweaked resume data:', {
-          id: data.id,
-          name: (data.tweaked_data as any)?.name,
-          skills: (data.tweaked_data as any)?.skills?.map((s: any) => s.skill),
-          skillsCount: (data.tweaked_data as any)?.skills?.length,
-          coverLetter: data.cover_letter ? 'Present' : 'Missing',
-          updatedAt: (data as any).updated_at
-        });
         setSelectedVersion(data);
         setOriginalData(data.resumes?.parsed_data || null);
       }
     } catch (error) {
-      console.error('❌ Error fetching latest tweaked resume:', error);
+      // Silent fail
     }
   };
 
   const handleDataUpdate = (updatedData: any, updatedCoverLetter?: string) => {
-    console.log('🔄 handleDataUpdate called with:', {
-      updatedData: updatedData,
-      updatedCoverLetter: updatedCoverLetter,
-      skills: updatedData?.skills?.map((s: any) => s.skill),
-      skillsCount: updatedData?.skills?.length
-    });
-    
     // Update the selectedVersion with the latest data
-    setSelectedVersion(prev => {
-      const newVersion = {
-        ...prev,
-        tweaked_data: updatedData,
-        cover_letter: updatedCoverLetter || prev.cover_letter
-      };
-      console.log('📝 Updated selectedVersion with new data:', {
-        id: newVersion.id,
-        name: newVersion.tweaked_data?.name,
-        skills: newVersion.tweaked_data?.skills?.map((s: any) => s.skill),
-        skillsCount: newVersion.tweaked_data?.skills?.length
-      });
-      return newVersion;
-    });
+    setSelectedVersion(prev => ({
+      ...prev,
+      tweaked_data: updatedData,
+      cover_letter: updatedCoverLetter || prev.cover_letter
+    }));
   };
 
   const fetchHistory = async () => {
@@ -350,17 +323,6 @@ export const JobHistory = ({ userId, selectedId }: JobHistoryProps) => {
           missingSkills={selectedVersion.missing_skills}
           onDataUpdate={handleDataUpdate}
         />
-        {(() => {
-          console.log('🎯 Passing data to TweakedResumeView:', {
-            tweakedResumeId: selectedVersion.id,
-            originalDataName: originalData?.name,
-            tweakedDataName: (selectedVersion.tweaked_data as any)?.name,
-            tweakedDataSkills: (selectedVersion.tweaked_data as any)?.skills?.map((s: any) => s.skill),
-            tweakedDataSkillsCount: (selectedVersion.tweaked_data as any)?.skills?.length,
-            coverLetter: selectedVersion.cover_letter ? 'Present' : 'Missing'
-          });
-          return null;
-        })()}
 
         {/* Hidden elements for PDF generation - always rendered */}
         <div className="absolute -top-[9999px] left-0 w-full">

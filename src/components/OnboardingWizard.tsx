@@ -118,7 +118,6 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
 
       toast({ title: "Resume uploaded successfully!" });
     } catch (error: any) {
-      console.error("Upload error:", error);
       toast({
         title: "Upload failed",
         description: error.message,
@@ -177,7 +176,6 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
         setSelectedSkills(recommended);
       }
     } catch (error: any) {
-      console.error("Analysis error:", error);
       toast({
         title: "Analysis failed",
         description: error.message,
@@ -199,11 +197,6 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
       const stageInterval = setInterval(() => {
         setGenerationStage((prev) => Math.min(prev + 1, 4));
       }, 1500);
-
-      console.log('✅ OnboardingWizard sending to tweak-resume:', {
-        addedSkillsCount: selectedSkills.length,
-        originalMissingSkillsCount: skillsData?.missing_skills?.length || 0
-      });
 
       const { data, error } = await supabase.functions.invoke("tweak-resume", {
         body: {
@@ -235,7 +228,6 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
 
       toast({ title: "Resume tweaked successfully!" });
     } catch (error: any) {
-      console.error("Generation error:", error);
       toast({
         title: "Generation failed",
         description: error.message,
@@ -253,7 +245,6 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
     try {
       const element = document.getElementById("hidden-resume-content");
       if (!element) {
-        console.error("Resume content not found");
         toast({
           title: "Download failed",
           description: "Resume content not found",
@@ -273,7 +264,6 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
       await html2pdf().set(opt).from(element).save();
       toast({ title: "Resume downloaded!" });
     } catch (error) {
-      console.error("Error generating PDF:", error);
       toast({
         title: "Download failed",
         variant: "destructive",
@@ -288,7 +278,6 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
     try {
       const element = document.getElementById("hidden-cover-letter-content");
       if (!element) {
-        console.error("Cover letter content not found");
         toast({
           title: "Download failed",
           description: "Cover letter content not found",
@@ -308,7 +297,6 @@ export const OnboardingWizard = ({ userId, onComplete }: OnboardingWizardProps) 
       await html2pdf().set(opt).from(element).save();
       toast({ title: "Cover letter downloaded!" });
     } catch (error) {
-      console.error("Error generating PDF:", error);
       toast({
         title: "Download failed",
         variant: "destructive",

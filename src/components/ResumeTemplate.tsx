@@ -65,27 +65,6 @@ interface ResumeTemplateProps {
 }
 
 export const ResumeTemplate = ({ data, id }: ResumeTemplateProps) => {
-  // Debug: Log the data being rendered
-  console.log('🎨 ResumeTemplate rendering with data:', {
-    id: id,
-    name: data?.name,
-    educationCount: data?.education?.length,
-    firstEducation: data?.education?.[0],
-    skills: data?.skills?.map((s: any) => s.skill),
-    skillsCount: data?.skills?.length
-  });
-  
-  // Log when component updates
-  React.useEffect(() => {
-    console.log('🔄 ResumeTemplate mounted/updated with education:', 
-      data?.education?.map(edu => ({ 
-        degree: edu.degree, 
-        institution: edu.institution,
-        graduation_date: edu.graduation_date 
-      }))
-    );
-  }, [data?.education]);
-  
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return '';
     if (dateStr === "Present" || dateStr.toLowerCase() === "present") return "Present";

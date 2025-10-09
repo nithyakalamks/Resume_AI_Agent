@@ -36,20 +36,6 @@ export const ScoreAnalysis = ({
   
   const totalMatchedAfter = matchingSkillsCount + addedSkillsCount;
   
-  // Debug logging
-  console.log('ScoreAnalysis Debug:', {
-    matching: skillMatches?.matching,
-    missing: skillMatches?.missing,
-    added: skillMatches?.addedSkills,
-    matchingCount: matchingSkillsCount,
-    missingCount: missingSkillsCount,
-    addedCount: addedSkillsCount,
-    totalSkills,
-    totalMatchedAfter,
-    originalScore,
-    customizedScore
-  });
-  
   // Color coding helper
   const getScoreColor = (score: number) => {
     if (score >= 71) return "text-success";

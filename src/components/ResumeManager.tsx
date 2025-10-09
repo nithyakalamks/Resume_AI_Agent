@@ -46,7 +46,6 @@ export const ResumeManager = ({ userId, onResumeChange }: ResumeManagerProps) =>
       await html2pdf().set(opt).from(resumeElement).save();
       toast({ title: "Resume downloaded successfully" });
     } catch (error: any) {
-      console.error('Download error:', error);
       toast({
         title: "Download failed",
         description: error.message,

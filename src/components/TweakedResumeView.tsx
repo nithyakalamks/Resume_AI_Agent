@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, CheckCircle2, Download, MessageSquare } from "lucide-react";
+import { ArrowRight, CheckCircle2, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { ResumeTemplate } from "@/components/ResumeTemplate";
@@ -80,43 +80,18 @@ export const TweakedResumeView = ({
   // Calculate total required skills from matching + missing skills
   const totalRequiredSkills = (skillMatches?.length || 0) + (missingSkills?.length || 0);
 
-  // Debug: Log when currentTweakedData changes
-  useEffect(() => {
-    console.log('📊 currentTweakedData updated:', {
-      name: currentTweakedData?.name,
-      skills: currentTweakedData?.skills?.map((s: any) => s.skill),
-      skillsCount: currentTweakedData?.skills?.length,
-      firstSkill: currentTweakedData?.skills?.[0],
-      fullData: currentTweakedData
-    });
-  }, [currentTweakedData]);
-
   const handleChatUpdate = async (updatedData: any, updatedCoverLetter?: string, sections?: string[]) => {
-    console.log("📥 TweakedResumeView received update:", {
-      hasUpdatedData: !!updatedData,
-      updatedDataName: updatedData?.name,
-      hasUpdatedCoverLetter: updatedCoverLetter !== undefined,
-      changedSections: sections,
-      updatedDataKeys: updatedData ? Object.keys(updatedData) : []
-    });
 
     // Validate the updated data has required fields
     if (updatedData) {
       const requiredFields = ['name', 'email', 'phone'];
       const hasAllFields = requiredFields.every(field => updatedData[field]);
       if (!hasAllFields) {
-        console.warn('⚠️ Updated data missing required fields, merging with current data');
         updatedData = {
           ...currentTweakedData,
           ...updatedData
         };
       }
-      console.log("✅ Validated data ready to save:", {
-        name: updatedData.name,
-        email: updatedData.email,
-        skillsCount: updatedData.skills?.length || 0,
-        experienceCount: updatedData.experience?.length || 0
-      });
     }
 
     // Capture the cover letter value to save BEFORE any state updates
@@ -124,7 +99,6 @@ export const TweakedResumeView = ({
 
     // Save to database FIRST if we have a tweakedResumeId
     if (tweakedResumeId && (updatedData || updatedCoverLetter !== undefined)) {
-      console.log('💾 Saving to database with tweakedResumeId:', tweakedResumeId);
       try {
         const updatePayload: any = {
           updated_at: new Date().toISOString()
@@ -142,7 +116,6 @@ export const TweakedResumeView = ({
           error
         } = await supabase.from('tweaked_resumes').update(updatePayload).eq('id', tweakedResumeId);
         if (error) {
-          console.error('❌ Failed to save chat updates:', error);
           toast({
             title: "Warning",
             description: `Changes applied but failed to save: ${error.message}`,
@@ -150,26 +123,16 @@ export const TweakedResumeView = ({
           });
           return; // Don't update state if save failed
         }
-        console.log('✅ Successfully saved chat updates to database');
 
         // Fetch fresh data from database to ensure UI is in sync
-        console.log('🔄 Fetching fresh data from database...');
         const {
           data: freshData,
           error: fetchError
         } = await supabase.from('tweaked_resumes').select('tweaked_data, cover_letter').eq('id', tweakedResumeId).single();
         if (fetchError) {
-          console.error('❌ Failed to fetch fresh data:', fetchError);
           // Continue with the updatedData we have
         } else if (freshData) {
           const freshResumeData = freshData.tweaked_data as unknown as ResumeData;
-          console.log('✅ Fresh data fetched from database:', {
-            name: freshResumeData?.name,
-            skillsCount: freshResumeData?.skills?.length,
-            firstSkills: freshResumeData?.skills?.slice(0, 5).map((s: any) => s.skill),
-            educationCount: freshResumeData?.education?.length,
-            firstEducation: freshResumeData?.education?.[0]
-          });
           // Use fresh data from database instead of local updatedData
           updatedData = freshResumeData;
           
@@ -178,7 +141,6 @@ export const TweakedResumeView = ({
           }
         }
       } catch (error: any) {
-        console.error('❌ Error saving chat updates:', error);
         toast({
           title: "Warning",
           description: `Changes applied but failed to save: ${error.message || 'Unknown error'}`,
@@ -187,7 +149,6 @@ export const TweakedResumeView = ({
         return; // Don't update state if save failed
       }
     } else {
-      console.log('⚠️ No tweakedResumeId - skipping database save');
       // Still update local state for cover letter if provided
       if (updatedCoverLetter !== undefined) {
         setCurrentCoverLetter(updatedCoverLetter);
@@ -196,33 +157,20 @@ export const TweakedResumeView = ({
 
     // Only update state AFTER successful database save and fetch
     if (updatedData) {
-      console.log("✅ Setting current tweaked data after successful save:", {
-        name: updatedData.name,
-        skillsCount: updatedData.skills?.length,
-        firstSkill: updatedData.skills?.[0],
-        skillsStructure: updatedData.skills?.map((s: any) => ({
-          skill: s.skill,
-          hasCategory: !!s.category,
-          hasConfidence: !!s.confidence
-        })).slice(0, 3)
-      });
       setCurrentTweakedData(updatedData);
       setRenderKey(Date.now()); // Force immediate re-render
 
       // Notify parent component
       if (onDataUpdate) {
-        console.log('📤 Notifying parent component of update');
         onDataUpdate(updatedData, updatedCoverLetter);
       }
     }
 
     // Update cover letter with the saved value
     if (coverLetterToSave !== undefined && coverLetterToSave !== currentCoverLetter) {
-      console.log("✅ Setting current cover letter");
       setCurrentCoverLetter(coverLetterToSave);
     }
     if (sections) {
-      console.log("✅ Setting changed sections:", sections);
       setChangedSections(sections);
       // Clear highlights after 3 seconds
       setTimeout(() => setChangedSections([]), 3000);

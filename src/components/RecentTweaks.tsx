@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Briefcase, Download, Eye, ArrowRight } from "lucide-react";
+import { Briefcase, Eye, ArrowRight } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Link } from "react-router-dom";
 
@@ -44,7 +44,7 @@ export const RecentTweaks = ({ userId }: RecentTweaksProps) => {
       if (error) throw error;
       setRecentTweaks(data as any || []);
     } catch (error) {
-      console.error("Error fetching recent tweaks:", error);
+      // Silent fail
     } finally {
       setLoading(false);
     }

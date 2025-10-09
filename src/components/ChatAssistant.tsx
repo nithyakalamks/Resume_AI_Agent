@@ -42,11 +42,6 @@ export const ChatAssistant = ({ tweakedResumeId, resumeData, coverLetter, onUpda
   // Update refs whenever props change
   useEffect(() => {
     latestResumeDataRef.current = resumeData;
-    console.log('🔄 ChatAssistant resumeData ref updated:', {
-      name: resumeData?.name,
-      skillsCount: resumeData?.skills?.length,
-      firstSkills: resumeData?.skills?.slice(0, 5).map((s: any) => s.skill)
-    });
   }, [resumeData]);
   
   useEffect(() => {
@@ -88,7 +83,6 @@ export const ChatAssistant = ({ tweakedResumeId, resumeData, coverLetter, onUpda
           setMessages(getWelcomeMessage());
         }
       } catch (error) {
-        console.error('Failed to load chat history:', error);
         setMessages(getWelcomeMessage());
       }
     };
@@ -112,7 +106,7 @@ export const ChatAssistant = ({ tweakedResumeId, resumeData, coverLetter, onUpda
         content
       });
     } catch (error) {
-      console.error('Failed to save message:', error);
+      // Silent fail
     }
   };
 
@@ -142,15 +136,6 @@ export const ChatAssistant = ({ tweakedResumeId, resumeData, coverLetter, onUpda
       const currentResumeData = latestResumeDataRef.current;
       const currentCoverLetter = latestCoverLetterRef.current;
       
-      console.log('📤 Sending to chat-assistant:', {
-        messagesCount: newMessages.length,
-        resumeDataName: currentResumeData?.name,
-        resumeDataSkills: currentResumeData?.skills?.map((s: any) => s.skill),
-        resumeDataSkillsCount: currentResumeData?.skills?.length,
-        coverLetter: currentCoverLetter ? 'Present' : 'Missing',
-        lastMessage: newMessages[newMessages.length - 1]?.content
-      });
-      
       const { data, error } = await supabase.functions.invoke('chat-assistant', {
         body: {
           messages: newMessages,
@@ -160,23 +145,6 @@ export const ChatAssistant = ({ tweakedResumeId, resumeData, coverLetter, onUpda
       });
 
       if (error) throw error;
-
-      console.log('📥 ChatAssistant received response:', {
-        hasMessage: !!data.message,
-        hasUpdatedData: !!data.updatedData,
-        hasUpdatedCoverLetter: !!data.updatedCoverLetter,
-        hasChangedSections: !!data.changedSections,
-        updatedDataSkills: data.updatedData?.skills?.map((s: any) => s.skill),
-        updatedDataSkillsCount: data.updatedData?.skills?.length,
-        responseData: data
-      });
-      
-      console.log('🔍 Detailed response analysis:', {
-        dataKeys: Object.keys(data),
-        updatedDataType: typeof data.updatedData,
-        updatedDataValue: data.updatedData,
-        messageValue: data.message
-      });
 
       // Add AI response
       const assistantMsg: Message = {
@@ -191,13 +159,6 @@ export const ChatAssistant = ({ tweakedResumeId, resumeData, coverLetter, onUpda
 
       // If there are updates, apply them
       if (data.updatedData || data.updatedCoverLetter) {
-        console.log("📥 Received update from AI:", {
-          hasUpdatedData: !!data.updatedData,
-          hasUpdatedCoverLetter: !!data.updatedCoverLetter,
-          updatedDataKeys: data.updatedData ? Object.keys(data.updatedData) : [],
-          changedSections: data.changedSections
-        });
-
         // Validate and merge updatedData if present
         let validatedData = data.updatedData;
         if (data.updatedData) {
@@ -205,21 +166,12 @@ export const ChatAssistant = ({ tweakedResumeId, resumeData, coverLetter, onUpda
           const missingFields = requiredFields.filter(field => !data.updatedData[field]);
           
           if (missingFields.length > 0) {
-            console.warn('⚠️ Missing required fields in updatedData:', missingFields);
             // Merge with current resume data to fill missing fields
             validatedData = {
               ...currentResumeData,
               ...data.updatedData
             };
-            console.log('✅ Merged with current resume data');
           }
-          
-          console.log("📤 Calling onUpdate with validated data:", {
-            name: validatedData.name,
-            email: validatedData.email,
-            skillsCount: validatedData.skills?.length || 0,
-            experienceCount: validatedData.experience?.length || 0
-          });
         }
         
         onUpdate(
@@ -238,17 +190,9 @@ export const ChatAssistant = ({ tweakedResumeId, resumeData, coverLetter, onUpda
         
         // Save system message to database
         await saveMessageToDB('system', systemMsg.content);
-      } else {
-        console.log('⚠️ No updates detected in response:', {
-          hasUpdatedData: !!data.updatedData,
-          hasUpdatedCoverLetter: !!data.updatedCoverLetter,
-          dataKeys: Object.keys(data),
-          message: data.message
-        });
       }
 
     } catch (error) {
-      console.error('Chat error:', error);
       const errorMsg: Message = {
         role: 'assistant',
         content: "I'm having trouble processing that request. Please try again or rephrase your question.",
