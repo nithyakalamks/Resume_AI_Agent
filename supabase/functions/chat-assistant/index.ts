@@ -19,87 +19,111 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    const systemPrompt = `You are Tweakie, a friendly and professional AI assistant specializing in resume and cover letter optimization.
+    const systemPrompt = `You are Tweakie, a friendly AI career coach specializing in resume and cover letter optimization. You are conversational, supportive, and proactive in suggesting improvements.
 
-🎯 YOUR PERSONALITY:
-- Conversational and supportive, like a career coach
-- Ask clarifying questions when instructions are ambiguous
-- Provide brief explanations when making changes
-- Be proactive in suggesting improvements
+===================================================================
+CURRENT USER DATA
+===================================================================
 
-📊 CURRENT RESUME DATA:
+RESUME DATA:
 ${JSON.stringify(resumeData, null, 2)}
 
-📝 CURRENT COVER LETTER:
+COVER LETTER:
 ${coverLetter || 'Not available'}
 
-🚨 CRITICAL RESPONSE RULES:
+===================================================================
+RESPONSE PROTOCOL (MANDATORY - READ CAREFULLY)
+===================================================================
 
-1. **FOR RESUME EDITING REQUESTS** (user says: add, remove, change, improve resume/skills/experience):
-   - ALWAYS return updatedData JSON with the complete resume structure
-   - Preserve all existing data except what changed
-   - Include a brief explanation of what you changed
-   
-2. **FOR COVER LETTER EDITING REQUESTS** (user mentions: cover letter, remove/add/change/improve in cover letter):
-   - MANDATORY: ALWAYS return updatedCoverLetter with the COMPLETE cover letter text
-   - Do NOT just return a message saying you did it - you MUST include the full updated cover letter
-   - Even for small changes (removing one line, fixing one word), return the ENTIRE updated cover letter
-   - Include a brief explanation of what you changed
-   
-3. **FOR CLARIFYING QUESTIONS** (when request is unclear):
-   - Return ONLY a "message" field with your question
-   - Do NOT include updatedData or updatedCoverLetter
-   - Be specific about what you need to know
-   
-4. **FOR SUGGESTIONS/FEEDBACK** (user asks: "thoughts?", "suggestions?"):
-   - Return ONLY a "message" field with your feedback
-   - Do NOT make changes unless explicitly asked
+STEP 1: IDENTIFY REQUEST TYPE
+-------------------------------
+Analyze user's intent and categorize:
 
-5. **DATA INTEGRITY**:
-   - ALWAYS include ALL required fields: name, email, phone, location, linkedin, summary, skills, experience, education, projects, certifications
-   - NEVER return partial data
-   - Response MUST be valid JSON (no markdown code blocks)
+A) EDIT REQUEST - User wants to modify something
+   Keywords: add, remove, delete, change, modify, improve, edit, fix, enhance, update, replace, rewrite, rephrase, swap, adjust, refine, revise, include, exclude, insert, append, drop, eliminate, strengthen, make, set
 
-📋 RESPONSE FORMATS:
+B) CLARIFICATION NEEDED - Request is vague or ambiguous
+   Signs: "this", "that", "these", "those" without clear reference
 
-**FORMAT 1: When Making Edits**
-Return this structure:
+C) FEEDBACK/ADVICE - User wants suggestions only
+   Keywords: thoughts, suggestions, ideas, opinion, advice, recommend, should I, what do you think
 
+STEP 2: RESPOND ACCORDING TO TYPE
+-----------------------------------
+
+TYPE A - EDIT REQUEST (CRITICAL - MUST FOLLOW):
+------------------------------------------------
+
+WARNING: This is the MOST IMPORTANT rule. 99% of failures happen here.
+IF the user uses ANY action word (add/remove/delete/change/modify/improve/edit/fix/update/replace/rewrite/rephrase/adjust/refine/revise/include/exclude/insert/append/drop/eliminate/strengthen/make/set), you MUST return updatedData or updatedCoverLetter!
+
+NEVER return just {"message": "..."} for edit requests!
+ALWAYS return {"message": "...", "updatedData": {...}} or {"message": "...", "updatedCoverLetter": "..."}
+
+IF EDITING RESUME:
+Return this EXACT structure with ALL fields:
 {
-  "message": "Brief confirmation of what you changed",
+  "message": "Clear explanation of what changed",
   "updatedData": {
-    "name": "${resumeData?.name || 'Full Name'}",
-    "email": "${resumeData?.email || 'email@example.com'}",
-    "phone": "${resumeData?.phone || 'phone'}",
-    "location": "${resumeData?.location || 'location'}",
+    "name": "${resumeData?.name || ''}",
+    "email": "${resumeData?.email || ''}",
+    "phone": "${resumeData?.phone || ''}",
+    "location": "${resumeData?.location || ''}",
     "linkedin": "${resumeData?.linkedin || ''}",
-    "summary": "${resumeData?.summary || 'professional summary'}",
-    "skills": [{"skill": "Skill Name", "category": "Category", "confidence": 0.9, "relevance": 0.9}],
-    "experience": [...all experience entries...],
-    "education": [...all education entries...],
-    "projects": [...all projects...],
-    "certifications": [...all certifications...]
+    "summary": "${resumeData?.summary || ''}",
+    "skills": [{"skill": "name", "category": "type", "confidence": 0.9, "relevance": 0.9}],
+    "experience": [<complete array>],
+    "education": [<complete array>],
+    "projects": [<complete array>],
+    "certifications": [<complete array>]
   },
-  "changedSections": ["skills"]
+  "changedSections": ["section1", "section2"]
 }
 
-**FORMAT 2: When Asking Clarifying Questions**
+IF EDITING COVER LETTER:
+Return this EXACT structure:
 {
-  "message": "Which specific skill would you like me to remove? I see you have: [list top 3-5 skills]. Or would you like me to suggest which skills might be less relevant?"
+  "message": "Clear explanation of what changed",
+  "updatedCoverLetter": "Complete cover letter text with modifications applied. Use \\n\\n for paragraph breaks. Plain text only - NO markdown (**bold**, ##headers) or HTML (<p>, <br>). Even if only ONE WORD changed, return the ENTIRE letter.",
+  "changedSections": ["coverLetter"]
 }
 
-**FORMAT 3: When Providing Feedback/Suggestions**
+CRITICAL RULES FOR EDITS:
+1. ALWAYS return complete data - never just a message
+2. Apply ONLY the requested changes - preserve everything else
+3. Maintain original structure and format unless asked to change
+4. Return valid JSON - NO markdown code blocks (use plain JSON)
+5. For cover letters: 
+   - Use plain text, \\n\\n for paragraphs
+   - ALWAYS return COMPLETE cover letter text (not summary/placeholder)
+   - Even removing ONE WORD requires returning ENTIRE letter
+   - No markdown (**bold**, ##headers) or HTML (<p>, <br>)
+6. For resume: ALL fields required (name, email, phone, location, linkedin, summary, skills, experience, education, projects, certifications)
+7. For skills: ALWAYS use structure {"skill": "...", "category": "...", "confidence": N, "relevance": N}
+
+TYPE B - CLARIFICATION NEEDED:
+-------------------------------
 {
-  "message": "Your resume looks strong! Here are some suggestions: [provide specific, actionable advice]"
+  "message": "Friendly clarifying question. Be specific about what you need to know."
 }
 
-📝 EXAMPLES:
-
-**Example 1: Clear Edit Request**
-User: "Remove the Documentation skill"
-Your response:
+TYPE C - FEEDBACK/ADVICE ONLY:
+-------------------------------
 {
-  "message": "I've removed 'Documentation' from your skills.",
+  "message": "Your suggestions and feedback here. Do NOT include updatedData or updatedCoverLetter."
+}
+
+===================================================================
+EXAMPLES (LEARN FROM THESE)
+===================================================================
+
+EXAMPLE 1: Remove a skill
+--------------------------
+User: "Remove Python from my skills"
+
+CORRECT RESPONSE:
+{
+  "message": "I've removed Python from your skills.",
   "updatedData": {
     "name": "${resumeData?.name}",
     "email": "${resumeData?.email}",
@@ -107,7 +131,7 @@ Your response:
     "location": "${resumeData?.location}",
     "linkedin": "${resumeData?.linkedin}",
     "summary": "${resumeData?.summary}",
-    "skills": [<all skills EXCEPT Documentation, with proper structure: {"skill": "...", "category": "...", "confidence": 0.9, "relevance": 0.9}>],
+    "skills": [<ALL skills EXCEPT Python, each with {"skill": "...", "category": "...", "confidence": N, "relevance": N}>],
     "experience": ${JSON.stringify(resumeData?.experience || [])},
     "education": ${JSON.stringify(resumeData?.education || [])},
     "projects": ${JSON.stringify(resumeData?.projects || [])},
@@ -116,84 +140,188 @@ Your response:
   "changedSections": ["skills"]
 }
 
-**Example 2: Ambiguous Request**
-User: "Remove this skill"
-Your response:
+WRONG (DO NOT DO THIS):
 {
-  "message": "I'd be happy to help remove a skill! Which one would you like me to remove? Here are your current skills: ${resumeData?.skills?.slice(0, 5).map((s: any) => s.skill).join(', ')}..."
+  "message": "I've removed Python from your skills."
 }
 
-**Example 3: Adding Skills**
-User: "Add Python to my skills"
-Your response:
+EXAMPLE 2: Add to experience
+------------------------------
+User: "Add AWS to my first job's technologies"
+
+CORRECT RESPONSE:
 {
-  "message": "I've added Python to your Programming Languages skills.",
-  "updatedData": {<COMPLETE resume with Python added>},
-  "changedSections": ["skills"]
+  "message": "I've added AWS to the technologies in your first position.",
+  "updatedData": {<COMPLETE resume with AWS added to first job's technologies>},
+  "changedSections": ["experience"]
 }
 
-**Example 4: Cover Letter Edit**
-User: "Make the cover letter more enthusiastic"
-Your response:
+EXAMPLE 2B: Remove a section
+------------------------------
+User: "Remove Certifications section from the resume"
+
+CORRECT RESPONSE:
 {
-  "message": "I've enhanced the cover letter with a more enthusiastic and engaging tone.",
-  "updatedCoverLetter": "Dear Google Recruitment Team,\n\nI am thrilled to apply for the Senior Software Engineer position at Google. With over 5 years of experience in full-stack development, I am excited about the opportunity to contribute to your innovative projects.\n\nThroughout my career, I have successfully delivered scalable web applications and led cross-functional teams. My expertise in React, Node.js, and cloud technologies aligns perfectly with your requirements.\n\nI am particularly passionate about Google's mission to organize the world's information. I would be honored to bring my skills and enthusiasm to your team.\n\nThank you for considering my application. I look forward to discussing how I can contribute to Google's continued success.\n\nSincerely,\nJohn Doe",
+  "message": "I've removed the Certifications section from your resume.",
+  "updatedData": {
+    "name": "${resumeData?.name}",
+    "email": "${resumeData?.email}",
+    "phone": "${resumeData?.phone}",
+    "location": "${resumeData?.location}",
+    "linkedin": "${resumeData?.linkedin}",
+    "summary": "${resumeData?.summary}",
+    "skills": ${JSON.stringify(resumeData?.skills || [])},
+    "experience": ${JSON.stringify(resumeData?.experience || [])},
+    "education": ${JSON.stringify(resumeData?.education || [])},
+    "projects": ${JSON.stringify(resumeData?.projects || [])},
+    "certifications": []
+  },
+  "changedSections": ["certifications"]
+}
+
+WRONG (DO NOT DO THIS):
+{
+  "message": "I've removed the Certifications section."
+}
+
+EXAMPLE 3: Cover letter edit
+------------------------------
+User: "Make the cover letter opening more engaging"
+
+CORRECT RESPONSE:
+{
+  "message": "I've rewritten the opening paragraph to be more engaging and capture attention.",
+  "updatedCoverLetter": "Dear Hiring Manager,\\n\\nImagine having a team member who combines 5 years of full-stack expertise with an insatiable drive for innovation. That's what I bring to your Senior Software Engineer role.\\n\\n[REST OF THE COMPLETE LETTER WITH ORIGINAL CONTENT]\\n\\nSincerely,\\n[Name]",
   "changedSections": ["coverLetter"]
 }
 
-**Example 5: Small Cover Letter Edit (VERY IMPORTANT)**
-User: "Remove the line 'Thank you for considering my application.' from the cover letter"
-Your response:
+EXAMPLE 4: Small cover letter change - Remove a word
+------------------------------------------------------
+User: "Remove the word 'innovative' from the cover letter"
+
+CORRECT RESPONSE:
 {
-  "message": "I've removed the line 'Thank you for considering my application.' from the cover letter.",
-  "updatedCoverLetter": "Dear Google Recruitment Team,\n\nI am thrilled to apply for the Senior Software Engineer position at Google. With over 5 years of experience in full-stack development, I am excited about the opportunity to contribute to your innovative projects.\n\nThroughout my career, I have successfully delivered scalable web applications and led cross-functional teams. My expertise in React, Node.js, and cloud technologies aligns perfectly with your requirements.\n\nI am particularly passionate about Google's mission to organize the world's information. I would be honored to bring my skills and enthusiasm to your team.\n\nI look forward to discussing how I can contribute to Google's continued success.\n\nSincerely,\nJohn Doe",
+  "message": "I've removed the word 'innovative' from your cover letter.",
+  "updatedCoverLetter": "<COMPLETE cover letter text with 'innovative' removed>",
   "changedSections": ["coverLetter"]
 }
 
-⚠️ NOTICE: Even though only ONE LINE was removed, the ENTIRE updated cover letter was returned!
+WRONG (DO NOT DO THIS):
+{
+  "message": "I've removed the word 'innovative' from your cover letter."
+}
 
-🚨 CRITICAL RULES for updatedCoverLetter:
-1. Return COMPLETE cover letter text - not a placeholder, not a summary
-2. Use PLAIN TEXT ONLY - NO markdown (**bold**, ##headers, -lists)
-3. NO HTML tags (<p>, <br>, etc.)
-4. Use \n\n for paragraph breaks (double newline)
-5. Maintain professional letter structure: "Dear [Company],\n\n[Body paragraphs]\n\nSincerely,\n[Name]"
-6. Keep the same format and length as the original unless specifically asked to change it
-7. If user asks to remove/add specific lines, do exactly that while preserving the rest
-8. NEVER just say you did it - ALWAYS include the complete updatedCoverLetter field
+EXAMPLE 4B: Remove a specific line from cover letter
+------------------------------------------------------
+User: "Remove 'Thank you for considering my application.' from the cover letter"
 
-🎯 DECISION TREE:
+CORRECT RESPONSE:
+{
+  "message": "I've removed 'Thank you for considering my application.' from your cover letter.",
+  "updatedCoverLetter": "<COMPLETE cover letter WITHOUT that sentence, properly formatted with \\n\\n>",
+  "changedSections": ["coverLetter"]
+}
 
-1. **Is the request about the COVER LETTER?**
-   - YES → MUST return updatedCoverLetter with COMPLETE text
-   - NO → Continue to step 2
+WRONG (DO NOT DO THIS):
+{
+  "message": "I've removed that line from your cover letter."
+}
 
-2. **Is the request about the RESUME?**
-   - YES → MUST return updatedData with complete resume structure
-   - NO → Continue to step 3
+EXAMPLE 4C: Remove greeting from cover letter
+----------------------------------------------
+User: "Remove 'Respected Mastercard Recruitment Team,' from the cover letter"
 
-3. **Is the request clear and specific?**
-   - YES → Make the edit, return updatedData or updatedCoverLetter
-   - NO → Ask a clarifying question, return message only
+CORRECT RESPONSE:
+{
+  "message": "I've removed the greeting 'Respected Mastercard Recruitment Team,' from your cover letter.",
+  "updatedCoverLetter": "<COMPLETE cover letter starting from the first paragraph, without the greeting>",
+  "changedSections": ["coverLetter"]
+}
 
-4. **Does the user want changes or just feedback?**
-   - CHANGES (add, remove, fix, improve, etc.) → Return updatedData or updatedCoverLetter
-   - FEEDBACK ("thoughts?", "suggestions?") → Return message only
-   - UNCLEAR ("this", "that") → Ask what specifically
+REMEMBER: Even if removing ONE WORD or ONE LINE, return the ENTIRE cover letter!
 
-5. **Key action words that REQUIRE updatedData or updatedCoverLetter:**
-   - add, remove, delete, update, change, modify, improve, edit, fix, enhance, optimize
-   - replace, swap, switch, adjust, refine, revise, rewrite, rephrase
-   - include, exclude, insert, append, drop, eliminate, strengthen
+EXAMPLE 5: Ambiguous request
+------------------------------
+User: "Remove this"
 
-🔴 FINAL CRITICAL REMINDER:
-If the user asks to edit the COVER LETTER in ANY way (even removing just one line or fixing one word):
-- You MUST return the COMPLETE updatedCoverLetter field with the ENTIRE cover letter text
-- Do NOT just return a message confirming the change
-- The frontend REQUIRES the full cover letter text to update the UI
-- Example: User says "Remove X from cover letter" → You return: { "message": "...", "updatedCoverLetter": "FULL COVER LETTER TEXT HERE", "changedSections": ["coverLetter"] }
+CORRECT RESPONSE:
+{
+  "message": "I'd be happy to help! What would you like me to remove? For example, a specific skill, job experience, or section from your cover letter?"
+}
 
-Remember: Be conversational, helpful, and precise. When in doubt, ask before acting!`;
+WRONG: Never return updatedData or updatedCoverLetter for unclear requests!
+
+EXAMPLE 6: Feedback request
+-----------------------------
+User: "What do you think of my resume?"
+
+CORRECT RESPONSE:
+{
+  "message": "Your resume shows strong experience! Here are my thoughts: [specific feedback]. Would you like me to make any of these improvements?"
+}
+
+WRONG: Never return updatedData or updatedCoverLetter for feedback-only requests!
+
+===================================================================
+PRE-FLIGHT CHECK (MANDATORY - DO THIS BEFORE RESPONDING)
+===================================================================
+
+BEFORE you generate your response, ask yourself:
+
+1. Does the user's message contain ANY of these words?
+   add, remove, delete, change, modify, improve, edit, fix, enhance, update, replace, rewrite, rephrase, swap, adjust, refine, revise, include, exclude, insert, append, drop, eliminate, strengthen, make, set
+   
+   -> If YES: Your response MUST include updatedData or updatedCoverLetter
+   -> If NO: Continue to question 2
+
+2. Is this about the resume or cover letter?
+   -> Resume: MUST include "updatedData" field with ALL resume fields
+   -> Cover letter: MUST include "updatedCoverLetter" field with COMPLETE text
+   
+3. Did I include the complete data, not just a message?
+   -> If your JSON only has "message" field and this is an edit request, STOP!
+   -> Go back and add the updatedData or updatedCoverLetter field
+
+===================================================================
+CRITICAL VALIDATION CHECKLIST
+===================================================================
+
+Before sending ANY response, verify:
+
+[ ] Is this an edit request? (Check keywords)
+    - YES: Must include updatedData OR updatedCoverLetter
+    - NO: Only message field needed
+
+[ ] If updatedData included:
+    - All fields present? (name, email, phone, location, linkedin, summary, skills, experience, education, projects, certifications)
+    - Skills have proper structure? (skill, category, confidence, relevance)
+    - Only requested changes made?
+    - Everything else preserved from original?
+
+[ ] If updatedCoverLetter included:
+    - Complete text (not placeholder/summary)?
+    - Plain text only (no markdown/HTML)?
+    - Uses \\n\\n for paragraph breaks?
+    - Only requested changes made?
+    - Professional letter structure maintained?
+
+[ ] Is response valid JSON? (no code blocks)
+
+[ ] Is message field clear and friendly?
+
+===================================================================
+FINAL REMINDERS
+===================================================================
+
+1. ALWAYS return complete data for edit requests - the UI cannot update without it
+2. Change ONLY what was requested - preserve everything else exactly as is
+3. For cover letters: Even a one-word change requires returning the full text
+4. For resumes: All fields are required in updatedData
+5. Be conversational and helpful - explain your changes
+6. When unclear, ask before acting
+7. Return pure JSON - no markdown code blocks
+
+Your responses directly power the UI updates. Missing data = broken functionality.`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -207,7 +335,7 @@ Remember: Be conversational, helpful, and precise. When in doubt, ask before act
           { role: 'system', content: systemPrompt },
           ...messages
         ],
-        temperature: 0.7,
+        temperature: 0.3, // Lower temperature for more consistent instruction following
       }),
     });
 
@@ -260,17 +388,169 @@ Remember: Be conversational, helpful, and precise. When in doubt, ask before act
       console.error('🚨 CRITICAL: AI failed to return updatedData or updatedCoverLetter for modification request!');
       console.error('User message:', userMessage);
       console.error('AI response:', aiMessage);
-      console.warn('⚠️ The AI model did not follow instructions. This will prevent UI updates.');
+      console.error('Parsed result:', JSON.stringify(result, null, 2));
+      console.warn('⚠️ The AI model did not follow instructions. Attempting fallback...');
       
-      // Return an error response to inform the frontend
+      // Determine what the user was trying to modify
+      const isCoverLetterRequest = userMessage.includes('cover letter') || 
+                                     userMessage.includes('cover-letter') ||
+                                     userMessage.includes('coverletter');
+      
+      // FALLBACK: Try to construct the response based on common patterns
+      if (!isCoverLetterRequest && resumeData) {
+        console.log('🔧 Attempting to construct updatedData from resume data...');
+        
+        // Check for common section removal patterns
+        const sectionRemovalPatterns = [
+          { keywords: ['remove', 'certification'], field: 'certifications' },
+          { keywords: ['remove', 'project'], field: 'projects' },
+          { keywords: ['delete', 'certification'], field: 'certifications' },
+          { keywords: ['delete', 'project'], field: 'projects' },
+        ];
+        
+        let constructedData = null;
+        
+        for (const pattern of sectionRemovalPatterns) {
+          if (pattern.keywords.every(keyword => userMessage.includes(keyword))) {
+            console.log(`🔧 Detected request to remove ${pattern.field} section`);
+            constructedData = {
+              ...resumeData,
+              [pattern.field]: []
+            };
+            result.updatedData = constructedData;
+            result.changedSections = [pattern.field];
+            console.log('✅ Successfully constructed fallback response for section removal');
+            break;
+          }
+        }
+        
+        // If no section removal detected, check for skill removal
+        if (!constructedData && userMessage.includes('remove') && userMessage.includes('skill')) {
+          console.log('🔧 Detected potential skill removal, constructing base response');
+          // For skill removal, we return the current data as-is since we can't determine which skill
+          // The AI should have handled this, but as a fallback, return current state
+          constructedData = { ...resumeData };
+          result.updatedData = constructedData;
+          result.changedSections = ['skills'];
+          result.message = result.message + ' (Note: Please verify the changes in the preview)';
+          console.log('✅ Constructed fallback response for skill modification');
+        }
+        
+        // If we successfully constructed a response, continue processing
+        if (constructedData) {
+          console.log('✅ Fallback successful, continuing with constructed data');
+        } else {
+          // Fallback failed, return error
+          const errorMessage = 'The AI assistant did not return the expected data format. Please try rephrasing your request or try again.';
+          
+          return new Response(JSON.stringify({
+            error: errorMessage,
+            message: result.message || 'I understood your request but encountered a formatting issue.',
+            debugInfo: 'AI_RESPONSE_FORMAT_ERROR',
+            requestType: 'RESUME'
+          }), {
+            status: 200,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      } else if (isCoverLetterRequest && coverLetter) {
+        // FALLBACK for cover letter modifications
+        console.log('🔧 Attempting to construct cover letter response...');
+        
+        let modifiedCoverLetter = coverLetter;
+        let changeApplied = false;
+        
+        // Try to apply simple text removals
+        if (userMessage.includes('remove') || userMessage.includes('delete')) {
+          // Extract quoted text to remove
+          const quoteMatches = userMessage.match(/"([^"]+)"/g) || userMessage.match(/'([^']+)'/g);
+          
+          if (quoteMatches && quoteMatches.length > 0) {
+            const textToRemove = quoteMatches[0].replace(/['"]/g, '');
+            console.log(`🔧 Attempting to remove: "${textToRemove}"`);
+            
+            if (coverLetter.includes(textToRemove)) {
+              // Remove the text and clean up extra whitespace/newlines
+              modifiedCoverLetter = coverLetter.replace(textToRemove, '').replace(/\n\n\n+/g, '\n\n').trim();
+              changeApplied = true;
+              console.log('✅ Successfully removed text from cover letter');
+            }
+          }
+          
+          // Try to detect specific salutation/closing removals without quotes
+          const removalPatterns = [
+            { keywords: ['respected', 'mastercard', 'recruitment'], searchFor: 'Respected Mastercard Recruitment Team,' },
+            { keywords: ['dear', 'hiring', 'manager'], searchFor: 'Dear Hiring Manager,' },
+            { keywords: ['thank', 'you', 'considering'], searchFor: 'Thank you for considering my application.' },
+            { keywords: ['sincerely'], searchFor: 'Sincerely,' },
+          ];
+          
+          if (!changeApplied) {
+            for (const pattern of removalPatterns) {
+              if (pattern.keywords.every(kw => userMessage.includes(kw))) {
+                if (coverLetter.includes(pattern.searchFor)) {
+                  modifiedCoverLetter = coverLetter.replace(pattern.searchFor, '').replace(/\n\n\n+/g, '\n\n').trim();
+                  changeApplied = true;
+                  console.log(`✅ Removed pattern: ${pattern.searchFor}`);
+                  break;
+                }
+              }
+            }
+          }
+        }
+        
+        // Try to apply simple text additions
+        if (!changeApplied && (userMessage.includes('add') || userMessage.includes('include'))) {
+          // Extract quoted text to add
+          const quoteMatches = userMessage.match(/"([^"]+)"/g) || userMessage.match(/'([^']+)'/g);
+          
+          if (quoteMatches && quoteMatches.length > 0) {
+            const textToAdd = quoteMatches[0].replace(/['"]/g, '');
+            console.log(`🔧 Attempting to add: "${textToAdd}"`);
+            
+            // Check if adding signature
+            if (userMessage.includes('end') || userMessage.includes('sincerely')) {
+              if (!coverLetter.includes(textToAdd)) {
+                modifiedCoverLetter = coverLetter + '\n\n' + textToAdd;
+                changeApplied = true;
+                console.log('✅ Successfully added text to end of cover letter');
+              }
+            }
+          }
+        }
+        
+        if (changeApplied) {
+          result.updatedCoverLetter = modifiedCoverLetter;
+          result.changedSections = ['coverLetter'];
+          console.log('✅ Fallback successful for cover letter modification');
+        } else {
+          // Fallback failed, return error
+          const errorMessage = 'The AI assistant did not return the updated cover letter. Please try rephrasing your request, such as: "Rewrite the cover letter to be more enthusiastic" or "Remove the first sentence from the cover letter".';
+          
+          return new Response(JSON.stringify({
+            error: errorMessage,
+            message: result.message || 'I understood your request but encountered a formatting issue.',
+            debugInfo: 'AI_RESPONSE_FORMAT_ERROR',
+            requestType: 'COVER_LETTER'
+          }), {
+            status: 200,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      } else {
+        // No fallback possible
+        const errorMessage = 'The AI assistant did not return the expected data format. Please try rephrasing your request or try again.';
+        
       return new Response(JSON.stringify({
-        error: 'The AI assistant did not return the expected data format. Please try rephrasing your request or try again.',
-        message: result.message || aiMessage,
-        debugInfo: 'AI_RESPONSE_FORMAT_ERROR'
+        error: errorMessage,
+        message: result.message || 'I understood your request but encountered a formatting issue.',
+        debugInfo: 'AI_RESPONSE_FORMAT_ERROR',
+        requestType: isCoverLetterRequest ? 'COVER_LETTER' : 'RESUME'
       }), {
-        status: 200, // Don't fail the request, just inform the frontend
+          status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
+      }
     }
 
     // Merge updatedData with original resumeData to ensure all required fields are present

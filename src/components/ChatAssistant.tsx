@@ -275,18 +275,30 @@ Please try again and include the required field.`,
             continue;
           }
           
-          // Final attempt failed - show warning but still display message
+          // Final attempt failed - show error and don't display the invalid message
           console.error('🚨 All retry attempts failed validation');
+          
+          const errorMsg: Message = {
+            role: 'assistant',
+            content: "I apologize, but I'm having trouble processing your request in the correct format. Could you please try rephrasing it? For example:\n\n• \"Remove the skill 'Documentation' from my resume\"\n• \"Add Python to my programming skills\"\n• \"Rewrite the first paragraph of my cover letter\"",
+            timestamp: Date.now()
+          };
+          setMessages(prev => [...prev, errorMsg]);
+          await saveMessageToDB('assistant', errorMsg.content);
+          
           toast({
-            title: "Response Format Issue",
-            description: "The AI didn't return the expected format. Please try rephrasing your request.",
+            title: "Request Processing Failed",
+            description: "Please try rephrasing your request more specifically.",
             variant: "destructive"
           });
-        } else {
-          console.log(`✅ Attempt ${attempt} - Response validated successfully`);
+          
+          // Break out of the loop since we've exhausted all retries
+          break;
         }
+        
+        console.log(`✅ Attempt ${attempt} - Response validated successfully`);
 
-        // Add AI response
+        // Add AI response only if validation passed
         const assistantMsg: Message = {
           role: 'assistant',
           content: data.message,
@@ -297,8 +309,8 @@ Please try again and include the required field.`,
         // Save assistant message to database
         await saveMessageToDB('assistant', data.message);
 
-        // If there are updates and validation passed, apply them
-        if ((data.updatedData || data.updatedCoverLetter) && validation.valid) {
+        // If there are updates, apply them
+        if (data.updatedData || data.updatedCoverLetter) {
           // Validate and merge updatedData if present
           let validatedData = data.updatedData;
           if (data.updatedData) {
