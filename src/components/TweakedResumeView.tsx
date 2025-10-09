@@ -226,16 +226,16 @@ export const TweakedResumeView = ({
       {!isChatOpen && (
         <button
           onClick={() => setIsChatOpen(true)}
-          className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-gradient-to-br from-primary to-accent shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-50 group"
+          className="fixed bottom-6 right-6 w-20 h-20 rounded-full bg-gradient-to-br from-primary to-accent shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-50 group animate-bounce hover:animate-none"
           aria-label="Open Tweakie Assistant"
         >
           <img 
             src={tweakieAvatar} 
             alt="Tweakie" 
-            className="w-10 h-10 rounded-full object-cover"
+            className="w-16 h-16 rounded-full object-cover"
           />
-          <div className="absolute -top-2 -right-2 w-6 h-6 bg-accent rounded-full flex items-center justify-center animate-pulse">
-            <span className="text-xs font-bold text-primary">AI</span>
+          <div className="absolute -top-2 -right-2 bg-primary/90 text-white text-xs px-3 py-1 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+            Talk to Tweakie
           </div>
         </button>
       )}
