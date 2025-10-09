@@ -8,9 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Eye, Download, Trash2 } from "lucide-react";
 import { TweakedResumeView } from "@/components/TweakedResumeView";
 import { ResumeTemplate } from "@/components/ResumeTemplate";
-import { ChatAssistant } from "@/components/ChatAssistant";
 import html2pdf from "html2pdf.js";
-import tweakieMascot from "@/assets/tweakie-mascot.png";
 
 interface JobHistoryProps {
   userId: string;
@@ -26,7 +24,6 @@ export const JobHistory = ({ userId, selectedId }: JobHistoryProps) => {
   const [downloadingCover, setDownloadingCover] = useState(false);
   const [downloadingResume, setDownloadingResume] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
-  const [isChatOpen, setIsChatOpen] = useState(false);
   const { toast } = useToast();
 
   // Helper functions for score display
@@ -348,37 +345,6 @@ export const JobHistory = ({ userId, selectedId }: JobHistoryProps) => {
             </div>
           )}
         </div>
-
-        {/* Floating Tweakie Mascot Button */}
-        {!isChatOpen && (
-          <button
-            onClick={() => setIsChatOpen(true)}
-            className="fixed bottom-6 right-6 w-24 h-24 z-40 hover:scale-110 transition-transform cursor-pointer group animate-gentle-bounce"
-            aria-label="Chat with Tweakie"
-          >
-            <img 
-              src={tweakieMascot} 
-              alt="Chat with Tweakie" 
-              className="w-full h-full object-cover rounded-full drop-shadow-2xl border-4 border-accent"
-            />
-            <div className="absolute -top-2 -right-2 bg-gradient-to-br from-primary to-accent text-white text-xs px-2 py-1 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-              Chat with me!
-            </div>
-          </button>
-        )}
-
-        {/* Floating Chat Assistant */}
-        {isChatOpen && (
-          <div className="fixed bottom-4 right-4 w-[400px] h-[600px] shadow-2xl rounded-lg z-50 overflow-hidden">
-            <ChatAssistant
-              tweakedResumeId={selectedVersion.id}
-              resumeData={selectedVersion.tweaked_data}
-              coverLetter={selectedVersion.cover_letter}
-              onUpdate={handleDataUpdate}
-              onClose={() => setIsChatOpen(false)}
-            />
-          </div>
-        )}
 
       </div>
     );
