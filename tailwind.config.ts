@@ -117,7 +117,7 @@ export default {
         "gradient-shift": "gradient-shift 3s ease infinite",
         "gear-rotate": "gear-rotate 20s linear infinite",
         "gradient-border": "gradient-border 3s ease infinite",
-        "gentle-bounce": "gentle-bounce 2s ease-in-out infinite",
+        "gentle-bounce": "gentle-bounce 3.5s ease-in-out infinite",
       },
     },
   },
