@@ -267,7 +267,7 @@ export const ChatAssistant = ({ tweakedResumeId, resumeData, coverLetter, onUpda
             <div className="flex justify-start">
               <div className="bg-white/80 backdrop-blur-sm border border-primary/20 rounded-lg p-3 flex items-center gap-2">
                 <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                <span className="text-xs text-muted-foreground">Tweaker is thinking...</span>
+                <span className="text-xs text-muted-foreground">Tweakie is thinking...</span>
               </div>
             </div>
           )}
