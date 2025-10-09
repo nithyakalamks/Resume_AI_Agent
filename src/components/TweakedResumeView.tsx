@@ -1,7 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { ArrowRight, CheckCircle2, Download } from "lucide-react";
+import tweakieAvatar from "@/assets/tweakie-avatar.png";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { ResumeTemplate } from "@/components/ResumeTemplate";
@@ -67,10 +66,7 @@ export const TweakedResumeView = ({
   missingSkills,
   onDataUpdate
 }: TweakedResumeViewProps) => {
-  const {
-    toast
-  } = useToast();
-  const [downloading, setDownloading] = useState(false);
+  const { toast } = useToast();
   const [currentTweakedData, setCurrentTweakedData] = useState(tweakedData);
   const [currentCoverLetter, setCurrentCoverLetter] = useState(coverLetter);
   const [changedSections, setChangedSections] = useState<string[]>([]);
@@ -227,7 +223,22 @@ export const TweakedResumeView = ({
       </Tabs>
 
       {/* Floating Chat Button - visible when chat is closed */}
-      {!isChatOpen}
+      {!isChatOpen && (
+        <button
+          onClick={() => setIsChatOpen(true)}
+          className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-gradient-to-br from-primary to-accent shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-50 group"
+          aria-label="Open Tweakie Assistant"
+        >
+          <img 
+            src={tweakieAvatar} 
+            alt="Tweakie" 
+            className="w-10 h-10 rounded-full object-cover"
+          />
+          <div className="absolute -top-2 -right-2 w-6 h-6 bg-accent rounded-full flex items-center justify-center animate-pulse">
+            <span className="text-xs font-bold text-primary">AI</span>
+          </div>
+        </button>
+      )}
 
       {/* Floating Chat Panel - visible when chat is open */}
       {isChatOpen && <div className="fixed bottom-6 right-6 w-96 h-[500px] shadow-2xl rounded-lg overflow-hidden z-50">
