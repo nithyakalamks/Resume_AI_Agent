@@ -206,13 +206,7 @@ export const TweakedResumeView = ({
         <TabsContent value="cover" className="mt-6">
           <Card className={`p-8 transition-all duration-500 ${changedSections.includes('coverLetter') ? 'ring-2 ring-accent shadow-lg' : ''}`}>
             <div className="prose prose-sm max-w-none">
-              {currentCoverLetter ? <pre 
-                key={`cover-letter-${renderKey}-${currentCoverLetter?.length || 0}`}
-                id="cover-letter-content" 
-                className="whitespace-pre-wrap text-sm font-sans"
-              >
-                {currentCoverLetter}
-              </pre> : <p className="text-muted-foreground text-center py-8">
+              {currentCoverLetter ? <pre id="cover-letter-content" className="whitespace-pre-wrap text-sm font-sans">{currentCoverLetter}</pre> : <p className="text-muted-foreground text-center py-8">
                   No cover letter available
                 </p>}
             </div>
