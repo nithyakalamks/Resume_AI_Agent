@@ -116,6 +116,84 @@ export const ChatAssistant = ({ tweakedResumeId, resumeData, coverLetter, onUpda
     }
   }, [messages]);
 
+  // Validate response structure based on user request
+  const validateResponse = (userMessage: string, responseData: any): { valid: boolean; reason?: string } => {
+    const lowerMessage = userMessage.toLowerCase();
+    
+    // Check if this is a modification request
+    const modificationKeywords = [
+      'add', 'remove', 'delete', 'update', 'change', 'modify', 'improve', 
+      'edit', 'fix', 'enhance', 'optimize', 'replace', 'swap', 'rewrite'
+    ];
+    const isModificationRequest = modificationKeywords.some(keyword => lowerMessage.includes(keyword));
+    
+    // If not a modification request, any response is valid
+    if (!isModificationRequest) {
+      return { valid: true };
+    }
+    
+    // Check if request is about cover letter
+    const isCoverLetterRequest = lowerMessage.includes('cover letter') || 
+                                  lowerMessage.includes('cover-letter') ||
+                                  lowerMessage.includes('coverletter');
+    
+    // Check if request is about resume
+    const isResumeRequest = !isCoverLetterRequest && (
+      lowerMessage.includes('resume') ||
+      lowerMessage.includes('skill') ||
+      lowerMessage.includes('experience') ||
+      lowerMessage.includes('project') ||
+      lowerMessage.includes('education') ||
+      lowerMessage.includes('summary') ||
+      lowerMessage.includes('intern') ||
+      lowerMessage.includes('bullet') ||
+      lowerMessage.includes('description')
+    );
+    
+    // Validation rules
+    if (isCoverLetterRequest) {
+      if (!responseData.updatedCoverLetter) {
+        return { 
+          valid: false, 
+          reason: 'Cover letter modification requested but no updatedCoverLetter in response' 
+        };
+      }
+      if (responseData.updatedCoverLetter.length < 100) {
+        return { 
+          valid: false, 
+          reason: 'updatedCoverLetter is too short (likely a placeholder)' 
+        };
+      }
+      if (responseData.updatedCoverLetter.includes('<updated') || 
+          responseData.updatedCoverLetter.includes('placeholder')) {
+        return { 
+          valid: false, 
+          reason: 'updatedCoverLetter contains placeholder text' 
+        };
+      }
+    }
+    
+    if (isResumeRequest) {
+      if (!responseData.updatedData) {
+        return { 
+          valid: false, 
+          reason: 'Resume modification requested but no updatedData in response' 
+        };
+      }
+      // Check for required fields
+      const requiredFields = ['name', 'email', 'skills', 'experience'];
+      const missingFields = requiredFields.filter(field => !responseData.updatedData[field]);
+      if (missingFields.length > 0) {
+        return { 
+          valid: false, 
+          reason: `updatedData missing required fields: ${missingFields.join(', ')}` 
+        };
+      }
+    }
+    
+    return { valid: true };
+  };
+
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
@@ -131,68 +209,137 @@ export const ChatAssistant = ({ tweakedResumeId, resumeData, coverLetter, onUpda
     
     setIsLoading(true);
 
+    const MAX_RETRIES = 3;
+    let attempt = 0;
+    let lastError: any = null;
+
     try {
       // Always use the latest resume data from refs
       const currentResumeData = latestResumeDataRef.current;
       const currentCoverLetter = latestCoverLetterRef.current;
       
-      const { data, error } = await supabase.functions.invoke('chat-assistant', {
-        body: {
-          messages: newMessages,
-          resumeData: currentResumeData,
-          coverLetter: currentCoverLetter
-        }
-      });
-
-      if (error) throw error;
-
-      // Add AI response
-      const assistantMsg: Message = {
-        role: 'assistant',
-        content: data.message,
-        timestamp: Date.now()
-      };
-      setMessages(prev => [...prev, assistantMsg]);
+      // Retry loop
+      let messagesForRetry = newMessages;
       
-      // Save assistant message to database
-      await saveMessageToDB('assistant', data.message);
-
-      // If there are updates, apply them
-      if (data.updatedData || data.updatedCoverLetter) {
-        // Validate and merge updatedData if present
-        let validatedData = data.updatedData;
-        if (data.updatedData) {
-          const requiredFields = ['name', 'email', 'phone'];
-          const missingFields = requiredFields.filter(field => !data.updatedData[field]);
-          
-          if (missingFields.length > 0) {
-            // Merge with current resume data to fill missing fields
-            validatedData = {
-              ...currentResumeData,
-              ...data.updatedData
-            };
+      while (attempt < MAX_RETRIES) {
+        attempt++;
+        
+        console.log(`🔄 Attempt ${attempt}/${MAX_RETRIES} - Calling chat-assistant...`);
+        
+        const { data, error } = await supabase.functions.invoke('chat-assistant', {
+          body: {
+            messages: messagesForRetry,
+            resumeData: currentResumeData,
+            coverLetter: currentCoverLetter
           }
+        });
+
+        if (error) {
+          lastError = error;
+          console.error(`❌ Attempt ${attempt} failed with error:`, error);
+          
+          if (attempt < MAX_RETRIES) {
+            console.log('⏳ Retrying...');
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1s before retry
+            continue;
+          }
+          throw error;
         }
+
+        // Validate response structure
+        const validation = validateResponse(userMessage, data);
         
-        onUpdate(
-          validatedData || currentResumeData,
-          data.updatedCoverLetter || currentCoverLetter,
-          data.changedSections
-        );
-        
-        // Add system message with success indicator
-        const systemMsg: Message = {
-          role: 'system',
-          content: '✅ Resume updated successfully. Changes are highlighted in the preview.',
+        if (!validation.valid) {
+          console.warn(`⚠️ Attempt ${attempt} - Invalid response:`, validation.reason);
+          console.log('Response data:', data);
+          
+          if (attempt < MAX_RETRIES) {
+            console.log('⏳ Retrying with correction message...');
+            
+            // Add a correction message to help the AI understand what went wrong
+            const correctionMessage = {
+              role: 'system' as const,
+              content: `ERROR: Your previous response was invalid. ${validation.reason}. 
+
+CRITICAL: You MUST include the "${userMessage.toLowerCase().includes('cover letter') ? 'updatedCoverLetter' : 'updatedData'}" field in your JSON response with the COMPLETE ${userMessage.toLowerCase().includes('cover letter') ? 'cover letter text' : 'resume data'}.
+
+Do NOT just return a message. Return the FULL JSON structure with the ${userMessage.toLowerCase().includes('cover letter') ? 'complete cover letter' : 'complete resume'}.
+
+Please try again and include the required field.`,
+              timestamp: Date.now()
+            };
+            
+            messagesForRetry = [...messagesForRetry, correctionMessage];
+            
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1s before retry
+            continue;
+          }
+          
+          // Final attempt failed - show warning but still display message
+          console.error('🚨 All retry attempts failed validation');
+          toast({
+            title: "Response Format Issue",
+            description: "The AI didn't return the expected format. Please try rephrasing your request.",
+            variant: "destructive"
+          });
+        } else {
+          console.log(`✅ Attempt ${attempt} - Response validated successfully`);
+        }
+
+        // Add AI response
+        const assistantMsg: Message = {
+          role: 'assistant',
+          content: data.message,
           timestamp: Date.now()
         };
-        setMessages(prev => [...prev, systemMsg]);
+        setMessages(prev => [...prev, assistantMsg]);
         
-        // Save system message to database
-        await saveMessageToDB('system', systemMsg.content);
+        // Save assistant message to database
+        await saveMessageToDB('assistant', data.message);
+
+        // If there are updates and validation passed, apply them
+        if ((data.updatedData || data.updatedCoverLetter) && validation.valid) {
+          // Validate and merge updatedData if present
+          let validatedData = data.updatedData;
+          if (data.updatedData) {
+            const requiredFields = ['name', 'email', 'phone'];
+            const missingFields = requiredFields.filter(field => !data.updatedData[field]);
+            
+            if (missingFields.length > 0) {
+              // Merge with current resume data to fill missing fields
+              validatedData = {
+                ...currentResumeData,
+                ...data.updatedData
+              };
+            }
+          }
+          
+          onUpdate(
+            validatedData || currentResumeData,
+            data.updatedCoverLetter || currentCoverLetter,
+            data.changedSections
+          );
+          
+          // Add system message with success indicator - make it context-aware
+          let successMessage = '✅ Updated successfully! Changes are highlighted in the preview.';
+          
+          const systemMsg: Message = {
+            role: 'system',
+            content: successMessage,
+            timestamp: Date.now()
+          };
+          setMessages(prev => [...prev, systemMsg]);
+          
+          // Save system message to database
+          await saveMessageToDB('system', systemMsg.content);
+        }
+        
+        // Success - break out of retry loop
+        break;
       }
 
     } catch (error) {
+      console.error('🚨 Fatal error in handleSend:', error);
       const errorMsg: Message = {
         role: 'assistant',
         content: "I'm having trouble processing that request. Please try again or rephrase your question.",

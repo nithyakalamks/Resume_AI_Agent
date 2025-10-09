@@ -35,21 +35,27 @@ ${coverLetter || 'Not available'}
 
 🚨 CRITICAL RESPONSE RULES:
 
-1. **FOR EDITING REQUESTS** (user says: add, remove, change, improve, etc.):
+1. **FOR RESUME EDITING REQUESTS** (user says: add, remove, change, improve resume/skills/experience):
    - ALWAYS return updatedData JSON with the complete resume structure
    - Preserve all existing data except what changed
    - Include a brief explanation of what you changed
    
-2. **FOR CLARIFYING QUESTIONS** (when request is unclear):
+2. **FOR COVER LETTER EDITING REQUESTS** (user mentions: cover letter, remove/add/change/improve in cover letter):
+   - MANDATORY: ALWAYS return updatedCoverLetter with the COMPLETE cover letter text
+   - Do NOT just return a message saying you did it - you MUST include the full updated cover letter
+   - Even for small changes (removing one line, fixing one word), return the ENTIRE updated cover letter
+   - Include a brief explanation of what you changed
+   
+3. **FOR CLARIFYING QUESTIONS** (when request is unclear):
    - Return ONLY a "message" field with your question
    - Do NOT include updatedData or updatedCoverLetter
    - Be specific about what you need to know
    
-3. **FOR SUGGESTIONS/FEEDBACK** (user asks: "thoughts?", "suggestions?"):
+4. **FOR SUGGESTIONS/FEEDBACK** (user asks: "thoughts?", "suggestions?"):
    - Return ONLY a "message" field with your feedback
    - Do NOT make changes unless explicitly asked
 
-4. **DATA INTEGRITY**:
+5. **DATA INTEGRITY**:
    - ALWAYS include ALL required fields: name, email, phone, location, linkedin, summary, skills, experience, education, projects, certifications
    - NEVER return partial data
    - Response MUST be valid JSON (no markdown code blocks)
@@ -131,25 +137,61 @@ User: "Make the cover letter more enthusiastic"
 Your response:
 {
   "message": "I've enhanced the cover letter with a more enthusiastic and engaging tone.",
-  "updatedCoverLetter": "<updated cover letter text>",
+  "updatedCoverLetter": "Dear Google Recruitment Team,\n\nI am thrilled to apply for the Senior Software Engineer position at Google. With over 5 years of experience in full-stack development, I am excited about the opportunity to contribute to your innovative projects.\n\nThroughout my career, I have successfully delivered scalable web applications and led cross-functional teams. My expertise in React, Node.js, and cloud technologies aligns perfectly with your requirements.\n\nI am particularly passionate about Google's mission to organize the world's information. I would be honored to bring my skills and enthusiasm to your team.\n\nThank you for considering my application. I look forward to discussing how I can contribute to Google's continued success.\n\nSincerely,\nJohn Doe",
   "changedSections": ["coverLetter"]
 }
 
+**Example 5: Small Cover Letter Edit (VERY IMPORTANT)**
+User: "Remove the line 'Thank you for considering my application.' from the cover letter"
+Your response:
+{
+  "message": "I've removed the line 'Thank you for considering my application.' from the cover letter.",
+  "updatedCoverLetter": "Dear Google Recruitment Team,\n\nI am thrilled to apply for the Senior Software Engineer position at Google. With over 5 years of experience in full-stack development, I am excited about the opportunity to contribute to your innovative projects.\n\nThroughout my career, I have successfully delivered scalable web applications and led cross-functional teams. My expertise in React, Node.js, and cloud technologies aligns perfectly with your requirements.\n\nI am particularly passionate about Google's mission to organize the world's information. I would be honored to bring my skills and enthusiasm to your team.\n\nI look forward to discussing how I can contribute to Google's continued success.\n\nSincerely,\nJohn Doe",
+  "changedSections": ["coverLetter"]
+}
+
+⚠️ NOTICE: Even though only ONE LINE was removed, the ENTIRE updated cover letter was returned!
+
+🚨 CRITICAL RULES for updatedCoverLetter:
+1. Return COMPLETE cover letter text - not a placeholder, not a summary
+2. Use PLAIN TEXT ONLY - NO markdown (**bold**, ##headers, -lists)
+3. NO HTML tags (<p>, <br>, etc.)
+4. Use \n\n for paragraph breaks (double newline)
+5. Maintain professional letter structure: "Dear [Company],\n\n[Body paragraphs]\n\nSincerely,\n[Name]"
+6. Keep the same format and length as the original unless specifically asked to change it
+7. If user asks to remove/add specific lines, do exactly that while preserving the rest
+8. NEVER just say you did it - ALWAYS include the complete updatedCoverLetter field
+
 🎯 DECISION TREE:
 
-1. **Is the request clear and specific?**
-   - YES → Make the edit, return updatedData
+1. **Is the request about the COVER LETTER?**
+   - YES → MUST return updatedCoverLetter with COMPLETE text
+   - NO → Continue to step 2
+
+2. **Is the request about the RESUME?**
+   - YES → MUST return updatedData with complete resume structure
+   - NO → Continue to step 3
+
+3. **Is the request clear and specific?**
+   - YES → Make the edit, return updatedData or updatedCoverLetter
    - NO → Ask a clarifying question, return message only
 
-2. **Does the user want changes or just feedback?**
-   - CHANGES (add, remove, fix, improve, etc.) → Return updatedData
+4. **Does the user want changes or just feedback?**
+   - CHANGES (add, remove, fix, improve, etc.) → Return updatedData or updatedCoverLetter
    - FEEDBACK ("thoughts?", "suggestions?") → Return message only
    - UNCLEAR ("this", "that") → Ask what specifically
 
-3. **Key action words that REQUIRE updatedData:**
+5. **Key action words that REQUIRE updatedData or updatedCoverLetter:**
    - add, remove, delete, update, change, modify, improve, edit, fix, enhance, optimize
    - replace, swap, switch, adjust, refine, revise, rewrite, rephrase
    - include, exclude, insert, append, drop, eliminate, strengthen
+
+🔴 FINAL CRITICAL REMINDER:
+If the user asks to edit the COVER LETTER in ANY way (even removing just one line or fixing one word):
+- You MUST return the COMPLETE updatedCoverLetter field with the ENTIRE cover letter text
+- Do NOT just return a message confirming the change
+- The frontend REQUIRES the full cover letter text to update the UI
+- Example: User says "Remove X from cover letter" → You return: { "message": "...", "updatedCoverLetter": "FULL COVER LETTER TEXT HERE", "changedSections": ["coverLetter"] }
 
 Remember: Be conversational, helpful, and precise. When in doubt, ask before acting!`;
 
@@ -213,9 +255,9 @@ Remember: Be conversational, helpful, and precise. When in doubt, ask before act
       }
     }
 
-    // Validation: Check if AI should have returned updatedData but didn't
-    if (isModificationRequest && !result.updatedData) {
-      console.error('🚨 CRITICAL: AI failed to return updatedData for modification request!');
+    // Validation: Check if AI should have returned updatedData or updatedCoverLetter but didn't
+    if (isModificationRequest && !result.updatedData && !result.updatedCoverLetter) {
+      console.error('🚨 CRITICAL: AI failed to return updatedData or updatedCoverLetter for modification request!');
       console.error('User message:', userMessage);
       console.error('AI response:', aiMessage);
       console.warn('⚠️ The AI model did not follow instructions. This will prevent UI updates.');
@@ -278,9 +320,46 @@ Remember: Be conversational, helpful, and precise. When in doubt, ask before act
       });
     }
 
+    // Validate and sanitize cover letter if present
+    if (result.updatedCoverLetter) {
+      console.log('📝 Validating cover letter format...');
+      console.log('Cover letter length:', result.updatedCoverLetter.length);
+      console.log('First 100 chars:', result.updatedCoverLetter.substring(0, 100));
+      
+      // Check for common formatting issues
+      const hasMarkdown = /(\*\*|##|^[-*+]\s)/m.test(result.updatedCoverLetter);
+      const hasHTML = /<[^>]+>/.test(result.updatedCoverLetter);
+      
+      if (hasMarkdown || hasHTML) {
+        console.warn('⚠️ Cover letter contains markdown or HTML, sanitizing...');
+        
+        // Remove markdown formatting
+        let sanitized = result.updatedCoverLetter;
+        sanitized = sanitized.replace(/\*\*([^*]+)\*\*/g, '$1');  // **bold**
+        sanitized = sanitized.replace(/\*([^*]+)\*/g, '$1');      // *italic*
+        sanitized = sanitized.replace(/^#{1,6}\s+/gm, '');        // # headers
+        sanitized = sanitized.replace(/^\s*[-*+]\s+/gm, '');      // - lists
+        
+        // Remove HTML tags
+        sanitized = sanitized.replace(/<[^>]+>/g, '');
+        
+        result.updatedCoverLetter = sanitized;
+        console.log('✅ Cover letter sanitized');
+      }
+      
+      // Ensure it's not just a placeholder
+      if (result.updatedCoverLetter.length < 50 || result.updatedCoverLetter.includes('<updated') || result.updatedCoverLetter.includes('placeholder')) {
+        console.error('🚨 Cover letter appears to be a placeholder or too short!');
+        console.error('Content:', result.updatedCoverLetter);
+      } else {
+        console.log('✅ Cover letter format validated');
+      }
+    }
+
     console.log('📤 Final result being sent to frontend:', {
       hasUpdatedData: !!result.updatedData,
       hasUpdatedCoverLetter: !!result.updatedCoverLetter,
+      coverLetterLength: result.updatedCoverLetter ? result.updatedCoverLetter.length : 0,
       hasChangedSections: !!result.changedSections,
       resultKeys: Object.keys(result),
       updatedDataKeys: result.updatedData ? Object.keys(result.updatedData) : []
