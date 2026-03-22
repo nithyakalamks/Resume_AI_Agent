@@ -1,3 +1,28 @@
+# 🤖 Resume AI Agent
+
+## 🚀 Overview
+This is an AI-powered conversational application built to demonstrate how AI agents can handle user interactions, automate responses, and integrate with backend systems.
+
+## ✨ Key Features
+- Conversational chatbot interface
+- AI-driven responses
+- Dynamic user interaction flows
+- Scalable frontend architecture
+
+## 🛠 Tech Stack
+- Frontend: React, Vite, Tailwind CSS
+- Language: TypeScript
+- UI: shadcn-ui
+- AI Tools: Lovable (AI-assisted development)
+
+## 🧠 What I Built & Learned
+- Designed and built conversational flows using AI tools
+- Understood how frontend interacts with backend systems
+- Learned rapid prototyping using AI-assisted development (Lovable)
+- Explored AI-driven product building workflows
+
+---
+
 # Welcome to your Lovable project
 
 ## Project info
